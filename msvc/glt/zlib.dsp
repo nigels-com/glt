@@ -97,6 +97,10 @@ SOURCE=..\..\src\zlib\crc32.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\zlib\crc32.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\zlib\deflate.c
 # End Source File
 # Begin Source File
@@ -109,19 +113,7 @@ SOURCE=..\..\src\zlib\gzio.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\zlib\infblock.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\zlib\infblock.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\zlib\infcodes.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\zlib\infcodes.h
+SOURCE=..\..\src\zlib\infback.c
 # End Source File
 # Begin Source File
 
@@ -146,14 +138,6 @@ SOURCE=..\..\src\zlib\inftrees.c
 # Begin Source File
 
 SOURCE=..\..\src\zlib\inftrees.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\zlib\infutil.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\zlib\infutil.h
 # End Source File
 # Begin Source File
 

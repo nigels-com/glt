@@ -4,7 +4,8 @@
 # should go last)
 #
 
-SUBDIRS = glt misc math mesh node glutm fonts network unifont zlib png jpeg glut csg glui program
+SUBDIRS = glt misc math mesh node glutm fonts network unifont \
+	  zlib zzip png jpeg glut freeglut ptypes csg glui program
 
 ROOT    = ..
 INCLUDE =

@@ -208,5 +208,13 @@ SOURCE=..\..\src\math\vector4.h
 SOURCE=..\..\src\math\volume.h
 # End Source File
 # End Group
+# Begin Group "Documentation"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\src\math\doxygen.dox
+# End Source File
+# End Group
 # End Target
 # End Project

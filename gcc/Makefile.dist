@@ -4,101 +4,106 @@ default: recurse
 ## BACKUP
 ##
 
+# File matching logic for SRC backup
+
+DIST_EXT += .c .h .cpp .hpp   		# C and C++ sources and headers
+DIST_EXT += .rc .ico 		  		# Windows resources and icons
+DIST_EXT += .iss			  		# Inno-Setup script
+DIST_EXT += .y .l			  		# Yacc/Bison parsers and Flex scanners
+DIST_EXT += .iv				  		# Open Inventor objects
+DIST_EXT += .dsp .dsw         		# MSVC 6.0 projects and workspaces
+DIST_EXT += .sln .vcproj      		# MSVC .NET projects and workspaces
+DIST_EXT += .dev                    # Dev C++ project files
+DIST_EXT += .def              		# MSVC DLL definition file
+DIST_EXT += .stroke			  		# GLUT stroke fonts
+DIST_EXT += .cfg              		# Doxygen configuration
+DIST_EXT += .txt .dox .css .html 	# Text and HTML files
+DIST_EXT += .1 .3 .5				# Unix man pages
+DIST_EXT += .cg						# NVIDIA Cg shaders
+DIST_EXT += .sh						# Unix shell scripts
+DIST_EXT += .ok						# Test results
+DIST_EXT += .doc					# MS Word documents
+
+# Path exclusion logic for SRC backup
+
+DIST_EXCLUDE += ^glt/bin/
+DIST_EXCLUDE += ^glt/lib/
+DIST_EXCLUDE += ^glt/msvc/Debug/
+DIST_EXCLUDE += ^glt/msvc/Release/
+DIST_EXCLUDE += ^glt/devcpp/bin/
+DIST_EXCLUDE += ^glt/devcpp/lib/
+DIST_EXCLUDE += ^glt/devcpp/tmp/
+DIST_EXCLUDE += Makefile.win
+DIST_EXCLUDE += ^glt/doc/html/
+DIST_EXCLUDE += ^glt/doc/man/
+DIST_EXCLUDE += ^glt/src/Inventor/
+DIST_EXCLUDE += ^glt/src/freetype/
+DIST_EXCLUDE += ^glt/src/openvrml/
+DIST_EXCLUDE += ^glt/src/gmp/
+DIST_EXCLUDE += ^glt/src/cpw/
+DIST_EXCLUDE += ^glt/src/ga/
+DIST_EXCLUDE += ^glt/src/purenum/
+DIST_EXCLUDE += ^glt/src/SDL/
+DIST_EXCLUDE += ^glt/src/SDL_image/
+DIST_EXCLUDE += ^glt/src/SDL_mixer/
+DIST_EXCLUDE += ~
+DIST_EXCLUDE += .bak
+
+# File matching logic for DATA backup
+
+DATA_EXT += .ppm .ppm.gz .pgm .pgm.gz .bmp .png .tga .gif 	# Images
+DATA_EXT += .fnt 											# Fonts
+DATA_EXT += .wrl											# VRML
+DATA_EXT += .dat											# Generic data
+
+# File exclusion logic for DATA backup
+
+DATA_EXCLUDE += ^glt/bin/
+DATA_EXCLUDE += ^glt/lib/
+DATA_EXCLUDE += ^glt/msvc/
+DATA_EXCLUDE += ^glt/devcpp/
+DATA_EXCLUDE += ^glt/doc/html/
+DATA_EXCLUDE += ^glt/doc/man/
+DATA_EXCLUDE += ^glt/src/research/
+DATA_EXCLUDE += ~
+DATA_EXCLUDE += .bak
+
 .PHONY: backup backup-src backup-data 
 
 backup: backup-src backup-data
 
 backup-src: 
-	@printf "" > .files
-	@find ./ -type f -name "*.h"      >> .files    # C/C++ header Files
-	@find ./ -type f -name "*.c"      >> .files    # C source files
-	@find ./ -type f -name "*.cpp"    >> .files    # C++ source files
-	@find ./ -type f -name "*.hpp"    >> .files    # C++ header files
-	@find ./ -type f -name "*.rc"     >> .files    # Windows resource files
-	@find ./ -type f -name "*.ico"    >> .files    # Windows icon files
-	@find ./ -type f -name "*.iss"    >> .files    # Windows Inno Setup Script
-	@find ./ -type f -name "*.y"      >> .files    # Yacc/Bison parsers
-	@find ./ -type f -name "*.l"      >> .files    # Flex scanners
-	@find ./ -type f -name "*.iv"     >> .files    # Open Inventor
-	@find ./ -type f -name "*.dsw"    >> .files    # Visual C++ Workspaces
-	@find ./ -type f -name "*.dsp"    >> .files    # Visual C++ Projects
-	@find ./ -type f -name "*.sln"    >> .files    # Visual C++ Solutions
-	@find ./ -type f -name "*.vcproj" >> .files    # Visual C++ Projects
-	@find ./ -type f -name "*.def"    >> .files    # Visual C++ DLL options
-	@find ./ -type f -name "*.stroke" >> .files    # GLUT stroke fonts
-	@find ./ -type f -name "*.cfg"    >> .files    # Doxygen configuration
-	@find ./ -type f -name "Make*"    >> .files    # Makefiles
-	@find ./ -type f -name "*.txt"    >> .files    # Text files
-	@find ./ -type f -name "*.3"      >> .files    # Unix man pages
-	@find ./ -type f -name "*.5"      >> .files    # Unix man pages
-	@find ./ -type f -name "*.doc"    >> .files    # MS Word Documents
-	@find ./ -type f -name "*.sh"     >> .files    # Shell scripts
-	@find ./ -type f -name "*.dox"    >> .files    # Doxygen documentation
-	@find ./ -type f -name "*.css"    >> .files    # Doxygen documentation
-	@find ./ -type f -name "*.html"   >> .files    # Doxygen documentation
-	@find ./ -type f -name "*.ok"     >> .files    # Expected diagnostic test (src/program/test) output
-	sed s/\^./glt/ < .files | sort > .files2
-	cat .files2 | \
-	grep -v "^glt/bin/" | \
-	grep -v "^glt/lib/" | \
-	grep -v "^glt/msvc/Debug/" | \
-	grep -v "^glt/msvc/Release/" | \
-	grep -v "^glt/doc/html/" | \
-	grep -v "^glt/doc/man/" | \
-	grep -v "^glt/src/Inventor/" | \
-	grep -v "^glt/src/freetype/" | \
-	grep -v "^glt/src/openvrml/" | \
-	grep -v "^glt/src/gmp/" | \
-	grep -v "^glt/src/cpw/" | \
-	grep -v "^glt/src/ga/" | \
-	grep -v "^glt/src/purenum/" | \
-	grep -v "^glt/src/SDL/" | \
-	grep -v "^glt/src/SDL_image/" | \
-	grep -v "^glt/src/SDL_mixer/" | \
-	grep -v "~" | \
-	grep -v ".bak" \
-	> .files
+	rm -f .files
+	for i in $(DIST_EXT); do find -type f -name "*$$i" >> .files; done
+	find ./ -type f -name "Make*"    >> .files    # Makefiles
+	sed s/\^./glt/ .files | sort > .files2
+	rm -f .files
+	for i in $(DIST_EXCLUDE); do grep -v "$$i" .files2 > .files; mv .files .files2; done
+	mv .files2 .files
 	tar cvzf gltSrc`date +%Y%m%d`.tgz -T .files -C ../
 
 backup-data:
-	@printf "" > .files
-	@find ./ -type f -name "*.ppm"    >> .files    # PPM Textures
-	@find ./ -type f -name "*.ppm.gz" >> .files    # Compressed PPM Textures
-	@find ./ -type f -name "*.pgm"    >> .files    # PGM Textures
-	@find ./ -type f -name "*.pgm.gz" >> .files    # Compressed PGM Textures
-	@find ./ -type f -name "*.bmp"    >> .files    # Windows BMP Textures
-	@find ./ -type f -name "*.png"    >> .files    # PNG Textures
-	@find ./ -type f -name "*.tga"    >> .files    # Targa Textures
-	@find ./ -type f -name "*.gif"    >> .files    # GIF Images
-	@find ./ -type f -name "*.fnt"    >> .files    # VGA Fonts
-	@find ./ -type f -name "*.wrl"    >> .files    # VRML Files
-	@find ./ -type f -name "*.dat"    >> .files    # Generic Data files
-	sed s/\^./glt/ < .files > .files2
-	cat .files2 | \
-	grep -v "^glt/bin/" | \
-	grep -v "^glt/lib/" | \
-	grep -v "^glt/msvc/" | \
-	grep -v "^glt/doc/html/" | \
-	grep -v "^glt/doc/man/" | \
-	grep -v "^glt/src/research/" | \
-	grep -v "~" | \
-	grep -v ".bak" \
-	> .files
+	rm -f .files
+	for i in $(DATA_EXT); do find -type f -name "*$$i" >> .files; done
+	sed s/\^./glt/ .files | sort > .files2
+	rm -f .files
+	for i in $(DATA_EXCLUDE); do grep -v "$$i" .files2 > .files; mv .files .files2; done
+	mv .files2 .files
 	tar cvzf gltData`date +%Y%m%d`.tgz -T .files -C ../
 
 ##
 ## DIST
 ##
 
-.PHONY: dist-core dist-example dist-glut dist-unifont dist-png dist-jpeg dist-glui dist-zpr dist-csg
+.PHONY: dist-core dist-example dist-glut dist-unifont dist-png dist-jpeg dist-glui dist-zzip dist-zpr dist-csg
 .PHONY: dist-util-win32 dist-example-win32
 .PHONY: dist-doxygen
 
-dist:   dist-core dist-example dist-glut dist-unifont dist-png dist-jpeg dist-glui dist-zpr dist-csg
+dist:   dist-core dist-example dist-glut dist-unifont dist-png dist-jpeg dist-glui dist-zzip dist-zpr dist-csg
 
 dist-win32: dist-util-win32 dist-example-win32
 
-GLT_VERSION=0.8-rc3
+GLT_VERSION=0.8-rc3b
 
 GLT_CORE=glt-core-$(GLT_VERSION)
 GLT_EXAMPLE=glt-example-$(GLT_VERSION)
@@ -107,13 +112,14 @@ GLT_GLUT=glt-glut-$(GLT_VERSION)
 GLT_PNG=glt-png-$(GLT_VERSION)
 GLT_JPEG=glt-jpeg-$(GLT_VERSION)
 GLT_GLUI=glt-glui-$(GLT_VERSION)
+GLT_ZZIP=glt-zzip-$(GLT_VERSION)
 GLT_CSG=glt-csg-$(GLT_VERSION)
 
 GLT_UTIL_WIN32=glt-util-win32-$(GLT_VERSION)
 GLT_EXAMPLE_WIN32=glt-example-win32-$(GLT_VERSION)
 GLT_DOX=glt-dox-$(GLT_VERSION)
  
-ZPR_VERSION=0.2
+ZPR_VERSION=0.4
 GLT_ZPR=glt-zpr-$(ZPR_VERSION)
 
 dist-core:
@@ -189,6 +195,16 @@ dist-glui:
 	tar cvzf            $(GLT_GLUI).tgz -T .files2 -C ../
 	cd ..; zip -9u@ glt/$(GLT_GLUI).zip < glt/.files2; cd glt
 
+dist-zzip:
+	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
+	printf ""                                > .files2
+	grep "^glt/src/zzip/"             .files >> .files2
+	grep "^glt/src/program/zzip/"     .files >> .files2
+	grep "^glt/msvc/zzip.dsw"         .files >> .files2
+	grep "^glt/msvc/zzip/"            .files >> .files2
+	tar cvzf            $(GLT_ZZIP).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_ZZIP).zip < glt/.files2; cd glt
+
 dist-png:
 	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
 	printf ""                                > .files2
@@ -250,4 +266,8 @@ dist-example-win32:
 #
 
 dist-doxygen:
-	tar cvzf $(GLT_DOX).tgz doc/html/
+	cd $(ROOT)
+	find doc/html -type f > .files
+	sed "s/^/glt\//" < .files > .files2
+	tar cvzf $(GLT_DOX).tgz -T .files2 -C ../
+

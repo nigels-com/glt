@@ -7,8 +7,10 @@
 # ----------------------------------------------------------------------
 
 # Prevent make from printing any commands as they are executed
-
 .SILENT:
+
+# Delete targets when an error happens
+.DELETE_ON_ERROR:
 
 # Include user configurable settings
 
@@ -40,7 +42,7 @@ endif
 # OBJECTS is the set of .o files resulting from all sources
 # DEPENDS is the set of .d files corresponding to each .o
 
-DEPEND       := $(CXX) $(CXXFLAGS) -M -MM  
+DEPEND       := $(CXXFLAGS) -M -MM
 
 OBJECTS      := $(patsubst %.cpp,$(OBJ)/%.o,$(CPP_SRC)) 
 OBJECTS      += $(patsubst %.c,$(OBJ)/%.o,$(C_SRC)) 
@@ -62,13 +64,13 @@ DEPENDS      += $(patsubst %.s,$(DEP)/%.d,$(ASM_SRC))
 $(DEP)/%.d:	%.c
 	printf "Makedepend %-25s\n" $*.c
 	mkdir -p $(DEP)
-	$(DEPEND) -MT $(OBJ)/$(patsubst %.c,%.o,$<) -MF $@ $< >> /dev/null
-	printf "%s: %s\n" $(OBJ)/$(patsubst %.cpp,%.o,$<) "Makefile $(ROOT)/gcc/Makefile.inc $(ROOT)/gcc/Makefile.config" >> $@
+	-$(CC) $(DEPEND) -MT $(OBJ)/$(patsubst %.c,%.o,$<) -MF $@ $< >> /dev/null
+	printf "%s: %s\n" $(OBJ)/$(patsubst %.c,%.o,$<) "Makefile $(ROOT)/gcc/Makefile.inc $(ROOT)/gcc/Makefile.config" >> $@
 	
 $(DEP)/%.d: %.cpp 
 	printf "Makedepend %-25s\n" $*.cpp
 	mkdir -p $(DEP)
-	$(DEPEND) -MT $(OBJ)/$(patsubst %.cpp,%.o,$<) -MF $@ $< >> /dev/null
+	-$(CXX) $(DEPEND) -MT $(OBJ)/$(patsubst %.cpp,%.o,$<) -MF $@ $< >> /dev/null
 	printf "%s: %s\n" $(OBJ)/$(patsubst %.cpp,%.o,$<) "Makefile $(ROOT)/gcc/Makefile.inc $(ROOT)/gcc/Makefile.config" >> $@
 
 ########################################################################
@@ -76,20 +78,27 @@ $(DEP)/%.d: %.cpp
 # LOGGING
 
 # Store the output to a .log file and also pipe it
-# to standard output with some indentation.  Finally,
-# remove the .log file if it is empty.
+# to standard output with some indentation.  
+# Remove the .log file if it is empty.
 
-LOG_OUTPUT = 														\
-	2>&1 | tee $*.log | sed "s/^$<://" | sed "s/^/           /"; 	\
-	if (test ! -s $*.log); then rm $*.log; fi
+LOG_BEGIN = if (!
+
+LOG_END   = 2> $*.log) then rm -f $@; $(LOG_PROCESS); return 1; else $(LOG_PROCESS); fi
+
+LOG_PROCESS = \
+	if (test ! -s $*.log); then 									\
+		rm $*.log;													\
+	else															\
+		cat $*.log | sed "s/^$<://" | sed "s/^/           /";		\
+	fi
 
 LOG_SUMMARY =														\
-	if (test -n "`ls *.log 2> /dev/null`"); then						\
+	-if (test -n "`ls *.log 2> /dev/null`"); then					\
 		printf "%d warnings, %d errors in %d file(s).\n" 			\
 		`cat *.log | grep warning | wc -l` 							\
 		`cat *.log | grep error | wc -l` 							\
 		`ls *.log | wc -w`;											\
-	fi																\
+	fi																
 		
 ########################################################################
 #
@@ -101,26 +110,22 @@ LOG_SUMMARY =														\
 $(OBJ)/%.o: %.cpp
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	$(CXX) $(CXXFLAGS) -c $< -o $@ $(LOG_OUTPUT)
-	$(CHECK_LOG)
+	$(LOG_BEGIN) $(CXX) $(CXXFLAGS) -c $< -o $@ $(LOG_END)
 
 $(OBJ)/%.o: %.c
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	$(CC) $(CFLAGS)    -c $< -o $@ $(LOG_OUTPUT)
-	$(CHECK_LOG)
+	$(LOG_BEGIN) $(CC) $(CFLAGS)    -c $< -o $@ $(LOG_END)
 
 $(OBJ)/%.o: %.s
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	$(CXX) $(CXXFLAGS) -c $< -o $@ $(LOG_OUTPUT)
-	$(CHECK_LOG)
+	$(LOG_BEGIN) $(CXX) $(CXXFLAGS) -c $< -o $@ $(LOG_END)
 
 $(OBJ)/%.o: %.rc
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	windres -D__MINGW32__ $< -o $@ $(LOG_OUTPUT)
-	$(CHECK_LOG)
+	$(LOG_BEGIN) windres -D__MINGW32__ $< -o $@ $(LOG_END)
 
 .PHONY: recurse settings doRecurse summary
 	
@@ -134,7 +139,7 @@ doRecurse:
 				$(MAKE) -C $$i;                         \
 				printf "Leaving    %s\n" `pwd`/$$i; 	\
 			else 										\
-				@printf "Skipping   %s\n" `pwd`/$$i; 	\
+				printf "Skipping   %s\n" `pwd`/$$i; 	\
 			fi 											\
 		 done 											\
 	fi													
@@ -213,13 +218,17 @@ lib: $(OBJECTS) $(LIB)/$(ARCHIVE)( $(patsubst $(OBJ)/%,%,$(OBJECTS) ) )
 #
 # CLEAN
 
-.PHONY: clean
+.PHONY: clean realclean
+
+JUNK_EXT = .bak .out .log .aps .ncb .o .d .a .lib .obj .pdb .idb .pch .opt .plg ~
+JUNK_DIR = .object .depend
 
 clean:	cleantest
 	printf "Cleaning   %s\n" `pwd`
-	rm -f *~ *.aps *.out *.log
-	if (test $(ARCHIVE) ); then rm -f $(LIB)/$(ARCHIVE); fi
-	rm -Rf $(OBJ) $(DEP)
+	for i in $(JUNK_EXT); do rm -fv  *$$i; done
+	for i in $(JUNK_DIR); do rm -Rfv $$i; done
+	if (test $(ARCHIVE) ); then rm -fv $(LIB)/$(ARCHIVE); fi
+	rm -fv $(OBJ) $(DEP)
 	if (test "$(SUBDIRS)"); then 	    				\
 		for i in $(SUBDIRS); do 						\
 			if (test -d $$i -a -f $$i/Makefile); then 	\
@@ -228,6 +237,17 @@ clean:	cleantest
 		done 											\
 	fi	
 
+########################################################################
+#
+# REAL-CLEAN
+#
+# Remove all known temporary, intermediate and otherwise unncessary files
+#
+
+realclean:
+	for i in $(JUNK_EXT); do rm -fv  `find -type f -name "*$$i"`; done
+	for i in $(JUNK_DIR); do rm -Rfv `find -type d -name "$$i"`; done
+	
 ########################################################################
 #
 # REGRESSION TESTING
@@ -271,8 +291,8 @@ EXPAND    = --tabs=4
 
 .PHONY: expand 
 
-expand:
-	for i in *.c *.cpp *.h *.s; do 				           	\
+expand: permissions
+	for i in *.c *.cpp *.h *.s *.txt *.dox; do 		      	\
 		if (test -f "$$i"); then							\
 			printf "Expanding  %s\n" $$i;					\
 			expand $(EXPAND) $$i | sed 's/[ ]*$$//' > .tmp;	\
@@ -286,6 +306,26 @@ expand:
 		for i in $(SUBDIRS); do 							\
 			if (test -d $$i -a -f $$i/Makefile); then 		\
 				$(MAKE) -C $$i expand; 						\
+			fi 												\
+		done 												\
+	fi	
+
+########################################################################
+#
+# SOURCE FILE PERMISSIONS
+
+.PHONY: permissions
+
+permissions:
+	for i in *.c *.cpp *.h *.s *.txt *.dox Make* *.dox; do 	\
+		if (test -f "$$i"); then							\
+            chmod a-x,u+rw $$i;                             \
+		fi;													\
+	done					
+	if (test "$(SUBDIRS)"); then 							\
+		for i in $(SUBDIRS); do 							\
+			if (test -d $$i -a -f $$i/Makefile); then 		\
+				$(MAKE) -C $$i permissions; 				\
 			fi 												\
 		done 												\
 	fi	

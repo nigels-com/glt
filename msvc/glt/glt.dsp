@@ -125,6 +125,10 @@ SOURCE=..\..\src\glt\fontasci.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\glt\fontpoly.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\glt\fonttex.cpp
 # End Source File
 # Begin Source File
@@ -230,6 +234,10 @@ SOURCE=..\..\src\glt\font.h
 # Begin Source File
 
 SOURCE=..\..\src\glt\fontasci.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\glt\fontpoly.h
 # End Source File
 # Begin Source File
 

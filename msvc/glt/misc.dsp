@@ -101,6 +101,10 @@ SOURCE=..\..\src\misc\endian.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\misc\file.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\misc\hex.cpp
 # End Source File
 # Begin Source File
@@ -162,6 +166,10 @@ SOURCE=..\..\src\misc\config.h
 # Begin Source File
 
 SOURCE=..\..\src\misc\endian.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\misc\file.h
 # End Source File
 # Begin Source File
 
