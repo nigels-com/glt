@@ -41,7 +41,9 @@
 #include <vector>
 #include <string>
 
+class Vector2;
 class Vector3;
+class Vector4;
 class Matrix;
 class BoundingBox;
 class GltColor;
@@ -81,7 +83,9 @@ public:
     void add(double       &,                  const std::string &name);
     void add(double       &,const double step,const std::string &name);
     void add(std::string  &,                  const std::string &name);
+    void add(Vector2      &,                  const std::string &name);
     void add(Vector3      &,                  const std::string &name);
+    void add(Vector4      &,                  const std::string &name);
     void add(Matrix       &,                  const std::string &name);
     void add(BoundingBox  &,                  const std::string &name);
     void add(GltColor     &,                  const std::string &name);

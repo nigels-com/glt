@@ -161,20 +161,20 @@ GltRegistryMenu::OnKeyboard(unsigned char key, int x, int y)
                         --(*fieldFloat);
                         break;
                     case '*':
-                        fieldFloat->val() *= 1.25;
+                        fieldFloat->val() *= 1.25f;
                         break;
                     case '/':
-                        fieldFloat->val() *= 0.8;
+                        fieldFloat->val() *= 0.8f;
                         break;
                     case 'r':
                     case 'n':
-                        fieldFloat->val() *= -1.0;
+                        fieldFloat->val() *= -1.0f;
                         break;
                     case '0':
-                        fieldFloat->val() = 0.0;
+                        fieldFloat->val() = 0.0f;
                         break;
                     case '1':
-                        fieldFloat->val() = 1.0;
+                        fieldFloat->val() = 1.0f;
                         break;
                     case 127:
                         fieldFloat->reset();

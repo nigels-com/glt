@@ -4,7 +4,9 @@
     \ingroup Node
 */
 
+#include <math/vector2.h>
 #include <math/vector3.h>
+#include <math/vector4.h>
 #include <math/matrix4.h>
 #include <math/bbox.h>
 
@@ -74,7 +76,7 @@ GltFields::add(unsigned int &val,const string &name)
 void
 GltFields::add(float &val,const string &name)
 {
-    _fields.push_back(GltFieldPtr(new GltFieldFloat(val,0.1,name)));
+    _fields.push_back(GltFieldPtr(new GltFieldFloat(val,0.1f,name)));
 }
 
 void
@@ -102,7 +104,17 @@ GltFields::add(string &val,const string &name)
 }
 
 void
-GltFields::add(Vector &val,const string &name)
+GltFields::add(Vector2 &val,const string &name)
+{
+    GltFields *root = new GltFields(name);
+    _fields.push_back(GltFieldPtr(root));
+
+    root->add(val.x(),1.0,"x");
+    root->add(val.y(),1.0,"y");
+}
+
+void
+GltFields::add(Vector3 &val,const string &name)
 {
     GltFields *root = new GltFields(name);
     _fields.push_back(GltFieldPtr(root));
@@ -110,6 +122,18 @@ GltFields::add(Vector &val,const string &name)
     root->add(val.x(),1.0,"x");
     root->add(val.y(),1.0,"y");
     root->add(val.z(),1.0,"z");
+}
+
+void
+GltFields::add(Vector4 &val,const string &name)
+{
+    GltFields *root = new GltFields(name);
+    _fields.push_back(GltFieldPtr(root));
+
+    root->add(val.x(),1.0,"x");
+    root->add(val.y(),1.0,"y");
+    root->add(val.z(),1.0,"z");
+    root->add(val.w(),1.0,"w");
 }
 
 void
