@@ -44,32 +44,18 @@
  */
 
 template <typename T>
-inline T readFromBuffer (const byte** buff)
+inline T readFromBuffer(const byte **pos)
 {
-    T temp = littleEndian(reinterpret_cast<const T*>(*buff));
-    (*buff)+= sizeof(T);
-    return temp;
+    T tmp = littleEndian(reinterpret_cast<const T *>(*pos));
+    *pos += sizeof(T);
+    return tmp;
 }
-
-/*
-inline uint16 readUint16FromBuffer (const byte** buff)
-{
-    uint16 temp = littleEndian(reinterpret_cast<const uint16*>(*buff));
-    (*buff)+=2;
-    return temp;
-}
-
-inline uint32 readUint32FromBuffer (const byte** buff)
-{
-    uint32 temp = littleEndian(reinterpret_cast<const uint32*>(*buff));
-    (*buff)+=4;
-    return temp;
-}*/
 
 template <typename T>
-inline void writeToBuffer (T val, byte** buff)
+inline void writeToBuffer (T val, byte **buff)
 {
-    byte* temp = reinterpret_cast<byte*>(&val);
+    byte *temp = reinterpret_cast<byte*>(&val);
+
     #ifdef GLT_BIG_ENDIAN
     flip(val);
     #endif
@@ -82,57 +68,21 @@ inline void writeToBuffer (T val, byte** buff)
     };
 }
 
-/*
-inline void writeUint16ToBuffer (uint16 val, byte** buff)
-{
-    byte* temp = reinterpret_cast<byte*>(&val);
-    #ifdef GLT_BIG_ENDIAN
-    flip(val);
-    #endif
-
-    **buff = *temp;
-    ++(*buff); ++temp;
-
-    **buff = *temp;
-    ++(*buff);
-}
-
-inline void writeUint32ToBuffer (uint32 val, byte** buff)
-{
-    byte* temp = reinterpret_cast<byte*>(&val);
-    #ifdef GLT_BIG_ENDIAN
-    flip(val);
-    #endif
-
-    **buff = *temp;
-    ++(*buff); ++temp;
-
-    **buff = *temp;
-    ++(*buff); ++temp;
-
-    **buff = *temp;
-    ++(*buff); ++temp;
-
-    **buff = *temp;
-    ++(*buff);
-}
-*/
-
 /**
  * public functions
  */
 
-BitmapFileHeader::BitmapFileHeader( void )
-:fileType (BMP_FILE_ID),
- fileSize (DEFAULT_FILE_SIZE),
- res1 (0),
- res2 (0),
- imageOffset (DEFAULT_IMAGE_OFFSET)
+BitmapFileHeader::BitmapFileHeader()
+:  fileType(BMP_FILE_ID),
+   fileSize(DEFAULT_FILE_SIZE),
+   res1(0),
+   res2(0),
+   imageOffset(DEFAULT_IMAGE_OFFSET)
 {
 }
 
-/* buffer version */
-bool BitmapFileHeader::loadFromBuffer (const byte** buff)
+bool 
+BitmapFileHeader::loadFromBuffer(const byte **buff)
 {
     fileType = readFromBuffer<uint16>(buff);
 
@@ -150,8 +100,8 @@ bool BitmapFileHeader::loadFromBuffer (const byte** buff)
     return true;
 }
 
-/* buffer version */
-void BitmapFileHeader::saveToBuffer (byte** buff)
+void 
+BitmapFileHeader::saveToBuffer(byte **buff)
 {
     writeToBuffer<uint16>(fileType, buff);
     writeToBuffer<uint32>(fileSize, buff);
@@ -163,57 +113,55 @@ void BitmapFileHeader::saveToBuffer (byte** buff)
     writeToBuffer<uint32>(imageOffset, buff);
 }
 
-BitmapInfoHeader::BitmapInfoHeader( void )
-:infoSize (40),
- imageWidth (0),
- imageHeight (0),
- colourPlanes (1),
- bitCount (24),
- compression (NO_COMPRESSION),
- imageSize (0),
- pixelsX (DPI_TO_METERS),
- pixelsY (DPI_TO_METERS),
- numColours (0),
- numImportant (0),
- paletteData (NULL)
+BitmapInfoHeader::BitmapInfoHeader()
+:  infoSize(40),
+   imageWidth(0),
+   imageHeight(0),
+   colourPlanes(1),
+   bitCount(24),
+   compression(NO_COMPRESSION),
+   imageSize(0),
+   pixelsX(DPI_TO_METERS),
+   pixelsY(DPI_TO_METERS),
+   numColours(0),
+   numImportant(0),
+   paletteData(NULL)
 {
 }
 
-/* buffer version */
-void BitmapInfoHeader::loadFromBuffer (const byte** buff)
+void
+BitmapInfoHeader::loadFromBuffer(const byte **buff)
 {
-    infoSize = readFromBuffer<uint32>(buff);
-    imageWidth = readFromBuffer<uint32>(buff);
-    imageHeight = readFromBuffer<uint32>(buff);
+    infoSize     = readFromBuffer<uint32>(buff);
+    imageWidth   = readFromBuffer<uint32>(buff);
+    imageHeight  = readFromBuffer<uint32>(buff);
     colourPlanes = readFromBuffer<uint16>(buff);
-    bitCount = readFromBuffer<uint16>(buff);
-    compression = readFromBuffer<uint32>(buff);
-    imageSize = readFromBuffer<uint32>(buff);
-    pixelsX = readFromBuffer<uint32>(buff);
-    pixelsY = readFromBuffer<uint32>(buff);
-    numColours = readFromBuffer<uint32>(buff);
+    bitCount     = readFromBuffer<uint16>(buff);
+    compression  = readFromBuffer<uint32>(buff);
+    imageSize    = readFromBuffer<uint32>(buff);
+    pixelsX      = readFromBuffer<uint32>(buff);
+    pixelsY      = readFromBuffer<uint32>(buff);
+    numColours   = readFromBuffer<uint32>(buff);
     numImportant = readFromBuffer<uint32>(buff);
 
     loadPaletteFromBuffer(buff);
 }
 
-/* buffer version */
-void BitmapInfoHeader::loadPaletteFromBuffer (const byte** buff)
+void 
+BitmapInfoHeader::loadPaletteFromBuffer(const byte **buff)
 {
     if (numColours > 0)
     {
         /* generate an empty palette */
         setPaletteSize(numColours);
-
         memcpy(paletteData, *buff, numColours*4);
-
         (*buff) += numColours*4;
     }
 }
 
 
-/* buffer version */
-void BitmapInfoHeader::saveToBuffer (byte** buff)
+void
+BitmapInfoHeader::saveToBuffer(byte **buff)
 {
     writeToBuffer<uint32>(infoSize, buff);
     writeToBuffer<uint32>(imageWidth, buff);
@@ -230,18 +178,18 @@ void BitmapInfoHeader::saveToBuffer (byte** buff)
     savePaletteToBuffer(buff);
 }
 
-/* buffer version */
-void BitmapInfoHeader::savePaletteToBuffer (byte** buff)
+void 
+BitmapInfoHeader::savePaletteToBuffer(byte **buff)
 {
     if (numColours > 0)
     {
         memcpy(*buff, paletteData, numColours*4);
-
        (*buff) += numColours*4;
     }
 }
 
-void BitmapInfoHeader::setPalette (const byte* pal)
+void 
+BitmapInfoHeader::setPalette(const byte *pal)
 {
     if (paletteData)
         delete [] paletteData;
@@ -258,30 +206,32 @@ void BitmapInfoHeader::setPalette (const byte* pal)
     }
 }
 
-BitmapFile::BitmapFile (void)
-:fileHeader (NULL),
- infoHeader (NULL),
- imageData (NULL)
+BitmapFile::BitmapFile()
+:  fileHeader(NULL),
+   infoHeader(NULL),
+   imageData(NULL)
 {
     fileHeader = new BitmapFileHeader;
     infoHeader = new BitmapInfoHeader;
 }
 
-BitmapFile::~BitmapFile (void)
+BitmapFile::~BitmapFile()
 {
     if (fileHeader)
         delete fileHeader;
+
     if (infoHeader)
         delete infoHeader;
+
     if (imageData)
         delete [] imageData;
 }
 
-/* buffer version */
 /* returns true on success*/
-bool BitmapFile::loadFromBuffer (const byte* buffPtr)
+bool 
+BitmapFile::loadFromBuffer(const byte *buffPtr)
 {
-    const byte* buff = buffPtr;
+    const byte *buff = buffPtr;
 
     if (buff == NULL)
         return false;
@@ -306,10 +256,10 @@ bool BitmapFile::loadFromBuffer (const byte* buffPtr)
     return true;
 }
 
-/* buffer version */
-void BitmapFile::saveToBuffer (byte* buffPtr)
+void 
+BitmapFile::saveToBuffer(byte *buffPtr)
 {
-    byte* buff = buffPtr;
+    byte *buff = buffPtr;
 
     if (buff == NULL)
         return;
@@ -326,7 +276,8 @@ void BitmapFile::saveToBuffer (byte* buffPtr)
     }
 }
 
-void BitmapFile::adjustInternalDimensions (void)
+void 
+BitmapFile::adjustInternalDimensions()
 {
     uint32 w, h, palSize;
     uint16 bpp;
@@ -345,48 +296,34 @@ void BitmapFile::adjustInternalDimensions (void)
  * public functions
  */
 
+uint32 BitmapFile::getWidth()     const { return infoHeader->getImageWidth();  }
+uint32 BitmapFile::getHeight()    const { return infoHeader->getImageHeight(); }
+uint16 BitmapFile::getBpp()       const { return infoHeader->getBitCount();    }
+uint32 BitmapFile::getImageSize() const { return infoHeader->getImageSize();   }
 
-
-
-uint32 BitmapFile::getWidth (void) const
-{
-    return infoHeader->getImageWidth();
-}
-
-uint32 BitmapFile::getHeight (void) const
-{
-    return infoHeader->getImageHeight();
-}
-
-uint16 BitmapFile::getBpp (void) const
-{
-    return infoHeader->getBitCount();
-}
-
-uint32 BitmapFile::getImageSize (void) const
-{
-    return infoHeader->getImageSize();
-}
-
-void BitmapFile::setWidth (uint32 w)
+void 
+BitmapFile::setWidth(uint32 w)
 {
     infoHeader->setImageWidth(w);
     adjustInternalDimensions();
 }
 
-void BitmapFile::setHeight (uint32 h)
+void 
+BitmapFile::setHeight(uint32 h)
 {
     infoHeader->setImageHeight(h);
     adjustInternalDimensions();
 }
 
-void BitmapFile::setBpp (uint16 bpp)
+void
+BitmapFile::setBpp(uint16 bpp)
 {
     infoHeader->setBitCount(bpp);
     adjustInternalDimensions();
 }
 
-void BitmapFile::setDimensions (uint32 w, uint32 h, uint16 bpp)
+void 
+BitmapFile::setDimensions(uint32 w, uint32 h, uint16 bpp)
 {
     infoHeader->setImageWidth(w);
     infoHeader->setImageHeight(h);
@@ -394,36 +331,28 @@ void BitmapFile::setDimensions (uint32 w, uint32 h, uint16 bpp)
     adjustInternalDimensions();
 }
 
-uint32 BitmapFile::getPaletteSize (void) const
-{
-    return infoHeader->getNumColours();
-}
+     uint32 BitmapFile::getPaletteSize() const { return infoHeader->getNumColours();  }
+const byte *BitmapFile::getPalette()     const { return infoHeader->getPaletteData(); }
 
-const byte* BitmapFile::getPalette (void) const
-{
-    return infoHeader->getPaletteData();
-}
-
-
-void BitmapFile::setPaletteSize (uint32 size)
+void 
+BitmapFile::setPaletteSize(uint32 size)
 {
     infoHeader->setPaletteSize(size);
     infoHeader->setPalette(NULL);
     adjustInternalDimensions();
 }
 
-void BitmapFile::setPalette (const byte* pal)
+void
+BitmapFile::setPalette(const byte *pal)
 {
     infoHeader->setPalette(pal);
 }
 
 
-byte* BitmapFile::getImageData () const
-{
-    return imageData;
-}
+byte *BitmapFile::getImageData() const { return imageData; }
 
-void BitmapFile::setImageData (const byte* buff)
+void 
+BitmapFile::setImageData(const byte *buff)
 {
     if (imageData != NULL)
         delete [] imageData;
@@ -433,7 +362,8 @@ void BitmapFile::setImageData (const byte* buff)
     memcpy(imageData, buff, infoHeader->getImageSize());
 }
 
-void BitmapFile::convertRGBtoBGR (void)
+void
+BitmapFile::convertRGBtoBGR()
 {
     int bpp = 0;
     int width, height;
@@ -443,17 +373,10 @@ void BitmapFile::convertRGBtoBGR (void)
 
     switch (infoHeader->getBitCount())
     {
-        case 8:
-            bpp = 1;
-            break;
-        case 16:
-            bpp = 2;
-            break;
-        case 24:
-            bpp = 3;
-            break;
-        case 32:
-            bpp = 4;
+        case 8:  bpp = 1; break;
+        case 16: bpp = 2; break;
+        case 24: bpp = 3; break;
+        case 32: bpp = 4; break;
     };
 
     width = infoHeader->getImageWidth();
@@ -468,6 +391,6 @@ void BitmapFile::convertRGBtoBGR (void)
             tempCol = imageData[i+2];
             imageData[i+2] = imageData[i];
             imageData[i] = tempCol;
-        };
+        }
     }
 }

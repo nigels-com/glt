@@ -31,24 +31,23 @@
 
 struct BitmapFileHeader
 {
-    uint16    fileType;     /* specifies file type must be BM (4D42h) */
-    uint32    fileSize;     /* file size in bytes (54) */
+    uint16    fileType;     ///< Specifies file type must be BM (4D42h)
+    uint32    fileSize;     ///< file size in bytes (54)
 
-    uint16    res1;         /* must be 0 */
-    uint16    res2;         /* must be 0 */
-    uint32    imageOffset;  /* offset in bytes from the header to the data (40) */
+    uint16    res1;         ///< must be 0
+    uint16    res2;         ///< must be 0
+    uint32    imageOffset;  ///< offset in bytes from the header to the data (40) 
 
-    public:
+public:
 
-    BitmapFileHeader ();
-    ~BitmapFileHeader ();
+    BitmapFileHeader();
+    ~BitmapFileHeader();
 
-    void saveToBuffer (byte**);
-    bool loadFromBuffer (const byte**);
+    void saveToBuffer(byte **);
+    bool loadFromBuffer(const byte **);
 
-    inline void setFileSize (uint32 val) { fileSize = val; }
-    inline void setImageOffset (uint32 val) { imageOffset = val; }
-
+    inline void setFileSize(uint32 val)    { fileSize = val; }
+    inline void setImageOffset(uint32 val) { imageOffset = val; }
 };
 
 /** wrapper for the palette data.
@@ -74,34 +73,34 @@ struct BitmapInfoHeader
     uint32    pixelsY;      /* number of pixels in y per meter (2834) */
     uint32    numColours;   /* number of colours used in the image (0) */
     uint32    numImportant; /* number of important colours (0) */
-    byte*     paletteData;  /* the palette data that may follow */
+    byte *    paletteData;  /* the palette data that may follow */
 
-    public:
+public:
 
     BitmapInfoHeader ();
     ~BitmapInfoHeader ();
 
-    void saveToBuffer (byte**);
-    void loadFromBuffer (const byte**);
+    void saveToBuffer(byte **);
+    void loadFromBuffer(const byte **);
 
-    void savePaletteToBuffer (byte**);
-    void loadPaletteFromBuffer (const byte**);
-    void setPalette (const byte*);
+    void savePaletteToBuffer(byte **);
+    void loadPaletteFromBuffer(const byte **);
+    void setPalette(const byte *);
 
-    inline uint32 getImageWidth (void) const { return imageWidth; }
-    inline uint32 getImageHeight (void) const { return imageHeight; }
-    inline uint32 getBitCount (void) const { return bitCount; }
-    inline uint32 getImageSize (void) const { return imageSize; }
-    inline uint32 getNumColours (void) const { return numColours; }
-    inline uint32 getPaletteSize (void) const { return numColours*4; }
+    inline uint32 getImageWidth()  const { return imageWidth;   }
+    inline uint32 getImageHeight() const { return imageHeight;  }
+    inline uint32 getBitCount()    const { return bitCount;     }
+    inline uint32 getImageSize()   const { return imageSize;    }
+    inline uint32 getNumColours()  const { return numColours;   }
+    inline uint32 getPaletteSize() const { return numColours*4; }
 
-    inline byte* getPaletteData (void) const { return paletteData; }
+    inline byte *getPaletteData () const { return paletteData;  }
 
-    inline void setImageWidth (uint32 w) { imageWidth = w; }
-    inline void setImageHeight (uint32 h) { imageHeight = h; }
-    inline void setBitCount (uint16 bpp) { bitCount = bpp; }
-    inline void setImageSize (uint32 s) { imageSize = s; }
-    inline void setPaletteSize (uint32 s) { numColours = s/4; }
+    inline void setImageWidth(uint32 w)  { imageWidth = w;   }
+    inline void setImageHeight(uint32 h) { imageHeight = h;  }
+    inline void setBitCount(uint16 bpp)  { bitCount = bpp;   }
+    inline void setImageSize(uint32 s)   { imageSize = s;    }
+    inline void setPaletteSize(uint32 s) { numColours = s/4; }
 };
 
 
@@ -111,61 +110,59 @@ struct BitmapInfoHeader
 
 struct BitmapFile
 {
-    BitmapFileHeader* fileHeader;
-    BitmapInfoHeader* infoHeader;
-    byte* imageData;
+    BitmapFileHeader *fileHeader;
+    BitmapInfoHeader *infoHeader;
+    byte *imageData;
 
     public:
 
-    BitmapFile ();
-    ~BitmapFile ();
+    BitmapFile();
+    ~BitmapFile();
 
 /**
  * Loading, saving and initalising
  */
 
-    void saveToBuffer (byte*);
-    /* returns true on success */
-    bool loadFromBuffer (const byte*);
+    void saveToBuffer(byte *);
+    bool loadFromBuffer(const byte *);
 
 /**
  * Getting & setting dimensions and other info
  */
-    uint32 getWidth (void) const;
-    uint32 getHeight (void) const;
-    uint16 getBpp (void) const;
-    uint32 getImageSize (void) const;
+    uint32 getWidth()     const;
+    uint32 getHeight()    const;
+    uint16 getBpp()       const;
+    uint32 getImageSize() const;
 
-    void setWidth (uint32);
-    void setHeight (uint32);
-    void setBpp (uint16);
+    void setWidth(uint32);
+    void setHeight(uint32);
+    void setBpp(uint16);
 
-    void setDimensions (uint32 w, uint32 h, uint16 bpp);
+    void setDimensions(uint32 w, uint32 h, uint16 bpp);
 
 /**
  * Palette specific functions
  */
 
-    uint32 getPaletteSize (void) const;
-    const byte* getPalette (void) const;
+         uint32 getPaletteSize() const;
+    const byte *getPalette()     const;
 
-    void setPaletteSize (uint32);
+    void setPaletteSize(uint32);
 
-    void setPalette (const byte*);
+    void setPalette(const byte *);
 
 /**
  * Getting and setting the image data
  */
 
-    byte* getImageData (void) const;
-    void setImageData (const byte*);
+    byte *getImageData() const;
+    void  setImageData(const byte *);
 
-    void convertRGBtoBGR (void);
+    void convertRGBtoBGR();
 
-    private:
+private:
 
-    void adjustInternalDimensions (void);
-
+    void adjustInternalDimensions();
 };
 
 

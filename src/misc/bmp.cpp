@@ -4,9 +4,12 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.7 2004/03/21 11:02:04 jgasseli Exp $
+    $Id: bmp.cpp,v 2.8 2004/03/21 20:37:50 nigels Exp $
 
     $Log: bmp.cpp,v $
+    Revision 2.8  2004/03/21 20:37:50  nigels
+    Adjusted some formatting to bring it into GLT conventions
+
     Revision 2.7  2004/03/21 11:02:04  jgasseli
     commenting out define BMP_NEW
 
@@ -48,7 +51,7 @@
 
 #ifdef BMP_NEW
 #include "bmp_P.h"
-//#include "bmp_P.cpp"
+#include "bmp_P.cpp"
 #endif
 
 using namespace std;
@@ -66,25 +69,19 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
 #ifdef BMP_NEW
     /* Alternative file loading using bmp_P.cpp */
 
-
-    // make a BitmapFile object for .BMP I/O
+    // BitmapFile object for .BMP I/O
     BitmapFile bitmap;
 
-    // generate the byte buffer.
-    // don't copy, just reference
-    // std::string should keep data as long as we don't change the string
-    const byte* inputBuffer = reinterpret_cast<const byte*>(data.data());
+    // Get a pointer to the input byte buffer.
+    const byte *inputBuffer = reinterpret_cast<const byte*>(data.data());
 
     if (!(bitmap.loadFromBuffer(inputBuffer)))
-    { //an error occured
+    { 
         gltWarning("Unsupported BMP variant.");
-        assert(0);
         return false;
     }
-    //otherwise assume structure is correct
 
-    //extract the data
-    width = bitmap.getWidth();
+    width  = bitmap.getWidth();
     height = bitmap.getHeight();
 
     uint16 bpp = bitmap.getBpp();
@@ -94,31 +91,21 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     switch (bpp)
     {
     /* Not yet supported
-       case 1:
-          bufferSize = (imageSize+7) /8;
-	  break;
-       case 4:
-          bufferSize = (imageSize+1) /2;
-	  break;
-   */
-        case 8:
-	    bufferSize = imageSize;
-	    break;
-        case 16:
-            bufferSize = imageSize*2;
-	    break;
-        case 24:
-            bufferSize = imageSize*3;
-	    break;
+        case 1:  bufferSize = (imageSize+7)/8; break;
+        case 4:  bufferSize = (imageSize+1)/2; break;
+    */
+        case 8:  bufferSize = imageSize;   break;
+        case 16: bufferSize = imageSize*2; break;
+        case 24: bufferSize = imageSize*3; break;
     }
 
     image.resize(bufferSize);
 
-    //flip the colors internally
+    // flip the colors internally
     bitmap.convertRGBtoBGR();
 
-    //make a pointer for output
-    byte* outputBuffer = (byte*)(image.data());
+    // make a pointer for output
+    byte *outputBuffer = (byte*)(image.data());
 
     //copy it over and voila
     memcpy(outputBuffer, bitmap.getImageData(), bufferSize);
