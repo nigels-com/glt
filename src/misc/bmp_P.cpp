@@ -55,7 +55,7 @@ template <typename T>
 inline void writeToBuffer (T val, byte **buff)
 {
     T *tmp = reinterpret_cast<T*>(*buff);
-  
+
     *tmp = val;
     (*buff) += sizeof(T);
 }
@@ -77,7 +77,7 @@ BitmapFileHeader::~BitmapFileHeader()
 {
 }
 
-bool 
+bool
 BitmapFileHeader::loadFromBuffer(const byte **buff)
 {
     fileType = littleEndian(readFromBuffer<uint16>(buff));
@@ -96,7 +96,7 @@ BitmapFileHeader::loadFromBuffer(const byte **buff)
     return true;
 }
 
-void 
+void
 BitmapFileHeader::saveToBuffer(byte **buff)
 {
     writeToBuffer<uint16>(littleEndian(fileType), buff);
@@ -149,7 +149,7 @@ BitmapInfoHeader::loadFromBuffer(const byte **buff)
     loadPaletteFromBuffer(buff);
 }
 
-void 
+void
 BitmapInfoHeader::loadPaletteFromBuffer(const byte **buff)
 {
     if (numColours > 0)
@@ -180,7 +180,7 @@ BitmapInfoHeader::saveToBuffer(byte **buff)
     savePaletteToBuffer(buff);
 }
 
-void 
+void
 BitmapInfoHeader::savePaletteToBuffer(byte **buff)
 {
     if (numColours > 0)
@@ -190,7 +190,7 @@ BitmapInfoHeader::savePaletteToBuffer(byte **buff)
     }
 }
 
-void 
+void
 BitmapInfoHeader::setPalette(const byte *pal)
 {
     if (paletteData)
@@ -230,21 +230,21 @@ BitmapFile::~BitmapFile()
 }
 
 /* returns true on success*/
-bool 
+bool
 BitmapFile::loadFromString(const std::string& inStr, std::string& outStr)
 {
     uint32 imageSize;
- 
+
     const byte *buff = reinterpret_cast<const byte*>(inStr.data());
 
     if (buff == NULL)
-    { 
+    {
         gltWarning("No data in image string.");
         return false;
     }
 
     if (!fileHeader->loadFromBuffer(&buff))
-    { 
+    {
         gltWarning("Unsupported BMP variant.");
         return false;
     }
@@ -252,7 +252,7 @@ BitmapFile::loadFromString(const std::string& inStr, std::string& outStr)
     infoHeader->loadFromBuffer(&buff);
 
     if ( (imageSize = infoHeader->getImageSize()) == 0)
-    { 
+    {
         gltWarning("0 sized image in input string.");
         return false;
     }
@@ -280,7 +280,7 @@ BitmapFile::loadFromString(const std::string& inStr, std::string& outStr)
     return true;
 }
 
-void 
+void
 BitmapFile::saveToString(std::string& outStr, const std::string& inStr)
 {
     const byte* inputBuffer = reinterpret_cast<const byte*>(inStr.data());
@@ -307,7 +307,7 @@ BitmapFile::saveToString(std::string& outStr, const std::string& inStr)
     }
 }
 
-void 
+void
 BitmapFile::adjustInternalDimensions()
 {
     uint32 w, h, palSize;
@@ -332,14 +332,14 @@ uint32 BitmapFile::getHeight()    const { return infoHeader->getImageHeight(); }
 uint16 BitmapFile::getBpp()       const { return infoHeader->getBitCount();    }
 uint32 BitmapFile::getImageSize() const { return infoHeader->getImageSize();   }
 
-void 
+void
 BitmapFile::setWidth(uint32 w)
 {
     infoHeader->setImageWidth(w);
     adjustInternalDimensions();
 }
 
-void 
+void
 BitmapFile::setHeight(uint32 h)
 {
     infoHeader->setImageHeight(h);
@@ -353,7 +353,7 @@ BitmapFile::setBpp(uint16 bpp)
     adjustInternalDimensions();
 }
 
-void 
+void
 BitmapFile::setDimensions(uint32 w, uint32 h, uint16 bpp)
 {
     infoHeader->setImageWidth(w);
@@ -365,7 +365,7 @@ BitmapFile::setDimensions(uint32 w, uint32 h, uint16 bpp)
      uint32 BitmapFile::getPaletteSize() const { return infoHeader->getNumColours();  }
 const byte *BitmapFile::getPalette()     const { return infoHeader->getPaletteData(); }
 
-void 
+void
 BitmapFile::setPaletteSize(uint32 size)
 {
     infoHeader->setPaletteSize(size);
@@ -382,7 +382,7 @@ BitmapFile::setPalette(const byte *pal)
 
 byte *BitmapFile::getImageData() const { return imageData; }
 
-void 
+void
 BitmapFile::setImageData(const byte *buff)
 {
     if (imageData != NULL)

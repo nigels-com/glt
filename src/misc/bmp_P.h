@@ -36,7 +36,7 @@ struct BitmapFileHeader
 
     uint16    res1;         ///< must be 0
     uint16    res2;         ///< must be 0
-    uint32    imageOffset;  ///< offset in bytes from the header to the data (40) 
+    uint32    imageOffset;  ///< offset in bytes from the header to the data (40)
 
 public:
 
@@ -146,7 +146,7 @@ struct BitmapFile
  * Palette specific functions
  */
 
-    uint32 getPaletteSize()	 const;
+    uint32 getPaletteSize()  const;
     const byte *getPalette()     const;
 
     void setPaletteSize(uint32);
