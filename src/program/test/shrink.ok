@@ -1,0 +1,7 @@
+create... size: 0, capacity: 0
+push 3... size: 3, capacity: 4
+clear...  size: 0, capacity: 4
+shrink... size: 0, capacity: 0
+resize 65 size: 65, capacity: 65
+push...   size: 66, capacity: 130
+shrink... size: 66, capacity: 66

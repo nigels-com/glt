@@ -1,0 +1,24 @@
+/*! \defgroup GlutMaster GLUT Master
+    \brief    C++ Interface to the GLUT API
+    
+    GlutMaster is an object-oriented interface to the 
+	<a href="http://www.opengl.org/developers/documentation/glut.html">GLUT</a>
+	library, providing a portable window, keyboard, mouse and menu environment 
+	for OpenGL programs.  
+	
+	GlutMaster is based on a 
+	<a href="http://www.duke.edu/~stetten/GlutMaster/GlutMaster.html">previous</a> 
+	implementation by George Stetten and Korin Crawford.  This version of GlutMaster is
+	a complete re-write, with additional support for menus, and "examiner" style
+	mouse manipulation.
+
+	GlutMaster can also be used in combination with 
+	<a href="http://www.cg.tuwien.ac.at/hostings/openinventor/"> Open Inventor</a>. 
+	(Note that using GlutMaster with OpenInventor does not support all the GUI
+	components)
+*/
+
+/*! \example examiner/main.cpp
+
+    GlutMaster Examiner Example
+*/

@@ -1,0 +1,20 @@
+/*! \defgroup Util GLT Util
+    \brief    GLT Utility Programs
+*/
+
+/*! \page utilities Utilities
+	
+	\section bin2src   bin2src
+
+	\section text2src  text2src
+		
+	\section rgb2src   rgb2src
+
+	\section dos2unix  dos2unix
+	
+	\section unix2dos  unix2dos
+
+	\section vrmlpars  vrmlpars
+
+	\section stitch    stitch
+*/

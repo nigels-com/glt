@@ -1,0 +1,96 @@
+(int)fromHex('0')= 0
+(int)fromHex('1')= 1
+(int)fromHex('2')= 2
+(int)fromHex('3')= 3
+(int)fromHex('4')= 4
+(int)fromHex('5')= 5
+(int)fromHex('6')= 6
+(int)fromHex('7')= 7
+(int)fromHex('8')= 8
+(int)fromHex('9')= 9
+(int)fromHex('a')= 10
+(int)fromHex('A')= 10
+(int)fromHex('b')= 11
+(int)fromHex('B')= 11
+(int)fromHex('c')= 12
+(int)fromHex('C')= 12
+(int)fromHex('d')= 13
+(int)fromHex('D')= 13
+(int)fromHex('e')= 14
+(int)fromHex('E')= 14
+(int)fromHex('f')= 15
+(int)fromHex('F')= 15
+(int)toHex( 0)= 48
+(int)toHex( 1)= 49
+(int)toHex( 2)= 50
+(int)toHex( 3)= 51
+(int)toHex( 4)= 52
+(int)toHex( 5)= 53
+(int)toHex( 6)= 54
+(int)toHex( 7)= 55
+(int)toHex( 8)= 56
+(int)toHex( 9)= 57
+(int)toHex(10)= 65
+(int)toHex(11)= 66
+(int)toHex(12)= 67
+(int)toHex(13)= 68
+(int)toHex(14)= 69
+(int)toHex(15)= 70
+toHex( 0.0f)= 0x00000000
+toHex( 1.0f)= 0x0000803F
+toHex( 2.0f)= 0x00000040
+toHex( 4.0f)= 0x00008040
+toHex(1234.5678f)= 0x2B529A44
+toHex(0.1234567f)= 0xDED6FC3D
+toHex( 0.0)= 0x0000000000000000
+toHex( 1.0)= 0x000000000000F03F
+toHex( 2.0)= 0x0000000000000040
+toHex( 4.0)= 0x0000000000001040
+toHex(1234.5678)= 0xADFA5C6D454A9340
+toHex(0.1234567)= 0x72DAF8B8DB9ABF3F
+fromHex<float>("0x00000000")= 0
+fromHex<float>("0x0000803F")= 1
+fromHex<float>("0x00000040")= 2
+fromHex<float>("0x00008040")= 4
+fromHex<float>("0x2B529A44")= 1234.57
+fromHex<float>("0xDED6FC3D")= 0.123457
+fromHex<double>("0x0000000000000000")= 0
+fromHex<double>("0x000000000000F03F")= 1
+fromHex<double>("0x0000000000000040")= 2
+fromHex<double>("0x0000000000001040")= 4
+fromHex<double>("0xADFA5C6D454A9340")= 1234.57
+fromHex<double>("0x72DAF8B8DB9ABF3F")= 0.123457
+sprintf(tmp,"%d %d %s",1,2,"Hello World")= 15
+1 2 Hello World
+atof("   0.001")= 0.001
+atof("  -0.001")= -0.001
+atof(" 100.001")= 100.001
+atof("-100.001")= -100.001
+atof("    1e10")= 1e+10
+atof("   1e-10")= 1e-10
+atoi("-123456")= -123456
+atoi("      0")= 0
+atoi(" 123456")= 123456
+atol("-1234567890")= -1234567890
+atol("+1234567890")= 1234567890
+atob("false")= 0
+atob("true")= 1
+atob("0")= 0
+atob("1")= 1
+atob("-1")= 1
+atoc("1,2,3,4,5",atoi,"+-0123456789",tmp.begin(),tmp.end())= 5
+1,2,3,4,5
+atoc("+1,-2,+3,-4,+5",atoi,"+-0123456789",tmp.begin(),tmp.end())= 5
+1,-2,3,-4,5
+atoc("true false 1 0 -1",atob,"+-01truefalse",tmp.begin(),tmp.end())= 5
+1,0,1,0,1
+stringSplit(tmp,"One Two Three Four Five"," ")= 1
+One,Two,Three,Four,Five
+stringMerge(tmp,tmp2," ")= 1
+One Two Three Four Five
+{
+0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09
+};
+{
+0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x61,0x62,0x63,0x64,0x65
+};
