@@ -1220,12 +1220,12 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          * If it is not, then it is the system sending us a dummy resize with
          * zero dimensions on a "glutIconifyWindow" call.
          */
-		if( window->State.Visible )
-		{
-			window->State.NeedToResize = GL_TRUE;
-			window->State.Width  = LOWORD(lParam);
-			window->State.Height = HIWORD(lParam);
-		}
+        if( window->State.Visible )
+        {
+            window->State.NeedToResize = GL_TRUE;
+            window->State.Width  = LOWORD(lParam);
+            window->State.Height = HIWORD(lParam);
+        }
         break;
 #if 0
     case WM_SETFOCUS:
