@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=GltSkybox
-AppVerName=GltSkybox 0.1
+AppVerName=GltSkybox 0.3
 AppPublisher=Nigel Stewart
 AppPublisherURL=http://www.nigels.com/glt/gltskybox/
 AppSupportURL=http://www.nigels.com/glt/gltskybox/
@@ -19,18 +19,24 @@ Uninstallable=yes
 
 [Files]
 Source: "..\..\..\..\msvc\Release\skybox.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "images\RMITGallery1_b.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "images\RMITGallery1_d.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "images\RMITGallery1_f.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "images\RMITGallery1_l.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "images\RMITGallery1_r.jpg"; DestDir: "{app}"; Flags: ignoreversion
-Source: "images\RMITGallery1_u.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery1_b.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery1_d.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery1_f.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery1_l.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery1_r.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery1_u.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery2a_b.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery2a_d.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery2a_f.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery2a_l.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery2a_r.jpg"; DestDir: "{app}"; Flags: ignoreversion
+Source: "examples\1024_RMITGallery2a_u.jpg"; DestDir: "{app}"; Flags: ignoreversion
 
 [INI]
 Filename: "{app}\gltSkybox.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.nigels.com/glt/gltskybox/"
 
 [Icons]
-Name: "{group}\GltSkybox"; Filename: "{app}\skybox.exe"; WorkingDir: "{app}"
+Name: "{group}\GltSkybox"; Filename: "{app}\skybox.exe"; WorkingDir: "{app}";
 Name: "{group}\GltSkybox on the Web"; Filename: "{app}\gltSkybox.url"
 
 [Registry]
@@ -42,7 +48,7 @@ Root: HKLM; Subkey: "Software\Classes\Folder\shell\GltSkybox\command"; Flags: un
 Root: HKLM; Subkey: "Software\Classes\Folder\shell\GltSkybox\command"; ValueType: string; ValueName: ""; ValueData: "{app}\skybox.exe %L";
 
 [Run]
-Filename: "{app}\skybox.exe"; WorkingDir: "{app}"; Description: "Launch application"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\skybox.exe"; Parameters: "{app}"; Description: "Launch application"; Flags: nowait postinstall runmaximized
 
 [UninstallDelete]
 Type: files; Name: "{app}\gltSkybox.url"

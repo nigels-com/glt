@@ -2,12 +2,15 @@
 #pragma warning(disable : 4786)
 #endif
 
-#include <glutm/master.h>
-#include <glutm/winexam.h>
+#include <glt/error.h>
 
 #include <node/skybox.h>
 
-#include <glt/error.h>
+#include <glutm/master.h>
+#include <glutm/winexam.h>
+
+#include <misc/file.h>
+#include <misc/string.h>
 
 #include <algorithm>
 #include <iostream>
@@ -34,13 +37,15 @@ public:
     void OnDisplay();
     void OnKeyboard(unsigned char key, int x, int y);
     void OnSpecial(int key, int x, int y);
+    void OnMenu(int value);
 
 private:
 
+    void buildMenu();
+    void setCurrent();
+
     GltSkyBox           _skyBox;
     bool                _showWire;
-
-    void setCurrent();
 
     //
 
@@ -51,80 +56,24 @@ private:
     uint32          _mapMax;
 };
 
-#ifdef GLT_WIN32
-#include <io.h>
-#endif
-
-#include <misc/string.h>
-
-void toLower(string &str)
-{
-    for (uint32 i=0; i<str.size(); i++)
-        str[i] = ::tolower(str[i]);
-}
-
-void listFiles(vector<string> &files,const string &dir = string())
-{
-    files.clear();
-
-    #ifdef GLT_WIN32
-    long h;
-    _finddata_t f;
-
-    string filespec;
-    sprintf
-    (
-        filespec,
-        "%s%s*.*",
-        dir.c_str(),
-        dir.size() && dir[dir.size()-1]!='\\' ? "\\" : ""
-    );
-
-    h = _findfirst(filespec.c_str(),&f);
-
-    while (h!=-1)
-    {
-        if ((f.attrib&(_A_SUBDIR|_A_SYSTEM))==0)
-        {
-            files.push_back(f.name);
-            toLower(files.back());
-        }
-
-        if (_findnext(h,&f)==-1)
-            break;
-    }
-    _findclose(h);
-    #endif
-}
-
 SkyBoxWindow::SkyBoxWindow(int width,int height,int x,int y,const std::string &location)
 : GlutWindowExaminer("SkyBox Browser",width,height,x,y,GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH),
   _showWire(false),
   _mapMax(0)
 {
-    // Append backslash to location if necessary
-    string dir(location);
-    if (dir.size() && dir[dir.size()-1]!='\\')
-        dir += '\\';
 
-    vector<string> files;
-    listFiles(files,dir);
+    mouseMode() = MODE_MOUSE_LEFT;
+
+    vector<string> dirs,files;
+    listFiles(dirs,files,location);
 
     for (uint32 i=0; i<files.size(); i++)
     {
-        // Skip empty filenames
-        if (files[i].size()==0)
-            continue;
+        string name = pathFilename(files[i]);
+        string ext  = pathExtension(files[i]);
+        string extL = toLower(ext);
 
-        // Skip filenames without extensions
-        if (files[i].find('.')==string::npos)
-            continue;
-
-        // Break into name and extension
-        string name = files[i].substr(0,files[i].find_last_of('.'));
-        string ext  = files[i].substr(files[i].find_last_of('.'));
-
-        if (name.size()>0 && (ext==".ppm" || ext==".tga" || ext==".png" || ext==".jpg" || ext==".bmp"))
+        if (name.size()>0 && (extL=="ppm" || extL=="tga" || extL=="png" || extL=="jpg" || extL=="bmp"))
         {
             const uint32 suffixes = 6;
 
@@ -134,7 +83,7 @@ SkyBoxWindow::SkyBoxWindow(int width,int height,int x,int y,const std::string &l
                 { "l", "d", "f", "r", "u", "b" },                   // VRML Convention
                 { "l", "bt", "f", "r", "t", "b" },                  // Panorama Tools Convention
                 { "xneg", "yneg", "zpos", "xpos", "ypos", "zneg" }, // NVIDIA SDK examples
-                { "negx", "posy", "posz", "posx", "negy", "negz" }, // NVIDIA SDK examples
+                { "negx", "negy", "posz", "posx", "posy", "negz" }, // NVIDIA SDK examples
                 { "bk", "dn", "rt", "ft", "up", "lf" }              // Quake3 and Half-Life
             };
 
@@ -154,17 +103,17 @@ SkyBoxWindow::SkyBoxWindow(int width,int height,int x,int y,const std::string &l
                     for (uint32 j=0; j<6 ;j++)
                     {
                         // Form filename
-                        sprintf(map[j],"%s%s%s",prefix.c_str(),suffix[i][j],ext.c_str());
+                        sprintf(map[j],"%s%s.%s",prefix.c_str(),suffix[i][j],ext.c_str());
 
                         // Check that the file is available
-                        if (std::find(files.begin(),files.end(),map[j])==files.end())
+                        if (!isFile(path(location,map[j])))
                         {
                             map.clear();
                             break;
                         }
 
                         // Add location
-                        map[j] = dir + map[j];
+                        map[j] = path(location,map[j]);
                     }
 
                     if (map.size()==6)
@@ -187,58 +136,9 @@ SkyBoxWindow::~SkyBoxWindow()
 }
 
 void
-SkyBoxWindow::setCurrent()
-{
-    _skyBox.clear();
-
-    if (_maps.size())
-    {
-        assert(_maps[_map].size()==6);
-
-        const CubeMap &map = _maps[_map];
-
-        cout << map[0] << endl;
-
-        _skyBox.negativeX().init(map[0]);
-        _skyBox.negativeY().init(map[1]);
-        _skyBox.negativeZ().init(map[2]);
-        _skyBox.positiveX().init(map[3]);
-        _skyBox.positiveY().init(map[4]);
-        _skyBox.positiveZ().init(map[5]);
-    }
-    else
-    {
-        switch (_map)
-        {
-            /* Blue Sky textures from OpenGL Feathers */
-
-        case 0:
-            _skyBox.negativeX().init(blueskynxTexture);
-            _skyBox.negativeY().init(blueskynyTexture);
-            _skyBox.negativeZ().init(blueskynzTexture);
-            _skyBox.positiveX().init(blueskypxTexture);
-            _skyBox.positiveY().init(blueskypyTexture);
-            _skyBox.positiveZ().init(blueskypzTexture);
-            break;
-
-            /* Hills textures from NVIDIA SDK */
-
-        case 1:
-            _skyBox.negativeX().init(hillsnxTexture);
-            _skyBox.negativeY().init(hillsnyTexture);
-            _skyBox.negativeZ().init(hillsnzTexture);
-            _skyBox.positiveX().init(hillspxTexture);
-            _skyBox.positiveY().init(hillspyTexture);
-            _skyBox.positiveZ().init(hillspzTexture);
-            break;
-
-        }
-    }
-}
-
-void
 SkyBoxWindow::OnOpen()
 {
+    buildMenu();
     setCurrent();
 }
 
@@ -310,6 +210,83 @@ SkyBoxWindow::OnSpecial(int key, int x, int y)
     }
 
     postRedisplay();
+}
+
+void
+SkyBoxWindow::OnMenu(int value)
+{
+    _map = value%_mapMax;
+    setCurrent();
+    postRedisplay();
+}
+
+void
+SkyBoxWindow::buildMenu()
+{
+    _rightButtonMenu.reset();
+
+    if (_maps.size())
+    {
+        for (uint32 i=0; i<_maps.size(); i++)
+            _rightButtonMenu.addEntry(pathFilename((_maps[i])[0]),i);
+    }
+    else
+    {
+        _rightButtonMenu.addEntry("Blue Sky",0);
+        _rightButtonMenu.addEntry("Hills",   1);
+    }
+
+    _rightButtonMenu.attach();
+}
+
+void
+SkyBoxWindow::setCurrent()
+{
+    _skyBox.clear();
+
+    if (_maps.size())
+    {
+        assert(_maps[_map].size()==6);
+
+        const CubeMap &map = _maps[_map];
+
+        cout << map[0] << endl;
+
+        _skyBox.negativeX().init(map[0]);
+        _skyBox.negativeY().init(map[1]);
+        _skyBox.negativeZ().init(map[2]);
+        _skyBox.positiveX().init(map[3]);
+        _skyBox.positiveY().init(map[4]);
+        _skyBox.positiveZ().init(map[5]);
+    }
+    else
+    {
+        switch (_map)
+        {
+            /* Blue Sky textures from OpenGL Feathers */
+
+        case 0:
+            _skyBox.negativeX().init(blueskynxTexture);
+            _skyBox.negativeY().init(blueskynyTexture);
+            _skyBox.negativeZ().init(blueskynzTexture);
+            _skyBox.positiveX().init(blueskypxTexture);
+            _skyBox.positiveY().init(blueskypyTexture);
+            _skyBox.positiveZ().init(blueskypzTexture);
+            break;
+
+            /* Hills textures from NVIDIA SDK */
+
+        case 1:
+            _skyBox.negativeX().init(hillsnxTexture);
+            _skyBox.negativeY().init(hillsnyTexture);
+            _skyBox.negativeZ().init(hillsnzTexture);
+            _skyBox.positiveX().init(hillspxTexture);
+            _skyBox.positiveY().init(hillspyTexture);
+            _skyBox.positiveZ().init(hillspzTexture);
+            break;
+
+        }
+    }
 }
 
 #include <glutm/main.h>
