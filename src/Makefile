@@ -5,7 +5,7 @@
 #
 
 SUBDIRS = glt misc math mesh node glutm fonts network unifont \
-	  zlib zzip png jpeg glut freeglut ptypes csg glui program
+	  zlib zzip png jpeg glut freeglut openglut ptypes csg glui program
 
 ROOT    = ..
 INCLUDE =

@@ -2,7 +2,7 @@ SUBDIRS = src
 ROOT    = .
 INCLUDE =
 
-.PHONY: setup archive doxygen backup-src backup-data dos2unix realclean
+.PHONY: setup archive doxygen doxygen-clean dos2unix
 
 default: setup recurse
 
@@ -35,11 +35,6 @@ dos2unix:
 	dos2unix `find -type f -name "*.iss"`
 	dos2unix `find -type f -name "*.rc"`
 	dos2unix `find -type f -name "*.cfg"`
-
-realclean: clean doxygen-clean
-	rm -fv lib/* bin/*
-	rm -fv `find -name core`
-	rm -fv `find -name "*.o"`
 
 include $(ROOT)/gcc/Makefile.inc
 include $(ROOT)/gcc/Makefile.dist
