@@ -1,0 +1,570 @@
+grips.world.integrator:                                     Lorenz
+grips.world.gravity.integrator:                             Euler-Cromer
+grips.world.gravity.step:                                   1.000000	# 0x000000000000F03F 
+grips.world.gravity.box.defined:                            false
+grips.world.gravity.box.min.x:                              0.000000	# 0x0000000000000000 
+grips.world.gravity.box.min.y:                              0.000000	# 0x0000000000000000 
+grips.world.gravity.box.min.z:                              0.000000	# 0x0000000000000000 
+grips.world.gravity.box.max.x:                              0.000000	# 0x0000000000000000 
+grips.world.gravity.box.max.y:                              0.000000	# 0x0000000000000000 
+grips.world.gravity.box.max.z:                              0.000000	# 0x0000000000000000 
+grips.world.gravity.G:                                      1.000000	# 0x000000000000F03F 
+grips.world.lorenz.integrator:                              Euler-Cromer
+grips.world.lorenz.step:                                    0.002560	# 0xF768E388B5F8643F 
+grips.world.lorenz.box.defined:                             false
+grips.world.lorenz.box.min.x:                               0.000000	# 0x0000000000000000 
+grips.world.lorenz.box.min.y:                               0.000000	# 0x0000000000000000 
+grips.world.lorenz.box.min.z:                               0.000000	# 0x0000000000000000 
+grips.world.lorenz.box.max.x:                               0.000000	# 0x0000000000000000 
+grips.world.lorenz.box.max.y:                               0.000000	# 0x0000000000000000 
+grips.world.lorenz.box.max.z:                               0.000000	# 0x0000000000000000 
+grips.world.lorenz.r:                                       28.000000	# 0x0000000000003C40 
+grips.world.rossler.integrator:                             Euler-Cromer
+grips.world.rossler.step:                                   1.000000	# 0x000000000000F03F 
+grips.world.rossler.box.defined:                            false
+grips.world.rossler.box.min.x:                              0.000000	# 0x0000000000000000 
+grips.world.rossler.box.min.y:                              0.000000	# 0x0000000000000000 
+grips.world.rossler.box.min.z:                              0.000000	# 0x0000000000000000 
+grips.world.rossler.box.max.x:                              0.000000	# 0x0000000000000000 
+grips.world.rossler.box.max.y:                              0.000000	# 0x0000000000000000 
+grips.world.rossler.box.max.z:                              0.000000	# 0x0000000000000000 
+grips.world.rossler.a:                                      0.200000	# 0x9A9999999999C93F 
+grips.world.rossler.b:                                      0.200000	# 0x9A9999999999C93F 
+grips.world.rossler.c:                                      5.700000	# 0xCDCCCCCCCCCC1640 
+grips.world.projectile.integrator:                          Euler-Cromer
+grips.world.projectile.step:                                0.152500	# 0x89EB51B81E85C33F 
+grips.world.projectile.box.defined:                         false
+grips.world.projectile.box.min.x:                           0.000000	# 0x0000000000000000 
+grips.world.projectile.box.min.y:                           0.000000	# 0x0000000000000000 
+grips.world.projectile.box.min.z:                           0.000000	# 0x0000000000000000 
+grips.world.projectile.box.max.x:                           0.000000	# 0x0000000000000000 
+grips.world.projectile.box.max.y:                           0.000000	# 0x0000000000000000 
+grips.world.projectile.box.max.z:                           0.000000	# 0x0000000000000000 
+grips.world.projectile.g:                                   0.209715	# 0xD8AFBC9AF2D7CA3F 
+grips.world.projectile.e:                                   0.409600	# 0x2D431CEBE236DA3F 
+grips.world.projectile.b:                                   0.700000	# 0x6A6666666666E63F 
+grips.world.hockey.integrator:                              Euler-Cromer
+grips.world.hockey.step:                                    0.020972	# 0x3D8C30E28E79953F 
+grips.world.hockey.box.defined:                             true
+grips.world.hockey.box.min.x:                               -10.000000	# 0x00000000000024C0 
+grips.world.hockey.box.min.y:                               -10.000000	# 0x00000000000024C0 
+grips.world.hockey.box.min.z:                               -10.000000	# 0x00000000000024C0 
+grips.world.hockey.box.max.x:                               10.000000	# 0x0000000000002440 
+grips.world.hockey.box.max.y:                               10.000000	# 0x0000000000002440 
+grips.world.hockey.box.max.z:                               0.000000	# 0x0000000000000000 
+grips.world.hockey.collision:                               true
+grips.world.hockey.e:                                       1.000000	# 0x000000000000F03F 
+grips.world.hockey.colorCode:                               false
+grips.world.hockey.wallImpact.red:                          0.000000	# 0x0000000000000000 
+grips.world.hockey.wallImpact.green:                        0.000000	# 0x0000000000000000 
+grips.world.hockey.wallImpact.blue:                         1.000000	# 0x000000000000F03F 
+grips.world.hockey.wallImpact.alpha:                        1.000000	# 0x000000000000F03F 
+grips.world.hockey.ballImpact.red:                          1.000000	# 0x000000000000F03F 
+grips.world.hockey.ballImpact.green:                        1.000000	# 0x000000000000F03F 
+grips.world.hockey.ballImpact.blue:                         1.000000	# 0x000000000000F03F 
+grips.world.hockey.ballImpact.alpha:                        1.000000	# 0x000000000000F03F 
+grips.world.recode.integrator:                              Euler-Cromer
+grips.world.recode.step:                                    1.000000	# 0x000000000000F03F 
+grips.world.recode.box.defined:                             true
+grips.world.recode.box.min.x:                               -10.000000	# 0x00000000000024C0 
+grips.world.recode.box.min.y:                               -10.000000	# 0x00000000000024C0 
+grips.world.recode.box.min.z:                               -10.000000	# 0x00000000000024C0 
+grips.world.recode.box.max.x:                               10.000000	# 0x0000000000002440 
+grips.world.recode.box.max.y:                               10.000000	# 0x0000000000002440 
+grips.world.recode.box.max.z:                               10.000000	# 0x0000000000002440 
+grips.world.recode.collision:                               true
+grips.world.recode.e:                                       1.000000	# 0x000000000000F03F 
+grips.world.recode.colorCode:                               true
+grips.world.recode.wallImpact.red:                          0.000000	# 0x0000000000000000 
+grips.world.recode.wallImpact.green:                        0.000000	# 0x0000000000000000 
+grips.world.recode.wallImpact.blue:                         1.000000	# 0x000000000000F03F 
+grips.world.recode.wallImpact.alpha:                        1.000000	# 0x000000000000F03F 
+grips.world.recode.ballImpact.red:                          1.000000	# 0x000000000000F03F 
+grips.world.recode.ballImpact.green:                        1.000000	# 0x000000000000F03F 
+grips.world.recode.ballImpact.blue:                         1.000000	# 0x000000000000F03F 
+grips.world.recode.ballImpact.alpha:                        1.000000	# 0x000000000000F03F 
+grips.world.rain.enable:                                    false
+grips.world.rain.lifetime:                                  0.000000	# 0x0000000000000000 
+grips.world.rain.min.x:                                     -1.000000	# 0x000000000000F0BF 
+grips.world.rain.min.y:                                     -1.000000	# 0x000000000000F0BF 
+grips.world.rain.min.z:                                     -1.000000	# 0x000000000000F0BF 
+grips.world.rain.max.x:                                     1.000000	# 0x000000000000F03F 
+grips.world.rain.max.y:                                     1.000000	# 0x000000000000F03F 
+grips.world.rain.max.z:                                     1.000000	# 0x000000000000F03F 
+grips.world.fountain.enable:                                false
+grips.world.fountain.lifetime:                              8.000000	# 0x0000000000002040 
+grips.world.fountain.position.x:                            0.000000	# 0x0000000000000000 
+grips.world.fountain.position.y:                            0.000000	# 0x0000000000000000 
+grips.world.fountain.position.z:                            10.000000	# 0x0000000000002440 
+grips.world.fountain.direction.x:                           0.000000	# 0x0000000000000000 
+grips.world.fountain.direction.y:                           0.000000	# 0x0000000000000000 
+grips.world.fountain.direction.z:                           4.000000	# 0x0000000000001040 
+grips.world.fountain.angle:                                 45.000000	# 0x0000000000804640 
+grips.world.lineSpray.enable:                               false
+grips.world.lineSpray.lifetime:                             112.727284	# 0x0C0000D48B2E5C40 
+grips.world.lineSpray.a.x:                                  0.000000	# 0x0000000000000000 
+grips.world.lineSpray.a.y:                                  0.000000	# 0x0000000000000000 
+grips.world.lineSpray.a.z:                                  10.000000	# 0x0000000000002440 
+grips.world.lineSpray.b.x:                                  6.144000	# 0xFD7E6ABC74931840 
+grips.world.lineSpray.b.y:                                  0.000000	# 0x0000000000000000 
+grips.world.lineSpray.b.z:                                  10.000000	# 0x0000000000002440 
+grips.world.lineSpray.direction.x:                          0.000000	# 0x0000000000000000 
+grips.world.lineSpray.direction.y:                          6.000000	# 0x0000000000001840 
+grips.world.lineSpray.direction.z:                          0.000000	# 0x0000000000000000 
+grips.world.lineSpray.angle:                                10.000000	# 0x0000000000002440 
+grips.world.exhaust.enable:                                 false
+grips.world.exhaust.lifetime:                               0.000000	# 0x0000000000000000 
+grips.world.exhaust.speed:                                  0.000000	# 0x0000000000000000 
+grips.world.exhaust.angle:                                  10.000000	# 0x0000000000002440 
+grips.world.video.enable:                                   false
+grips.world.video.threshold:                                116
+grips.world.video.transform.00:                             4.000000	# 0x0000000000001040 
+grips.world.video.transform.01:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.02:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.03:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.04:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.05:                             0.000000	# 0x0000000000A6C13C 
+grips.world.video.transform.06:                             5.000000	# 0x0000000000001440 
+grips.world.video.transform.07:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.08:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.09:                             -5.000000	# 0x00000000000014C0 
+grips.world.video.transform.10:                             0.000000	# 0x0000000000A6C13C 
+grips.world.video.transform.11:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.12:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.13:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.14:                             0.000000	# 0x0000000000000000 
+grips.world.video.transform.15:                             1.000000	# 0x000000000000F03F 
+grips.world.video.stopColor.red:                            1.000000	# 0x000000000000F03F 
+grips.world.video.stopColor.green:                          0.327680	# 0xF368E388B5F8D43F 
+grips.world.video.stopColor.blue:                           0.327680	# 0xF368E388B5F8D43F 
+grips.world.video.stopColor.alpha:                          1.000000	# 0x000000000000F03F 
+grips.world.video.httpClient.enable:                        false
+grips.world.video.httpClient.tickTime:                      1000
+grips.world.video.httpClient.url:                           
+grips.world.video.httpClient.relaxTime:                     1000
+grips.world.video.sprite.blend:                             false
+grips.world.video.sprite.stretch:                           false
+grips.world.video.sprite.shape.visible:                     true
+grips.world.video.sprite.shape.solid:                       true
+grips.world.video.sprite.shape.name:                        
+grips.world.video.sprite.shape.color.red:                   1.000000	# 0x000000000000F03F 
+grips.world.video.sprite.shape.color.green:                 1.000000	# 0x000000000000F03F 
+grips.world.video.sprite.shape.color.blue:                  1.000000	# 0x000000000000F03F 
+grips.world.video.sprite.shape.color.alpha:                 1.000000	# 0x000000000000F03F 
+grips.world.video.sprite.shape.transformation.00:           1.000000	# 0x000000000000F03F 
+grips.world.video.sprite.shape.transformation.01:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.02:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.03:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.04:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.05:           1.000000	# 0x000000000000F03F 
+grips.world.video.sprite.shape.transformation.06:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.07:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.08:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.09:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.10:           1.000000	# 0x000000000000F03F 
+grips.world.video.sprite.shape.transformation.11:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.12:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.13:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.14:           0.000000	# 0x0000000000000000 
+grips.world.video.sprite.shape.transformation.15:           1.000000	# 0x000000000000F03F 
+grips.world.video.mask.blend:                               false
+grips.world.video.mask.stretch:                             false
+grips.world.video.mask.shape.visible:                       true
+grips.world.video.mask.shape.solid:                         true
+grips.world.video.mask.shape.name:                          
+grips.world.video.mask.shape.color.red:                     1.000000	# 0x000000000000F03F 
+grips.world.video.mask.shape.color.green:                   0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.color.blue:                    0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.color.alpha:                   1.000000	# 0x000000000000F03F 
+grips.world.video.mask.shape.transformation.00:             1.000000	# 0x000000000000F03F 
+grips.world.video.mask.shape.transformation.01:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.02:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.03:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.04:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.05:             1.000000	# 0x000000000000F03F 
+grips.world.video.mask.shape.transformation.06:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.07:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.08:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.09:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.10:             1.000000	# 0x000000000000F03F 
+grips.world.video.mask.shape.transformation.11:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.12:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.13:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.14:             0.000000	# 0x0000000000000000 
+grips.world.video.mask.shape.transformation.15:             1.000000	# 0x000000000000F03F 
+grips.world.colmap.mode:                                    Line
+grips.world.colmap.scheme:                                  RedWhiteBlue
+grips.world.colmap.min:                                     0.000000	# 0x0000000000000000 
+grips.world.colmap.max:                                     1.000000	# 0x000000000000F03F 
+grips.world.fade.enable:                                    false
+grips.world.fade.color.red:                                 0.500000	# 0x000000000000E03F 
+grips.world.fade.color.green:                               0.500000	# 0x000000000000E03F 
+grips.world.fade.color.blue:                                0.500000	# 0x000000000000E03F 
+grips.world.fade.color.alpha:                               0.980000	# 0x5C8FC2F5285CEF3F 
+grips.world.plot.enable:                                    false
+grips.world.plot.mode:                                      x
+grips.world.plot.particle:                                  0
+grips.world.trail.size:                                     50
+grips.world.trail.overRide:                                 true
+grips.world.trail.trail.enable:                             true
+grips.world.trail.trail.solid:                              false
+grips.world.trail.trail.width:                              0.107374	# 0xC0BDD7D9DF7CBB3F 
+grips.world.trail.trail.alpha:                              0.500000	# 0x000000000000E03F 
+grips.world.trail.trail.normal.x:                           1.000000	# 0x000000000000F03F 
+grips.world.trail.trail.normal.y:                           0.000000	# 0x0000000000000000 
+grips.world.trail.trail.normal.z:                           0.000000	# 0x0000000000000000 
+grips.world.trail.trail.skip:                               3
+grips.world.histogram.xvelocity.display:                    true
+grips.world.histogram.xvelocity.line:                       false
+grips.world.histogram.xvelocity.color.red:                  1.000000	# 0x000000000000F03F 
+grips.world.histogram.xvelocity.color.green:                0.500000	# 0xFFFFFFFFFFFFDF3F 
+grips.world.histogram.xvelocity.color.blue:                 0.500000	# 0xFFFFFFFFFFFFDF3F 
+grips.world.histogram.xvelocity.color.alpha:                1.000000	# 0x000000000000F03F 
+grips.world.histogram.xvelocity.min:                        -200.000000	# 0x00000000000069C0 
+grips.world.histogram.xvelocity.max:                        200.000000	# 0x0000000000006940 
+grips.world.histogram.xvelocity.size:                       200
+grips.world.histogram.xvelocity.cumulative:                 true
+grips.world.histogram.xvelocity.reset:                      
+grips.world.histogram.yvelocity.display:                    true
+grips.world.histogram.yvelocity.line:                       false
+grips.world.histogram.yvelocity.color.red:                  0.500000	# 0xFFFFFFFFFFFFDF3F 
+grips.world.histogram.yvelocity.color.green:                1.000000	# 0x000000000000F03F 
+grips.world.histogram.yvelocity.color.blue:                 0.500000	# 0xFFFFFFFFFFFFDF3F 
+grips.world.histogram.yvelocity.color.alpha:                1.000000	# 0x000000000000F03F 
+grips.world.histogram.yvelocity.min:                        -200.000000	# 0x00000000000069C0 
+grips.world.histogram.yvelocity.max:                        200.000000	# 0x0000000000006940 
+grips.world.histogram.yvelocity.size:                       200
+grips.world.histogram.yvelocity.cumulative:                 true
+grips.world.histogram.yvelocity.reset:                      
+grips.world.histogram.zvelocity.display:                    true
+grips.world.histogram.zvelocity.line:                       false
+grips.world.histogram.zvelocity.color.red:                  0.500000	# 0xFFFFFFFFFFFFDF3F 
+grips.world.histogram.zvelocity.color.green:                0.500000	# 0xFFFFFFFFFFFFDF3F 
+grips.world.histogram.zvelocity.color.blue:                 1.000000	# 0x000000000000F03F 
+grips.world.histogram.zvelocity.color.alpha:                1.000000	# 0x000000000000F03F 
+grips.world.histogram.zvelocity.min:                        -200.000000	# 0x00000000000069C0 
+grips.world.histogram.zvelocity.max:                        200.000000	# 0x0000000000006940 
+grips.world.histogram.zvelocity.size:                       200
+grips.world.histogram.zvelocity.cumulative:                 true
+grips.world.histogram.zvelocity.reset:                      
+grips.world.histogram.speed.display:                        false
+grips.world.histogram.speed.line:                           true
+grips.world.histogram.speed.color.red:                      0.500000	# 0x000000000000E03F 
+grips.world.histogram.speed.color.green:                    0.500000	# 0x000000000000E03F 
+grips.world.histogram.speed.color.blue:                     0.500000	# 0x000000000000E03F 
+grips.world.histogram.speed.color.alpha:                    1.000000	# 0x000000000000F03F 
+grips.world.histogram.speed.min:                            0.000000	# 0x0000000000000000 
+grips.world.histogram.speed.max:                            4.000000	# 0x0000000000001040 
+grips.world.histogram.speed.size:                           50
+grips.world.histogram.speed.cumulative:                     true
+grips.world.histogram.speed.reset:                          
+grips.world.init.n:                                         100
+grips.world.init.defaults.mass:                             1.000000	# 0x000000000000F03F 
+grips.world.init.defaults.radius:                           0.400000	# 0x9A9999999999D93F 
+grips.world.init.defaults.age:                              0.000000	# 0x0000000000000000 
+grips.world.init.defaults.position.x:                       0.000000	# 0x0000000000000000 
+grips.world.init.defaults.position.y:                       0.000000	# 0x0000000000000000 
+grips.world.init.defaults.position.z:                       32.000000	# 0x0000000000004040 
+grips.world.init.defaults.velocity.x:                       0.000000	# 0x0000000000000000 
+grips.world.init.defaults.velocity.y:                       0.000000	# 0x0000000000000000 
+grips.world.init.defaults.velocity.z:                       0.000000	# 0x0000000000000000 
+grips.world.init.defaults.acceleration.x:                   0.000000	# 0x0000000000000000 
+grips.world.init.defaults.acceleration.y:                   0.000000	# 0x0000000000000000 
+grips.world.init.defaults.acceleration.z:                   0.000000	# 0x0000000000000000 
+grips.world.init.defaults.fixed:                            false
+grips.world.init.defaults.expired:                          false
+grips.world.init.defaults.color.red:                        1.000000	# 0x000000000000F03F 
+grips.world.init.defaults.color.green:                      1.000000	# 0x000000000000F03F 
+grips.world.init.defaults.color.blue:                       1.000000	# 0x000000000000F03F 
+grips.world.init.defaults.color.alpha:                      1.000000	# 0x000000000000F03F 
+grips.world.init.position.line:                             true
+grips.world.init.position.box:                              false
+grips.world.init.position.circle:                           false
+grips.world.init.position.disk:                             false
+grips.world.init.position.sphere:                           false
+grips.world.init.position.a.x:                              -5
+grips.world.init.position.a.y:                              -9
+grips.world.init.position.a.z:                              17
+grips.world.init.position.b.x:                              -3
+grips.world.init.position.b.y:                              -5
+grips.world.init.position.b.z:                              15
+grips.world.init.position.radius:                           5.000000	# 0x0000000000001440 
+grips.world.init.position.seed:                             1945
+grips.world.init.velocity.circular:                         false
+grips.world.init.velocity.spherical:                        true
+grips.world.init.velocity.speed:                            3.000000	# 0x0000000000000840 
+grips.world.init.velocity.seed:                             1945
+grips.world.init.color.blend:                               false
+grips.world.init.color.blend3:                              true
+grips.world.init.color.a.red:                               0.000000	# 0x0000000000000000 
+grips.world.init.color.a.green:                             0.000000	# 0x0000000000000000 
+grips.world.init.color.a.blue:                              1.000000	# 0x000000000000F03F 
+grips.world.init.color.a.alpha:                             1.000000	# 0x000000000000F03F 
+grips.world.init.color.b.red:                               0.409600	# 0x2D431CEBE236DA3F 
+grips.world.init.color.b.green:                             0.409600	# 0x2D431CEBE236DA3F 
+grips.world.init.color.b.blue:                              1.000000	# 0x000000000000F03F 
+grips.world.init.color.b.alpha:                             1.000000	# 0x000000000000F03F 
+grips.world.init.color.c.red:                               0.800000	# 0x9A9999999999E93F 
+grips.world.init.color.c.green:                             0.800000	# 0x9A9999999999E93F 
+grips.world.init.color.c.blue:                              1.000000	# 0x000000000000F03F 
+grips.world.init.color.c.alpha:                             1.000000	# 0x000000000000F03F 
+grips.world.system.resetTrails:                             
+grips.display.particles.enable:                             false
+grips.display.particles.slices:                             12
+grips.display.particles.stacks:                             12
+grips.display.particles.points:                             false
+grips.display.particles.texture:                            0
+grips.display.particles.acceleration:                       false
+grips.display.particles.trail:                              true
+grips.display.particles.radiusScale:                        1.000000	# 0x0D0000000000F03F 
+grips.display.center:                                       false
+grips.display.box:                                          false
+grips.display.floor:                                        false
+grips.display.axes:                                         false
+grips.display.axesSize:                                     3.000000	# 0x0000000000000840 
+grips.display.grid.enable:                                  false
+grips.display.grid.origin.x:                                -10.000000	# 0x00000000000024C0 
+grips.display.grid.origin.y:                                -10.000000	# 0x00000000000024C0 
+grips.display.grid.origin.z:                                -10.000000	# 0x00000000000024C0 
+grips.display.grid.right.x:                                 20.000000	# 0x0000000000003440 
+grips.display.grid.right.y:                                 0.000000	# 0x0000000000000000 
+grips.display.grid.right.z:                                 0.000000	# 0x0000000000000000 
+grips.display.grid.up.x:                                    0.000000	# 0x0000000000000000 
+grips.display.grid.up.y:                                    20.000000	# 0x0000000000003440 
+grips.display.grid.up.z:                                    0.000000	# 0x0000000000000000 
+grips.display.grid.rMajor:                                  5.000000	# 0xFFFFFFFFFFFF1340 
+grips.display.grid.rMinor:                                  5
+grips.display.grid.uMajor:                                  5.000000	# 0xFFFFFFFFFFFF1340 
+grips.display.grid.uMinor:                                  5
+grips.display.grid.color.red:                               0.384000	# 0xFA7E6ABC7493D83F 
+grips.display.grid.color.green:                             0.480000	# 0xB81E85EB51B8DE3F 
+grips.display.grid.color.blue:                              0.520000	# 0xA4703D0AD7A3E03F 
+grips.display.grid.color.alpha:                             0.699500	# 0xFEA9F1D24D62E63F 
+grips.display.grid.axesColor.red:                           1.000000	# 0x000000000000F03F 
+grips.display.grid.axesColor.green:                         1.000000	# 0x000000000000F03F 
+grips.display.grid.axesColor.blue:                          1.000000	# 0x000000000000F03F 
+grips.display.grid.axesColor.alpha:                         1.000000	# 0x000000000000F03F 
+grips.display.grid.majorColor.red:                          0.327680	# 0xF568E388B5F8D43F 
+grips.display.grid.majorColor.green:                        0.640000	# 0x7C14AE47E17AE43F 
+grips.display.grid.majorColor.blue:                         1.000000	# 0x000000000000F03F 
+grips.display.grid.majorColor.alpha:                        1.000000	# 0x000000000000F03F 
+grips.display.grid.minorColor.red:                          0.000000	# 0x0000000000000000 
+grips.display.grid.minorColor.green:                        0.000000	# 0x0000000000000000 
+grips.display.grid.minorColor.blue:                         0.545100	# 0x5396218E7571E13F 
+grips.display.grid.minorColor.alpha:                        1.000000	# 0x000000000000F03F 
+grips.display.logo:                                         false
+grips.display.formula:                                      false
+grips.display.info:                                         false
+grips.display.shadows.shadows:                              false
+grips.display.shadows.reflections:                          false
+grips.display.shadows.stencil:                              false
+grips.display.shadows.selfShadows:                          false
+grips.display.shadows.shadowVolumes:                        false
+grips.display.opengl.lighting:                              true
+grips.display.opengl.material.ambient.red:                  0.000000	# 0x0000000000000000 
+grips.display.opengl.material.ambient.green:                0.000000	# 0x0000000000000000 
+grips.display.opengl.material.ambient.blue:                 0.000000	# 0x0000000000000000 
+grips.display.opengl.material.ambient.alpha:                1.000000	# 0x000000000000F03F 
+grips.display.opengl.material.diffuse.red:                  0.000000	# 0x0000000000000000 
+grips.display.opengl.material.diffuse.green:                0.000000	# 0x0000000000000000 
+grips.display.opengl.material.diffuse.blue:                 0.000000	# 0x0000000000000000 
+grips.display.opengl.material.diffuse.alpha:                1.000000	# 0x000000000000F03F 
+grips.display.opengl.material.specular.red:                 1.000000	# 0x000000000000F03F 
+grips.display.opengl.material.specular.green:               1.000000	# 0x000000000000F03F 
+grips.display.opengl.material.specular.blue:                1.000000	# 0x000000000000F03F 
+grips.display.opengl.material.specular.alpha:               1.000000	# 0x000000000000F03F 
+grips.display.opengl.material.emission.red:                 0.000000	# 0x0000000000000000 
+grips.display.opengl.material.emission.green:               0.000000	# 0x0000000000000000 
+grips.display.opengl.material.emission.blue:                0.000000	# 0x0000000000000000 
+grips.display.opengl.material.emission.alpha:               1.000000	# 0x000000000000F03F 
+grips.display.opengl.material.shininess:                    25.599995	# 0xCACCCC41 
+grips.display.opengl.ortho:                                 true
+grips.display.opengl.orthoCamera.x:                         -1.256677	# 0x07C7DAE0581BF4BF 
+grips.display.opengl.orthoCamera.y:                         1.256677	# 0x07C7DAE0581BF43F 
+grips.display.opengl.orthoCamera.width:                     -1.000000	# 0x000000000000F0BF 
+grips.display.opengl.orthoCamera.height:                    1.000000	# 0x000000000000F03F 
+grips.display.opengl.orthoCamera.zNear:                     -5.000000	# 0xFFFFFFFFFFFF13C0 
+grips.display.opengl.orthoCamera.zFar:                      5.000000	# 0xFFFFFFFFFFFF1340 
+grips.display.opengl.light0.enabled:                        true
+grips.display.opengl.light0.ambient.red:                    0.101960	# 0x7C0A80F10C1ABA3F 
+grips.display.opengl.light0.ambient.green:                  0.101960	# 0x7C0A80F10C1ABA3F 
+grips.display.opengl.light0.ambient.blue:                   0.101960	# 0x7C0A80F10C1ABA3F 
+grips.display.opengl.light0.ambient.alpha:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light0.diffuse.red:                    0.498040	# 0xC763062AE3DFDF3F 
+grips.display.opengl.light0.diffuse.green:                  0.498040	# 0xC763062AE3DFDF3F 
+grips.display.opengl.light0.diffuse.blue:                   0.498040	# 0xC763062AE3DFDF3F 
+grips.display.opengl.light0.diffuse.alpha:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light0.specular.red:                   1.000000	# 0x000000000000F03F 
+grips.display.opengl.light0.specular.green:                 1.000000	# 0x000000000000F03F 
+grips.display.opengl.light0.specular.blue:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light0.specular.alpha:                 1.000000	# 0x000000000000F03F 
+grips.display.opengl.light0.position.x:                     0.000000	# 0x0000000000000000 
+grips.display.opengl.light0.position.y:                     0.000000	# 0x0000000000000000 
+grips.display.opengl.light0.position.z:                     10.000000	# 0x0000000000002440 
+grips.display.opengl.light0.position.w:                     0.000000	# 0x0000000000000000 
+grips.display.opengl.light0.spotDirection.x:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light0.spotDirection.y:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light0.spotDirection.z:                -1.000000	# 0x000000000000F0BF 
+grips.display.opengl.light0.spotDirection.w:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light0.spotExponent:                   0.000000	# 0x00000000 
+grips.display.opengl.light0.spotCutoff:                     180.000000	# 0x00003443 
+grips.display.opengl.light0.attenuation.constant:           1.000000	# 0x0000803F 
+grips.display.opengl.light0.attenuation.linear:             0.000000	# 0x00000000 
+grips.display.opengl.light0.attenuation.quadratic:          0.000000	# 0x00000000 
+grips.display.opengl.light1.enabled:                        false
+grips.display.opengl.light1.ambient.red:                    0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.ambient.green:                  0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.ambient.blue:                   0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.ambient.alpha:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light1.diffuse.red:                    0.500000	# 0x000000000000E03F 
+grips.display.opengl.light1.diffuse.green:                  0.500000	# 0x000000000000E03F 
+grips.display.opengl.light1.diffuse.blue:                   0.700000	# 0x666666666666E63F 
+grips.display.opengl.light1.diffuse.alpha:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light1.specular.red:                   0.640000	# 0x7C14AE47E17AE43F 
+grips.display.opengl.light1.specular.green:                 0.640000	# 0x7C14AE47E17AE43F 
+grips.display.opengl.light1.specular.blue:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light1.specular.alpha:                 1.000000	# 0x000000000000F03F 
+grips.display.opengl.light1.position.x:                     15.000000	# 0x0000000000002E40 
+grips.display.opengl.light1.position.y:                     5.000000	# 0x0000000000001440 
+grips.display.opengl.light1.position.z:                     0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.position.w:                     0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.spotDirection.x:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.spotDirection.y:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.spotDirection.z:                -1.000000	# 0x000000000000F0BF 
+grips.display.opengl.light1.spotDirection.w:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light1.spotExponent:                   0.000000	# 0x00000000 
+grips.display.opengl.light1.spotCutoff:                     180.000000	# 0x00003443 
+grips.display.opengl.light1.attenuation.constant:           1.000000	# 0x0000803F 
+grips.display.opengl.light1.attenuation.linear:             0.000000	# 0x00000000 
+grips.display.opengl.light1.attenuation.quadratic:          0.000000	# 0x00000000 
+grips.display.opengl.light2.enabled:                        true
+grips.display.opengl.light2.ambient.red:                    0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.ambient.green:                  0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.ambient.blue:                   0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.ambient.alpha:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light2.diffuse.red:                    0.500000	# 0x000000000000E03F 
+grips.display.opengl.light2.diffuse.green:                  0.500000	# 0x000000000000E03F 
+grips.display.opengl.light2.diffuse.blue:                   0.700000	# 0x666666666666E63F 
+grips.display.opengl.light2.diffuse.alpha:                  1.000000	# 0x000000000000F03F 
+grips.display.opengl.light2.specular.red:                   1.000000	# 0x000000000000F03F 
+grips.display.opengl.light2.specular.green:                 0.640000	# 0x7C14AE47E17AE43F 
+grips.display.opengl.light2.specular.blue:                  0.640000	# 0x7C14AE47E17AE43F 
+grips.display.opengl.light2.specular.alpha:                 1.000000	# 0x000000000000F03F 
+grips.display.opengl.light2.position.x:                     -15.000000	# 0x0000000000002EC0 
+grips.display.opengl.light2.position.y:                     10.000000	# 0x0000000000002440 
+grips.display.opengl.light2.position.z:                     0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.position.w:                     0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.spotDirection.x:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.spotDirection.y:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.spotDirection.z:                -1.000000	# 0x000000000000F0BF 
+grips.display.opengl.light2.spotDirection.w:                0.000000	# 0x0000000000000000 
+grips.display.opengl.light2.spotExponent:                   0.000000	# 0x00000000 
+grips.display.opengl.light2.spotCutoff:                     180.000000	# 0x00003443 
+grips.display.opengl.light2.attenuation.constant:           1.000000	# 0x0000803F 
+grips.display.opengl.light2.attenuation.linear:             0.000000	# 0x00000000 
+grips.display.opengl.light2.attenuation.quadratic:          0.000000	# 0x00000000 
+grips.display.opengl.transform.00:                          -0.017884	# 0xB4911E9D375092BF 
+grips.display.opengl.transform.01:                          -0.012377	# 0x4254DCE9275989BF 
+grips.display.opengl.transform.02:                          -0.037465	# 0xA39CB9E3972EA3BF 
+grips.display.opengl.transform.03:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.04:                          -0.018428	# 0x26CA7138C3DE92BF 
+grips.display.opengl.transform.05:                          0.038990	# 0x0959952481F6A33F 
+grips.display.opengl.transform.06:                          -0.004084	# 0xE8611D6C3EBA70BF 
+grips.display.opengl.transform.07:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.08:                          0.034887	# 0xA7B446EDAEDCA13F 
+grips.display.opengl.transform.09:                          0.014252	# 0xE2F13A9C43308D3F 
+grips.display.opengl.transform.10:                          -0.021362	# 0x411A5D46EBDF95BF 
+grips.display.opengl.transform.11:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.12:                          -0.929253	# 0xE753005171BCEDBF 
+grips.display.opengl.transform.13:                          -0.346110	# 0xC4BA5DCDAA26D6BF 
+grips.display.opengl.transform.14:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.15:                          1.000000	# 0x000000000000F03F 
+grips.display.opengl.transformInv.00:                       -9.529927	# 0x2D91FA8B520F23C0 
+grips.display.opengl.transformInv.01:                       -9.820917	# 0xFCDCB9304FA423C0 
+grips.display.opengl.transformInv.02:                       18.591176	# 0x6B3FE24857973240 
+grips.display.opengl.transformInv.03:                       0.000000	# 0x0000000000000000 
+grips.display.opengl.transformInv.04:                       -6.595157	# 0x22B953E570611AC0 
+grips.display.opengl.transformInv.05:                       20.777959	# 0x8071F14C28C73440 
+grips.display.opengl.transformInv.06:                       7.594431	# 0xB9A66E83B2601E40 
+grips.display.opengl.transformInv.07:                       0.000000	# 0x0000000000000000 
+grips.display.opengl.transformInv.08:                       -19.963691	# 0xF9671A6EB4F633C0 
+grips.display.opengl.transformInv.09:                       -2.176225	# 0xC7B64BDDE86801C0 
+grips.display.opengl.transformInv.10:                       -11.383573	# 0x71386AA863C426C0 
+grips.display.opengl.transformInv.11:                       0.000000	# 0x0000000000000000 
+grips.display.opengl.transformInv.12:                       -11.138366	# 0x37B6D7DAD74626C0 
+grips.display.opengl.transformInv.13:                       -1.934658	# 0xCE43B2395CF4FEBF 
+grips.display.opengl.transformInv.14:                       19.904419	# 0x01D8B40688E73340 
+grips.display.opengl.transformInv.15:                       1.000000	# 0x000000000000F03F 
+grips.display.tile.width:                                   1
+grips.display.tile.height:                                  1
+grips.display.tile.index:                                   0
+grips.display.spin.active:                                  false
+grips.display.spin.duration:                                0.000000	# 0x0000000000000000 
+grips.display.spin.loop:                                    false
+grips.display.spin.axis.x:                                  0.000000	# 0x0000000000000000 
+grips.display.spin.axis.y:                                  1.000000	# 0x000000000000F03F 
+grips.display.spin.axis.z:                                  0.000000	# 0x0000000000000000 
+grips.display.spin.center.x:                                0.000000	# 0x0000000000000000 
+grips.display.spin.center.y:                                0.000000	# 0x0000000000000000 
+grips.display.spin.center.z:                                0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.00:                               1.000000	# 0x000000000000F03F 
+grips.display.spin.matrix.01:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.02:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.03:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.04:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.05:                               1.000000	# 0x000000000000F03F 
+grips.display.spin.matrix.06:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.07:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.08:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.09:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.10:                               1.000000	# 0x000000000000F03F 
+grips.display.spin.matrix.11:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.12:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.13:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.14:                               0.000000	# 0x0000000000000000 
+grips.display.spin.matrix.15:                               1.000000	# 0x000000000000F03F 
+grips.display.follow.follow:                                false
+grips.display.follow.current:                               0
+grips.display.field.enable:                                 false
+grips.display.field.color1.red:                             0.409600	# 0x2F431CEBE236DA3F 
+grips.display.field.color1.green:                           0.409600	# 0x2F431CEBE236DA3F 
+grips.display.field.color1.blue:                            0.409600	# 0x2F431CEBE236DA3F 
+grips.display.field.color1.alpha:                           1.000000	# 0x000000000000F03F 
+grips.display.field.color2.red:                             0.409600	# 0x2F431CEBE236DA3F 
+grips.display.field.color2.green:                           0.512000	# 0xFDA9F1D24D62E03F 
+grips.display.field.color2.blue:                            0.640000	# 0x7C14AE47E17AE43F 
+grips.display.field.color2.alpha:                           0.800000	# 0x9A9999999999E93F 
+grips.display.field.size:                                   8.000000	# 0x0000000000002040 
+grips.display.field.min:                                    0.060000	# 0xB81E85EB51B8AE3F 
+grips.display.field.max:                                    0.300000	# 0x333333333333D33F 
+grips.display.window.background.red:                        0.000000	# 0x0000000000000000 
+grips.display.window.background.green:                      0.000000	# 0x0000000000000000 
+grips.display.window.background.blue:                       0.000000	# 0x0000000000000000 
+grips.display.window.background.alpha:                      1.000000	# 0x000000000000F03F 
+grips.display.window.info.red:                              1.000000	# 0x000000000000F03F 
+grips.display.window.info.green:                            1.000000	# 0x000000000000F03F 
+grips.display.window.info.blue:                             1.000000	# 0x000000000000F03F 
+grips.display.window.info.alpha:                            1.000000	# 0x000000000000F03F 
+grips.display.window.fade.red:                              0.000000	# 0x0000000000000000 
+grips.display.window.fade.green:                            0.000000	# 0x0000000000000000 
+grips.display.window.fade.blue:                             0.000000	# 0x0000000000000000 
+grips.display.window.fade.alpha:                            0.300000	# 0x333333333333D33F 
+grips.display.window.shadowEnable:                          true
+grips.display.window.borderEnable:                          true
+grips.display.window.border.red:                            0.000000	# 0x0000000000000000 
+grips.display.window.border.green:                          0.000000	# 0x0000000000000000 
+grips.display.window.border.blue:                           0.000000	# 0x0000000000000000 
+grips.display.window.border.alpha:                          1.000000	# 0x000000000000F03F 
+grips.animation:                                            true
+grips.steps:                                                1
+grips.wait:                                                 20
+grips.network.server.enable:                                false
+grips.network.server.port:                                  5001
+grips.network.client.enable:                                false
+grips.network.client.host:                                  localhost
+grips.network.client.port:                                  5001
+grips.network.httpClient.enable:                            false
+grips.network.httpClient.tickTime:                          1000
+grips.network.httpClient.url:                               
+grips.network.httpClient.relaxTime:                         1000
+grips.world.init.init:                                      
