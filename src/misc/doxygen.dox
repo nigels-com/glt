@@ -1,6 +1,6 @@
 /*! \defgroup Misc GLT Misc
     \brief    Miscellaneous Non-Graphical Functionality
-    
+
     The miscellaneous module of GLT is concerned with
     non-graphical functionality such as reading and writing
     images, compression, timers, reference counting and

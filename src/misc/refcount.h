@@ -90,15 +90,15 @@ public:
     /// Assignment operator
     ReferenceCountPtr &operator=(const ReferenceCountPtr &ptr)
     {
-		if (this != &ptr)
-		{
+        if (this != &ptr)
+        {
             dec();
 
             _count = ptr._count;
             _obj   = ptr._obj;
 
             inc();
-		}
+        }
 
         return *this;
     }
