@@ -2,7 +2,7 @@ CPP_SRC  = main.cpp
 RES_SRC  = sphere.rc
 NAME     = sphere
 
-GLT_HOME = ../../../..
+ROOT     = ../../../..
 INCLUDE  =
 LIBS = -lglutm -lglt
 
