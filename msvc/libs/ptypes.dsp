@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="jpeg" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="ptypes" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=jpeg - Win32 Debug
+CFG=ptypes - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "jpeg.mak".
+!MESSAGE NMAKE /f "ptypes.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "jpeg.mak" CFG="jpeg - Win32 Debug"
+!MESSAGE NMAKE /f "ptypes.mak" CFG="ptypes - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "jpeg - Win32 Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "jpeg - Win32 Debug" (based on "Win32 (x86) Static Library")
+!MESSAGE "ptypes - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "ptypes - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=jpeg - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "jpeg - Win32 Release"
+!IF  "$(CFG)" == "ptypes - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -37,8 +37,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "tmp/jpeg/Release"
+# PROP Output_Dir "../Release"
+# PROP Intermediate_Dir "../tmp/ptypes/Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MD /W3 /GR /GX /O2 /I "../../src/" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "NO_MIN_MAX" /YX /FD /c
@@ -51,7 +51,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
 
-!ELSEIF  "$(CFG)" == "jpeg - Win32 Debug"
+!ELSEIF  "$(CFG)" == "ptypes - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -60,8 +60,8 @@ LIB32=link.exe -lib
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "tmp/jpeg/Debug"
+# PROP Output_Dir "../Debug"
+# PROP Intermediate_Dir "../tmp/ptypes/Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MDd /W3 /Gm /GR /GX /ZI /Od /I "../../src/" /D "_DEBUG" /D "DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "NO_MIN_MAX" /YX /FD /GZ /c
@@ -78,250 +78,218 @@ LIB32=link.exe -lib
 
 # Begin Target
 
-# Name "jpeg - Win32 Release"
-# Name "jpeg - Win32 Debug"
+# Name "ptypes - Win32 Release"
+# Name "ptypes - Win32 Debug"
 # Begin Group "Source Files"
 
-# PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# PROP Default_Filter "cpp;c;cpp;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\src\jpeg\cdjpeg.c
+SOURCE=..\..\src\ptypes\pasync.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcapimin.c
+SOURCE=..\..\src\ptypes\patomic.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcapistd.c
+SOURCE=..\..\src\ptypes\pcomponent.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jccoefct.c
+SOURCE=..\..\src\ptypes\pcset.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jccolor.c
+SOURCE=..\..\src\ptypes\pcsetdbg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcdctmgr.c
+SOURCE=..\..\src\ptypes\pexcept.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jchuff.c
+SOURCE=..\..\src\ptypes\pfatal.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcinit.c
+SOURCE=..\..\src\ptypes\pfdxstm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcmainct.c
+SOURCE=..\..\src\ptypes\pinfile.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcmarker.c
+SOURCE=..\..\src\ptypes\pinfilter.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcmaster.c
+SOURCE=..\..\src\ptypes\pinmem.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcomapi.c
+SOURCE=..\..\src\ptypes\pinstm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcparam.c
+SOURCE=..\..\src\ptypes\pintee.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcphuff.c
+SOURCE=..\..\src\ptypes\piobase.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcprepct.c
+SOURCE=..\..\src\ptypes\pipbase.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jcsample.c
+SOURCE=..\..\src\ptypes\pipmsg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jctrans.c
+SOURCE=..\..\src\ptypes\pipmsgsv.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdapimin.c
+SOURCE=..\..\src\ptypes\pipstm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdapistd.c
+SOURCE=..\..\src\ptypes\pipstmsv.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdatadst.c
+SOURCE=..\..\src\ptypes\pipsvbase.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdatasrc.c
+SOURCE=..\..\src\ptypes\pmd5.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdcoefct.c
+SOURCE=..\..\src\ptypes\pmem.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdcolor.c
+SOURCE=..\..\src\ptypes\pmsgq.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jddctmgr.c
+SOURCE=..\..\src\ptypes\pmtxtable.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdhuff.c
+SOURCE=..\..\src\ptypes\pnpipe.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdinput.c
+SOURCE=..\..\src\ptypes\pnpserver.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdmainct.c
+SOURCE=..\..\src\ptypes\pobjlist.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdmarker.c
+SOURCE=..\..\src\ptypes\poutfile.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdmaster.c
+SOURCE=..\..\src\ptypes\poutfilter.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdmerge.c
+SOURCE=..\..\src\ptypes\poutmem.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdphuff.c
+SOURCE=..\..\src\ptypes\poutstm.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdpostct.c
+SOURCE=..\..\src\ptypes\ppipe.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdsample.c
+SOURCE=..\..\src\ptypes\pputf.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdtrans.c
+SOURCE=..\..\src\ptypes\prwlock.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jerror.c
+SOURCE=..\..\src\ptypes\psemaphore.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jfdctflt.c
+SOURCE=..\..\src\ptypes\pstdio.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jfdctfst.c
+SOURCE=..\..\src\ptypes\pstrcase.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jfdctint.c
+SOURCE=..\..\src\ptypes\pstrconv.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jidctflt.c
+SOURCE=..\..\src\ptypes\pstring.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jidctfst.c
+SOURCE=..\..\src\ptypes\pstrlist.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jidctint.c
+SOURCE=..\..\src\ptypes\pstrmanip.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jidctred.c
+SOURCE=..\..\src\ptypes\pstrtoi.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jmemansi.c
+SOURCE=..\..\src\ptypes\pstrutils.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jmemmgr.c
+SOURCE=..\..\src\ptypes\pthread.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jquant1.c
+SOURCE=..\..\src\ptypes\ptime.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jquant2.c
+SOURCE=..\..\src\ptypes\ptimedsem.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jutils.c
+SOURCE=..\..\src\ptypes\ptrigger.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\rdbmp.c
+SOURCE=..\..\src\ptypes\punit.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\rdcolmap.c
+SOURCE=..\..\src\ptypes\punknown.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\rdgif.c
+SOURCE=..\..\src\ptypes\pvariant.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\rdppm.c
+SOURCE=..\..\src\ptypes\pvarray.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\rdrle.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\rdswitch.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\rdtarga.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\transupp.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\wrbmp.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\wrgif.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\wrppm.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\wrrle.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\wrtarga.c
+SOURCE=..\..\src\ptypes\pversion.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -329,59 +297,27 @@ SOURCE=..\src\jpeg\wrtarga.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\src\jpeg\cderror.h
+SOURCE=..\..\src\ptypes\pasync.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\cdjpeg.h
+SOURCE=..\..\src\ptypes\pinet.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jchuff.h
+SOURCE=..\..\src\ptypes\pport.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jconfig.h
+SOURCE=..\..\src\ptypes\pstreams.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdct.h
+SOURCE=..\..\src\ptypes\ptime.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\jpeg\jdhuff.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\jerror.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\jinclude.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\jmemsys.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\jmorecfg.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\jpegint.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\jpeglib.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\jversion.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\jpeg\transupp.h
+SOURCE=..\..\src\ptypes\ptypes.h
 # End Source File
 # End Group
 # End Target
