@@ -277,6 +277,11 @@ public:
     */
     void setSwapBuffers(const bool swap);
 
+    /*!
+        \brief      Ignore repeated keypress events
+    */
+    void ignoreKeyRepeat(const bool ignore);
+
     //
     // OpenGL Frame Buffer Capture
     //

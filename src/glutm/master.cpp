@@ -414,6 +414,22 @@ GlutMaster::setCursor(GlutWindow *window,int cursor)
 }
 
 void
+GlutMaster::ignoreKeyRepeat(GlutWindow *window,bool ignore)
+{
+    assert(window);
+    if (!window)
+        return;
+
+    const int id = window->_windowID;
+
+    if (id!=-1)
+    {
+        glutSetWindow(id);
+        glutIgnoreKeyRepeat(ignore ? 1 : 0);
+    }
+}
+
+void
 GlutMaster::postRedisplay(GlutWindow *window)
 {
     assert(window);

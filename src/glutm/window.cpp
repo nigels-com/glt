@@ -138,6 +138,12 @@ GlutWindow::setCursor(int cursor)
 }
 
 void
+GlutWindow::ignoreKeyRepeat(const bool ignore)
+{
+    GlutMaster::ignoreKeyRepeat(this,ignore);
+}
+
+void
 GlutWindow::postRedisplay()
 {
     GlutMaster::postRedisplay(this);

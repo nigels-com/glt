@@ -123,11 +123,12 @@ private:
 
     static GlutWindow *currentWindow(); ///< Get a pointer to the current GLUT window
 
-    static void openWindow    (GlutWindow *glutWindow);                  //< Create a window
-    static void closeWindow   (GlutWindow *glutWindow);                  //< Close a window
-    static void positionWindow(GlutWindow *window,int x,int y);          //< Position a window
-    static void reshapeWindow (GlutWindow *window,int width,int height); //< Resize a window
-    static void setCursor     (GlutWindow *window,int cursor);           //< Set cursor style
+    static void openWindow     (GlutWindow *glutWindow);                  //< Create a window
+    static void closeWindow    (GlutWindow *glutWindow);                  //< Close a window
+    static void positionWindow (GlutWindow *window,int x,int y);          //< Position a window
+    static void reshapeWindow  (GlutWindow *window,int width,int height); //< Resize a window
+    static void setCursor      (GlutWindow *window,int cursor);           //< Set cursor style
+    static void ignoreKeyRepeat(GlutWindow *window,bool ignore);          //< Disable key auto-repeat
 
     static void setIdle       (GlutTimer *target,bool idle);                 //< Set idle events
     static void setTick       (GlutTimer *target,unsigned int msec);         //< Set tick events
