@@ -1772,22 +1772,20 @@ void ogJoystickPollWindow( SOG_Window *window )
     int buttons;
     int ident;
 
-    freeglut_return_if_fail( window );
-    freeglut_return_if_fail( FETCH_WCB( *window, Joystick ) );
+    if( window && FETCH_WCB( *window, Joystick ) )
+        for( ident = 0; ident < MAX_NUM_JOYSTICKS; ident++ )
+            if( ogJoystick[ ident ] )
+            {
+                oghJoystickRead( ogJoystick[ ident ], &buttons, axes );
 
-    for( ident = 0; ident < MAX_NUM_JOYSTICKS; ident++ )
-        if( ogJoystick[ ident ] )
-        {
-            oghJoystickRead( ogJoystick[ ident ], &buttons, axes );
-
-            if( !ogJoystick[ ident ]->error )
-                INVOKE_WCB( *window, Joystick,
-                            ( buttons,
-                              (int)( axes[ 0 ] * 1000.0f ),
-                              (int)( axes[ 1 ] * 1000.0f ),
-                              (int)( axes[ 2 ] * 1000.0f ) )
-                );
-        }
+                if( !ogJoystick[ ident ]->error )
+                    INVOKE_WCB( *window, Joystick,
+                                ( buttons,
+                                  (int)( axes[ 0 ] * 1000.0f ),
+                                  (int)( axes[ 1 ] * 1000.0f ),
+                                  (int)( axes[ 2 ] * 1000.0f ) )
+                    );
+            }
 }
 
 /*

@@ -285,7 +285,7 @@ void ogSetWindow( SOG_Window *window )
 }
 
 
-/*!
+/*! \internal
     Opens a window. Requires a SOG_Window object created and attached
     to the OpenGLUT structure. OpenGL context is created here.
 */
@@ -338,7 +338,7 @@ void ogOpenWindow( SOG_Window* window, const char* title,
         /*
          * GLUT also checks for multi-sampling, but I don't see that
          * anywhere else in freeglut/OpenGLUT so I won't bother with
-	 * it for the moment.
+         * it for the moment.
          */
     }
 
@@ -905,31 +905,123 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
 /*
  * These special helper functions (and support macros) are used to
  * cascade keyboard and mouse events to the parents of client menu windows.
+ *
+ * I'll be cleaning this up shortly, but at the moment it addresses a
+ * significant bug, so I'm committing something that's a bit
+ * frightful.
+ *
+ * oghX/oghY: These map a coordinates in a child window to coordinates
+ *            in the parent window.
+ * X/Y:       These recurred enough that it seemed simpler to use a macro.
+ *            Especially since, at one time, the oghX/oghY functions
+ *            were inline.  (^&  At one point the same definitions
+ *            were also used in glutCreateMenuWindow().
+ * oghClientMenu*(): A bunch of callback functions to be registered with
+ *                   the client menus.  They redirect all keyboard and mouse
+ *                   input to the parent window's handler, after translating
+ *                   mouse coords.
+ *
+ * NB: You cannot use the X and Y macros within the INVOK_WCB() macro
+ *     invocations.  INVOKE_WCB(), being a macro, evaluates its
+ *     parameters when, and only when, they are used.  It sets the
+ *     current window before evaluating the translated coordinates,
+ *     and at that point it's a bit late to run around translating the
+ *     coords, since we no longer know the child window in order to
+ *     get its position.
  */
-#define X ( x + glutGet( GLUT_WINDOW_X ) )
-#define Y ( y + glutGet( GLUT_WINDOW_Y ) )
+static int oghX( const int x )
+{
+    int ret = x;
+    SOG_Window *win = ogStructure.Window;
+    SOG_Window *parent;
+
+    assert( win );
+    assert( win->Parent );
+    parent = win->Parent;
+
+    ret += glutGet( GLUT_WINDOW_X );
+    ogSetWindow( parent );
+    ret -= glutGet( GLUT_WINDOW_X );
+    ogSetWindow( win );
+
+    return ret;
+}
+static int oghY( const int y )
+{
+    int ret = y;
+    SOG_Window *win = ogStructure.Window;
+    SOG_Window *parent;
+
+    assert( win );
+    assert( win->Parent );
+    parent = win->Parent;
+
+    ret += glutGet( GLUT_WINDOW_Y );
+    ogSetWindow( parent );
+    ret -= glutGet( GLUT_WINDOW_Y );
+    ogSetWindow( win );
+
+    return ret;
+}
+#define X oghX(x)
+#define Y oghY(y)
 static void oghClientMenuKeyboard( unsigned char key, int x, int y )
-    { INVOKE_WCB( *ogStructure.Window->Parent, Keyboard, ( key, X, Y ) ); }
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Keyboard, ( key, _x, _y ) );
+}
 static void oghClientMenuKeyboardUp( unsigned char key, int x, int y )
-    { INVOKE_WCB( *ogStructure.Window->Parent, KeyboardUp, ( key, X, Y ) ); }
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, KeyboardUp, ( key, _x, _y ) );
+}
 static void oghClientMenuSpecial( int key, int x, int y )
-    { INVOKE_WCB( *ogStructure.Window->Parent, Special, ( key, X, Y ) ); }
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Special, ( key, _x, _y ) );
+}
 static void oghClientMenuSpecialUp( int key, int x, int y )
-    { INVOKE_WCB( *ogStructure.Window->Parent, SpecialUp, ( key, X, Y ) ); }
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, SpecialUp, ( key, _x, _y ) );
+}
 
 static void oghClientMenuMotion( int x, int y )
-    { INVOKE_WCB( *ogStructure.Window->Parent, Motion, ( X, Y ) ); }
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Motion, ( _x, _y ) );
+}
 static void oghClientMenuPassiveMotion( int x, int y )
-    { INVOKE_WCB( *ogStructure.Window->Parent, Passive, ( X, Y ) ); }
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Passive, ( _x, _y ) );
+}
 static void oghClientMenuMouse( int button, int state, int x, int y )
 {
-    INVOKE_WCB( *ogStructure.Window->Parent, Mouse, ( button, state, X, Y ) );
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB(
+        *ogStructure.Window->Parent, Mouse, ( button, state, _x, _y )
+    );
 }
 static void oghClientMenuMouseWheel( int wheel, int dir, int x, int y )
 {
-    INVOKE_WCB( *ogStructure.Window->Parent, MouseWheel, ( wheel, dir, X, Y ) );
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB(
+        *ogStructure.Window->Parent, MouseWheel, ( wheel, dir, _x, _y )
+    );
 }
-
+#undef X
+#undef Y
+#define X ( x + glutGet( GLUT_WINDOW_X ) )
+#define Y ( y + glutGet( GLUT_WINDOW_Y ) )
 /*!
     \fn
     \brief    Create a client-controlled menu window.
@@ -940,7 +1032,9 @@ static void oghClientMenuMouseWheel( int wheel, int dir, int x, int y )
     \param    w           Width of the new window.
     \param    h           Height of the new window.
 
-    This is a highly experimental function.
+    This is a highly experimental function.  It creates a menu-like
+    window, of requested dimensions, and at a position relative
+    to your current window.
 
     The documentation for this function is currently the OpenGLUT
     Menu Window proposal.  Variance from that proposal may generally
@@ -972,9 +1066,35 @@ int OGAPIENTRY glutCreateMenuWindow( int parentID, int x, int y, int w, int h )
             );
             if( window )
             {
+                /*
+                 * These 3 things should already be done by ogCreateWindow(),
+                 * I think.
+                 */
                 window->Parent = parent;
                 ret = window->ID;
                 glutSetWindow( ret );
+
+                /*
+                 * Since menu windows should not have certain callbacks
+                 * defined by client applications (mouse motion, for
+                 * example, must pass through to the parent window), the
+                 * callbacks do not allow IsClientMenu windows to register
+                 * those callbacks.  But *we* must register them now, so
+                 * we very briefly lie and claim that the window is not
+                 * in fact a client menu.
+                 *
+                 * It might be better to generalize this and say that *no*
+                 * callbacks are allowed to the client for these windows
+                 * and instead we can register every type of callback and
+                 * do a pass-through.  (Or simply not register some
+                 * types.  Does one ever need a joystick in a client
+                 * menu window?)
+                 *
+                 * The point is that then we could implement this as a
+                 * generalized "callback lock".  We could also block
+                 * callbacks by some kind of list or bitmap...
+                 */
+                ogStructure.Window->IsClientMenu = GL_FALSE;
                 glutKeyboardFunc( oghClientMenuKeyboard );
                 glutKeyboardUpFunc( oghClientMenuKeyboardUp );
                 glutSpecialFunc( oghClientMenuSpecial );
@@ -983,6 +1103,7 @@ int OGAPIENTRY glutCreateMenuWindow( int parentID, int x, int y, int w, int h )
                 glutPassiveMotionFunc( oghClientMenuPassiveMotion );
                 glutMouseFunc( oghClientMenuMouse );
                 glutMouseWheelFunc( oghClientMenuMouseWheel );
+                ogStructure.Window->IsClientMenu = GL_TRUE;
             }
         }
     }
@@ -997,14 +1118,14 @@ int OGAPIENTRY glutCreateMenuWindow( int parentID, int x, int y, int w, int h )
     \ingroup  window
     \param    windowID   Window identifier
 
-    Invoking this function effectively cancels any pending
-    events that you might otherwise receive from the window,
-    save the window destruction event.
+    After this function is invoked, the only further event
+    that may be delivered for your window is the one for its
+    destruction.  All other events should be discarded.
 
     Once a window has been destroyed, further attempts to
-    use its <i>window id</i> are undefined.  OpenGLUT generally
+    use the window named by \a windowID are undefined.  OpenGLUT generally
     tries to be sensible, and should not recycle the dead
-    <i>id</i>, but you should treat a destroyed window much
+    \a windowID, but you should treat a destroyed window much
     like a pointer to deallocated memory and try not to use it.
 
     \see      glutCreateWindow()

@@ -141,6 +141,6 @@ void OGAPIENTRY glutPostWindowRedisplay( int windowID )
 
     freeglut_assert_ready;
     window = ogWindowByID( windowID );
-    freeglut_return_if_fail( window );
-    window->State.Redisplay = GL_TRUE;
+    if( window )
+        window->State.Redisplay = GL_TRUE;
 }

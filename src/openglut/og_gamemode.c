@@ -635,20 +635,16 @@ int OGAPIENTRY glutEnterGameMode( void )
 */
 void OGAPIENTRY glutLeaveGameMode( void )
 {
-    freeglut_return_if_fail( ogStructure.GameMode );
-
-    ogStructure.GameMode->State.IsGameMode = GL_FALSE;
-
-    ogAddToWindowDestroyList( ogStructure.GameMode );
-
+    if( ogStructure.GameMode )
+    {
+        ogStructure.GameMode->State.IsGameMode = GL_FALSE;
+        ogAddToWindowDestroyList( ogStructure.GameMode );
 #if TARGET_HOST_UNIX_X11
-
-    XUngrabPointer( ogDisplay.Display, CurrentTime );
-    XUngrabKeyboard( ogDisplay.Display, CurrentTime );
-
+        XUngrabPointer( ogDisplay.Display, CurrentTime );
+        XUngrabKeyboard( ogDisplay.Display, CurrentTime );
 #endif
-
-    oghRestoreState();
+        oghRestoreState();
+    }
 }
 
 /*!

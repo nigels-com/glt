@@ -343,7 +343,7 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
          * Have the label drawn, character after character:
          */
         glutBitmapString( FREEGLUT_MENU_FONT,
-                          (unsigned char *)menuEntry->Text);
+                          ( unsigned char * )menuEntry->Text );
 
         /*
          * If it's a submenu, draw a right arrow
@@ -415,44 +415,47 @@ void ogDisplayMenu( void )
      * Check if there is an active menu attached to this window...
      */
     menu = window->ActiveMenu;
-    freeglut_return_if_fail( menu );
+    if( menu )
+    {
+        ogSetWindow( menu->Window );
 
-    ogSetWindow( menu->Window );
+        glPushAttrib(
+            GL_DEPTH_BUFFER_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT |
+            GL_POLYGON_BIT
+        );
 
-    glPushAttrib( GL_DEPTH_BUFFER_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT |
-                  GL_POLYGON_BIT );
+        glDisable( GL_DEPTH_TEST );
+        glDisable( GL_TEXTURE_2D );
+        glDisable( GL_LIGHTING   );
+        glDisable( GL_CULL_FACE  );
 
-    glDisable( GL_DEPTH_TEST );
-    glDisable( GL_TEXTURE_2D );
-    glDisable( GL_LIGHTING   );
-    glDisable( GL_CULL_FACE  );
+        glMatrixMode( GL_PROJECTION );
+        glPushMatrix( );
+        glLoadIdentity( );
+        glOrtho(
+            0, glutGet( GLUT_WINDOW_WIDTH  ),
+            glutGet( GLUT_WINDOW_HEIGHT ), 0,
+            -1, 1
+        );
 
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix( );
-    glLoadIdentity( );
-    glOrtho(
-         0, glutGet( GLUT_WINDOW_WIDTH  ),
-         glutGet( GLUT_WINDOW_HEIGHT ), 0,
-        -1, 1
-    );
+        glMatrixMode( GL_MODELVIEW );
+        glPushMatrix( );
+        glLoadIdentity( );
 
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix( );
-    glLoadIdentity( );
+        oghCheckMenuStatus( window, menu );
+        oghDisplayMenuBox( menu );
 
-    oghCheckMenuStatus( window, menu );
-    oghDisplayMenuBox( menu );
+        glPopAttrib( );
 
-    glPopAttrib( );
+        glMatrixMode( GL_PROJECTION );
+        glPopMatrix( );
+        glMatrixMode( GL_MODELVIEW );
+        glPopMatrix( );
 
-    glMatrixMode( GL_PROJECTION );
-    glPopMatrix( );
-    glMatrixMode( GL_MODELVIEW );
-    glPopMatrix( );
+        glutSwapBuffers( );
 
-    glutSwapBuffers( );
-
-    ogSetWindow ( window );
+        ogSetWindow ( window );
+    }
 }
 
 /*
@@ -545,28 +548,29 @@ void ogDeactivateMenu( SOG_Window *window )
     SOG_MenuEntry *menuEntry;
 
     /* Did we find an active window? */
-    freeglut_return_if_fail( menu );
+    if( menu )
+    {
+        /* Hide the present menu's window */
+        ogSetWindow( menu->Window );
+        glutHideWindow( );
 
-    /* Hide the present menu's window */
-    ogSetWindow( menu->Window );
-    glutHideWindow( );
+        /* Forget about having that menu active anymore, now: */
+        menu->Window->ActiveMenu = NULL;
+        menu->ParentWindow->ActiveMenu = NULL;
+        menu->IsActive = GL_FALSE;
 
-    /* Forget about having that menu active anymore, now: */
-    menu->Window->ActiveMenu = NULL;
-    menu->ParentWindow->ActiveMenu = NULL;
-    menu->IsActive = GL_FALSE;
+        ogState.ActiveMenus--;
 
-    ogState.ActiveMenus--;
+        /* Hide all submenu windows, and the root menu's window. */
+        for( menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
+             menuEntry;
+             menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
+            /* Is that an active submenu by any case? */
+            if( menuEntry->SubMenu )
+                ogDeactivateSubMenu( menuEntry );
 
-    /* Hide all submenu windows, and the root menu's window. */
-    for ( menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
-          menuEntry;
-          menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
-        /* Is that an active submenu by any case? */
-        if( menuEntry->SubMenu )
-            ogDeactivateSubMenu( menuEntry );
-
-    ogSetWindow( current_window );
+        ogSetWindow( current_window );
+    }
 }
 
 /*
@@ -605,39 +609,40 @@ void oghCalculateMenuBoxSize( void )
 
     /* Make sure there is a current menu set */
     freeglut_assert_ready;
-    freeglut_return_if_fail( ogStructure.Menu );
-
-    /* The menu's box size depends on the menu entries: */
-    for( menuEntry = ( SOG_MenuEntry * )ogStructure.Menu->Entries.First;
-         menuEntry;
-         menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
+    if( ogStructure.Menu )
     {
-        /* Update the menu entry's width value */
-        menuEntry->Width = glutBitmapLength(
-            FREEGLUT_MENU_FONT,
-            (unsigned char *)menuEntry->Text
-        );
-
-        /*
-         * If the entry is a submenu, then it needs to be wider to
-         * accomodate the arrow. JCJ 31 July 2003
-         */
-        if (menuEntry->SubMenu )
-            menuEntry->Width += glutBitmapLength(
+        /* The menu's box size depends on the menu entries: */
+        for( menuEntry = ( SOG_MenuEntry * )ogStructure.Menu->Entries.First;
+             menuEntry;
+             menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
+        {
+            /* Update the menu entry's width value */
+            menuEntry->Width = glutBitmapLength(
                 FREEGLUT_MENU_FONT,
-                (unsigned char *)"_"
+                (unsigned char *)menuEntry->Text
             );
 
-        /* Check if it's the biggest we've found */
-        if( menuEntry->Width > width )
-            width = menuEntry->Width;
+            /*
+             * If the entry is a submenu, then it needs to be wider to
+             * accomodate the arrow. JCJ 31 July 2003
+             */
+            if (menuEntry->SubMenu )
+                menuEntry->Width += glutBitmapLength(
+                    FREEGLUT_MENU_FONT,
+                    (unsigned char *)"_"
+                );
 
-        height += FREEGLUT_MENU_HEIGHT;
+            /* Check if it's the biggest we've found */
+            if( menuEntry->Width > width )
+                width = menuEntry->Width;
+
+            height += FREEGLUT_MENU_HEIGHT;
+        }
+
+        /* Store the menu's box size now: */
+        ogStructure.Menu->Height = height + 2 * FREEGLUT_MENU_BORDER;
+        ogStructure.Menu->Width  = width  + 4 * FREEGLUT_MENU_BORDER;
     }
-
-    /* Store the menu's box size now: */
-    ogStructure.Menu->Height = height + 2 * FREEGLUT_MENU_BORDER;
-    ogStructure.Menu->Width  = width  + 4 * FREEGLUT_MENU_BORDER;
 }
 
 
@@ -688,10 +693,9 @@ void OGAPIENTRY glutDestroyMenu( int menuID )
     SOG_Menu* menu = ogMenuByID( menuID );
 
     freeglut_assert_ready;
-    freeglut_return_if_fail( menu );
-
-    /* The menu object destruction code resides in og_structure.c */
-    ogDestroyMenu( menu );
+    if( menu )
+        /* The menu object destruction code resides in og_structure.c */
+        ogDestroyMenu( menu );
 }
 
 /*!
@@ -737,9 +741,8 @@ void OGAPIENTRY glutSetMenu( int menuID )
     SOG_Menu* menu = ogMenuByID( menuID );
 
     freeglut_assert_ready;
-    freeglut_return_if_fail( menu );
-
-    ogStructure.Menu = menu;
+    if( menu )
+        ogStructure.Menu = menu;
 }
 
 /*!
@@ -769,15 +772,16 @@ void OGAPIENTRY glutAddMenuEntry( const char *label, int value )
         ( SOG_MenuEntry * )calloc( sizeof( SOG_MenuEntry ), 1 );
 
     freeglut_assert_ready;
-    freeglut_return_if_fail( ogStructure.Menu );
+    if( ogStructure.Menu )
+    {
+        menuEntry->Text = strdup( label );
+        menuEntry->ID   = value;
 
-    menuEntry->Text = strdup( label );
-    menuEntry->ID   = value;
+        /* Have the new menu entry attached to the current menu */
+        ogListAppend( &ogStructure.Menu->Entries, &menuEntry->Node );
 
-    /* Have the new menu entry attached to the current menu */
-    ogListAppend( &ogStructure.Menu->Entries, &menuEntry->Node );
-
-    oghCalculateMenuBoxSize( );
+        oghCalculateMenuBoxSize( );
+    }
 }
 
 /*!
@@ -809,18 +813,18 @@ void OGAPIENTRY glutAddSubMenu( const char *label, int subMenuID )
     SOG_Menu *subMenu = ogMenuByID( subMenuID );
 
     freeglut_assert_ready;
-    freeglut_return_if_fail( ogStructure.Menu );
-    freeglut_return_if_fail( subMenu );
+    if( ogStructure.Menu && subMenu )
+    {
+        menuEntry->Text    = strdup( label );
+        menuEntry->SubMenu = subMenu;
+        menuEntry->ID      = -1;
 
-    menuEntry->Text    = strdup( label );
-    menuEntry->SubMenu = subMenu;
-    menuEntry->ID      = -1;
+        /* Make the submenu's parent window be the menu's parent window */
+        oghSetSubmenuParentWindow( ogStructure.Menu->ParentWindow, subMenu );
 
-    /* Make the submenu's parent window be the menu's parent window */
-    oghSetSubmenuParentWindow( ogStructure.Menu->ParentWindow, subMenu );
-
-    ogListAppend( &ogStructure.Menu->Entries, &menuEntry->Node );
-    oghCalculateMenuBoxSize( );
+        ogListAppend( &ogStructure.Menu->Entries, &menuEntry->Node );
+        oghCalculateMenuBoxSize( );
+    }
 }
 
 /*!
@@ -828,11 +832,11 @@ void OGAPIENTRY glutAddSubMenu( const char *label, int subMenuID )
     \brief    Replaces a given menu entry with an item.
     \ingroup  menus
     \param    item    Integer position down the list.
-    \param    label   Text of the submenu
+    \param    label   Text of the submenu.
     \param    value   The menuID of the submenu.
 
-              Walks down the list of the menu items and replaces
-              the n'th (n = \a item) in the list with the
+              Walks the list of the menu items and replaces
+              the numbered \a item in the list with the
               given definition.  Except that it replaces a
               pre-existing \a item, this function is much like
               glutAddMenuEntry().
@@ -848,21 +852,23 @@ void OGAPIENTRY glutChangeToMenuEntry( int item, const char *label, int value )
     SOG_MenuEntry *menuEntry = NULL;
 
     freeglut_assert_ready;
-    freeglut_return_if_fail( ogStructure.Menu );
+    if( ogStructure.Menu )
+    {
+        /* Get n-th menu entry in the current menu, starting from one: */
+        menuEntry = oghFindMenuEntry( ogStructure.Menu, item );
+        if( menuEntry )
+        {
+            
+            /* We want it to become a normal menu entry, so: */
+            if( menuEntry->Text )
+                free( menuEntry->Text );
 
-    /* Get n-th menu entry in the current menu, starting from one: */
-    menuEntry = oghFindMenuEntry( ogStructure.Menu, item );
-
-    freeglut_return_if_fail( menuEntry );
-
-    /* We want it to become a normal menu entry, so: */
-    if( menuEntry->Text )
-        free( menuEntry->Text );
-
-    menuEntry->Text    = strdup( label );
-    menuEntry->ID      = value;
-    menuEntry->SubMenu = NULL;
-    oghCalculateMenuBoxSize( );
+            menuEntry->Text    = strdup( label );
+            menuEntry->ID      = value;
+            menuEntry->SubMenu = NULL;
+            oghCalculateMenuBoxSize( );
+        }
+    }
 }
 
 /*!
@@ -870,11 +876,11 @@ void OGAPIENTRY glutChangeToMenuEntry( int item, const char *label, int value )
     \brief    Replaces a given menu entry with a submenu.
     \ingroup  menus
     \param    item      Integer position down the list.
-    \param    label     Text of the submenu
+    \param    label     Text of the submenu.
     \param    subMenuID The menuID of the submenu.
 
-              Walks down the list of the menu items and replaces
-              the n'th (n = \a item) in the list with the
+              Walks the list of the menu items and replaces
+              the numbered \a item in the list with the
               given submenu.
 
     \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
@@ -890,22 +896,22 @@ void OGAPIENTRY glutChangeToSubMenu( int item, const char *label,
     SOG_MenuEntry *menuEntry = NULL;
 
     freeglut_assert_ready;
-    freeglut_return_if_fail( ogStructure.Menu );
-    freeglut_return_if_fail( subMenu );
+    if( ogStructure.Menu && subMenu )
+    {
+        /* Get n-th menu entry in the current menu, starting from one: */
+        menuEntry = oghFindMenuEntry( ogStructure.Menu, item );
+        if( menuEntry )
+        {
+            /* We want it to become a sub menu entry, so: */
+            if( menuEntry->Text )
+                free( menuEntry->Text );
 
-    /* Get n-th menu entry in the current menu, starting from one: */
-    menuEntry = oghFindMenuEntry( ogStructure.Menu, item );
-
-    freeglut_return_if_fail( menuEntry );
-
-    /* We want it to become a sub menu entry, so: */
-    if( menuEntry->Text )
-        free( menuEntry->Text );
-
-    menuEntry->Text    = strdup( label );
-    menuEntry->SubMenu = subMenu;
-    menuEntry->ID      = -1;
-    oghCalculateMenuBoxSize( );
+            menuEntry->Text    = strdup( label );
+            menuEntry->SubMenu = subMenu;
+            menuEntry->ID      = -1;
+            oghCalculateMenuBoxSize( );
+        }
+    }
 }
 
 /*!
@@ -914,8 +920,8 @@ void OGAPIENTRY glutChangeToSubMenu( int item, const char *label,
     \ingroup  menus
     \param    item    Integer position down the list.
 
-              Walks down the list of the menu items and deletes
-              the n'th (n = \a item) in the list.
+              Walks the list of the menu items and deletes
+              the numbered \a item in the list.
 
     \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
               glutSetMenu(), glutAddMenuEntry(), glutAddSubMenu(),
@@ -928,21 +934,20 @@ void OGAPIENTRY glutRemoveMenuItem( int item )
     SOG_MenuEntry *menuEntry;
 
     freeglut_assert_ready;
-    freeglut_return_if_fail( ogStructure.Menu );
+    if( ogStructure.Menu )
+    {
+        /* Get n-th menu entry in the current menu, starting from one: */
+        menuEntry = oghFindMenuEntry( ogStructure.Menu, item );
+        if( menuEntry )
+        {
+            ogListRemove( &ogStructure.Menu->Entries, &menuEntry->Node );
+            if ( menuEntry->Text )
+                free( menuEntry->Text );
 
-    /*
-     * Get n-th menu entry in the current menu, starting from one:
-     */
-    menuEntry = oghFindMenuEntry( ogStructure.Menu, item );
-
-    freeglut_return_if_fail( menuEntry );
-
-    ogListRemove( &ogStructure.Menu->Entries, &menuEntry->Node );
-    if ( menuEntry->Text )
-      free( menuEntry->Text );
-
-    free( menuEntry );
-    oghCalculateMenuBoxSize( );
+            free( menuEntry );
+            oghCalculateMenuBoxSize( );
+        }
+    }
 }
 
 /*!
@@ -968,22 +973,25 @@ void OGAPIENTRY glutAttachMenu( int button )
 {
     freeglut_assert_ready;
 
-    freeglut_return_if_fail( ogStructure.Window );
-    freeglut_return_if_fail( ogStructure.Menu );
+    if(
+        ogStructure.Window &&
+        ogStructure.Menu &&
+        ( button >= 0 ) &&
+        ( button < FREEGLUT_MAX_MENUS )
+    )
+    {
+        ogStructure.Window->Menu[ button ] = ogStructure.Menu;
 
-    freeglut_return_if_fail( button >= 0 );
-    freeglut_return_if_fail( button < FREEGLUT_MAX_MENUS );
-
-    ogStructure.Window->Menu[ button ] = ogStructure.Menu;
-
-    /*
-     * Make the parent window of the menu (and all submenus) the current window
-     *
-     * XXX Is this wise?  It seems that a (sub)menu can have multiple
-     * XXX parents...  Parents also do not get dis-associated when
-     * XXX we detach the menu.
-     */
-    oghSetSubmenuParentWindow( ogStructure.Window, ogStructure.Menu );
+        /*
+         * Make the parent window of the menu (and all submenus) the
+         * current window
+         *
+         * XXX Is this wise?  It seems that a (sub)menu can have multiple
+         * XXX parents...  Parents also do not get dis-associated when
+         * XXX we detach the menu.
+         */
+        oghSetSubmenuParentWindow( ogStructure.Window, ogStructure.Menu );
+    }
 }
 
 /*!
@@ -992,7 +1000,7 @@ void OGAPIENTRY glutAttachMenu( int button )
     \ingroup  menus
     \param    button    Unbinds the menu on this mouse button.
 
-              If the given button has a menu bound to it,
+              If the given \a button has a menu bound to it,
               this breaks the assocation.
 
     \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
@@ -1005,13 +1013,13 @@ void OGAPIENTRY glutDetachMenu( int button )
 {
     freeglut_assert_ready;
 
-    freeglut_return_if_fail( ogStructure.Window );
-    freeglut_return_if_fail( ogStructure.Menu );
-
-    freeglut_return_if_fail( button >= 0 );
-    freeglut_return_if_fail( button < FREEGLUT_MAX_MENUS );
-
-    ogStructure.Window->Menu[ button ] = NULL;
+    if(
+        ogStructure.Window &&
+        ogStructure.Menu &&
+        ( button >= 0 ) &&
+        ( button < FREEGLUT_MAX_MENUS )
+    )
+        ogStructure.Window->Menu[ button ] = NULL;
 }
 
 /*!

@@ -371,7 +371,7 @@ long ogElapsedTime( void )
 {
     ogTimeType now;
 
-    if ( !ogState.Time.Set )
+    if( !ogState.Time.Set )
     {
         oghSetTime( &( ogState.Time.Value ) );
         ogState.Time.Set = GL_TRUE;
@@ -560,8 +560,8 @@ static void oghTakeActionOnWindowClose( void )
 
     case GLUT_ACTION_GLUTMAINLOOP_RETURNS:
         ogState.ExecState = GLUT_EXEC_STATE_STOP;
-	if( ogState.InMainLoop )
-	    longjmp( ogState.BackToMainLoop, 1 );
+        if( ogState.InMainLoop )
+            longjmp( ogState.BackToMainLoop, 1 );
         break;
 
     case GLUT_ACTION_CONTINUE_EXECUTION:
@@ -580,279 +580,285 @@ static void oghTakeActionOnWindowClose( void )
 
 /* -- INTERFACE FUNCTIONS -------------------------------------------------- */
 
-/*!
-    \fn
-    \brief    Dispatches all pending events.
-    \ingroup  mainloop
-
-              The general outline of this function is to first drain
-              the queue of windowsystem events, in most cases dispatching
-              each as it is found.  After the queue is empty, we check
-              for timer-based events, coalesced window events (e.g.,
-              redisplays), and windows that need to be closed.
-
-              The cross-reference section for this function's
-              documentation should ideally contain every
-              callback, but the list would be tediously long and
-              prone to omissions.
-
-    \note     Does not necessarily dispatch events that are received
-              <i>after</i> this function starts processing.
-    \note     This function does not seem to afford you any more
-              capability than you get with glutMainLoop() plus
-              glutIdleFunc().  You do, however, gain some convenience
-              in accessing your data structures (which may be local
-              variables in the place from which you called
-              glutMainLoopEvent()).  This function is probably worthwhile
-              for convenience, but is not strictly required.
-    \see      glutMainLoop(), glutIdleFunc()
-*/
-void OGAPIENTRY glutMainLoopEvent( void )
+/*
+ * These definitions and functions before glutMainLoopEvent()
+ * are temporarily depoted here while I sort out glutMainLoopEvent().
+ *
+ * Yes, I know, it's all run together.  That's the red flag that this
+ * stuff is in flux.  It won't stay like this forever.
+ */
+#if TARGET_HOST_UNIX_X11
+typedef XEvent ogEventMsg;
+#elif TARGET_HOST_WIN32
+typedef MSG    ogEventMsg;
+#endif
+int oghPendingWindowEvents( void )
 {
 #if TARGET_HOST_UNIX_X11
-    SOG_Window* window;
-    XEvent event;
-
+    return XPending( ogDisplay.Display );
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+    ogEventMsg event;
+    return PeekMessage( &event, NULL, 0, 0, PM_NOREMOVE );
+#endif
+}
+ogEventMsg *oghGetWindowEvent( ogEventMsg *event )
+{
+#if TARGET_HOST_UNIX_X11
+    XNextEvent( ogDisplay.Display, event );
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
     /*
-     * This code was repeated constantly, so here it goes into a definition:
+     * WIN32 can apparently report close-window events this way?
+     *
+     * As I understand it, TranslateMessage() does not alter our
+     * {event}, but apparently causes some behind-the-scenes magic
+     * to occur.  It may be that it induces a second event in
+     * the dispatch.
      */
-#define GETWINDOW(a)                             \
-    window = ogWindowByHandle( event.a.window ); \
-    if( window == NULL )                         \
+    if( !GetMessage( event, NULL, 0, 0 ) )
+        oghTakeActionOnWindowClose( );
+    TranslateMessage( event );
+#endif
+    return event;
+}
+void oghDispatchEvent( ogEventMsg *event )
+{
+#if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+
+    DispatchMessage( event );
+
+#elif TARGET_HOST_UNIX_X11
+
+    SOG_Window *window;
+    /* This code was used constantly, so here it goes into a definition: */
+#define GETWINDOW(a)                              \
+    window = ogWindowByHandle( event->a.window ); \
+    if( window == NULL )                          \
+        break;
+#define GETMOUSE(a)                               \
+    window->State.MouseX = event->a.x;            \
+    window->State.MouseY = event->a.y;
+
+    switch( event->type )
+    {
+    case ClientMessage:
+        /* Destroy the window when the WM_DELETE_WINDOW message arrives */
+        if( ( Atom )event->xclient.data.l[ 0 ] == ogDisplay.DeleteWindow )
+        {
+            GETWINDOW( xclient );
+            ogDestroyWindow ( window );
+            oghTakeActionOnWindowClose( );
+        }
         break;
 
-#define GETMOUSE(a)                              \
-    window->State.MouseX = event.a.x;            \
-    window->State.MouseY = event.a.y;
-
-    freeglut_assert_ready;
-
-    while( XPending( ogDisplay.Display ) )
-    {
-        XNextEvent( ogDisplay.Display, &event );
-
-        switch( event.type )
+        /*
+         * CreateNotify causes a configure-event so that sub-windows are
+         * handled compatibly with GLUT.  Otherwise, your sub-windows
+         * (in freeglut/OpenGLUT) will not get an initial reshape event,
+         * which can break things.
+         *
+         * GLUT presumably does this because it generally tries to treat
+         * sub-windows the same as windows.
+         *
+         * XXX Technically, GETWINDOW( xconfigure ) and
+         * XXX {event.xconfigure} may not be legit ways to get at
+         * XXX data for CreateNotify events.  In practice, the data
+         * XXX is in a union which is laid out much the same either
+         * XXX way.  But if you want to split hairs, this isn't legit,
+         * XXX and we should instead duplicate some code.
+         */
+    case CreateNotify:
+    case ConfigureNotify:
+        GETWINDOW( xconfigure );
         {
-        case ClientMessage:
-            /* Destroy the window when the WM_DELETE_WINDOW message arrives */
-            if( ( Atom )event.xclient.data.l[ 0 ] == ogDisplay.DeleteWindow )
-            {
-                GETWINDOW( xclient );
-                ogDestroyWindow ( window );
-                oghTakeActionOnWindowClose( );
-            }
-            break;
+            int width = event->xconfigure.width;
+            int height = event->xconfigure.height;
 
-            /*
-             * CreateNotify causes a configure-event so that sub-windows are
-             * handled compatibly with GLUT.  Otherwise, your sub-windows
-             * (in freeglut/OpenGLUT) will not get an initial reshape event,
-             * which can break things.
-             *
-             * GLUT presumably does this because it generally tries to treat
-             * sub-windows the same as windows.
-             *
-             * XXX Technically, GETWINDOW( xconfigure ) and
-             * XXX {event.xconfigure} may not be legit ways to get at
-             * XXX data for CreateNotify events.  In practice, the data
-             * XXX is in a union which is laid out much the same either
-             * XXX way.  But if you want to split hairs, this isn't legit,
-             * XXX and we should instead duplicate some code.
-             */
-        case CreateNotify:
-        case ConfigureNotify:
-            GETWINDOW( xconfigure );
+            if( ( width != window->State.OldWidth ) ||
+                ( height != window->State.OldHeight ) )
             {
-                int width = event.xconfigure.width;
-                int height = event.xconfigure.height;
-
-                if( ( width != window->State.OldWidth ) ||
-                    ( height != window->State.OldHeight ) )
+                window->State.OldWidth = width;
+                window->State.OldHeight = height;
+                if( FETCH_WCB( *window, Reshape ) )
+                    INVOKE_WCB( *window, Reshape, ( width, height ) );
+                else
                 {
-                    window->State.OldWidth = width;
-                    window->State.OldHeight = height;
-                    if( FETCH_WCB( *window, Reshape ) )
-                        INVOKE_WCB( *window, Reshape, ( width, height ) );
-                    else
-                    {
-                        ogSetWindow( window );
-                        glViewport( 0, 0, width, height );
-                    }
-                    glutPostRedisplay( );
+                    ogSetWindow( window );
+                    glViewport( 0, 0, width, height );
                 }
-            }
-            break;
-
-        case DestroyNotify:
-            /*
-             * This is sent to confirm the XDestroyWindow call.
-             *
-             * XXX WHY is this commented out?  Should we re-enable it?
-             */
-            /* ogAddToWindowDestroyList ( window ); */
-            break;
-
-        case Expose:
-            /*
-             * Partial exposes are not of particular interest to us...
-             *
-             * Potentially we could do some culling in single-buffered
-             * mode, but the API provides no way to pass this information
-             * back to the application - so we mark the entire window
-             * for redisplay.
-             *
-             */
-            if( event.xexpose.count == 0 )
-            {
-                GETWINDOW( xexpose );
-                ogSetWindow( window );
                 glutPostRedisplay( );
             }
-            break;
-
-        case MapNotify:
-        case UnmapNotify:
-            /*
-             * If we never do anything with this, can we just not ask to
-             * get these messages?
-             */
-            break;
-
-        case MappingNotify:
-            /*
-             * Have the client's keyboard knowledge updated (xlib.ps,
-             * page 206, says that's a good thing to do)
-             */
-            XRefreshKeyboardMapping( (XMappingEvent *) &event );
-            break;
-
-        case VisibilityNotify:
-            GETWINDOW( xvisibility );
-            /* XXX INVOKE_WCB() does this check for us. */
-            if( !FETCH_WCB( *window, WindowStatus ) )
-                break;
-            ogSetWindow( window );
-
-            /*
-             * Sending this event, the X server can notify us that the window
-             * has just acquired one of the three possible visibility states:
-             * VisibilityUnobscured, VisibilityPartiallyObscured or
-             * VisibilityFullyObscured
-             */
-            switch( event.xvisibility.state )
-            {
-            case VisibilityUnobscured:
-                INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_RETAINED ) );
-                window->State.Visible = GL_TRUE;
-                break;
-
-            case VisibilityPartiallyObscured:
-                INVOKE_WCB( *window, WindowStatus,
-                            ( GLUT_PARTIALLY_RETAINED ) );
-                window->State.Visible = GL_TRUE;
-                break;
-
-            case VisibilityFullyObscured:
-                INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_COVERED ) );
-                window->State.Visible = GL_FALSE;
-                break;
-
-            default:
-                ogWarning( "Uknown X visibility state: %d",
-                           event.xvisibility.state );
-                break;
-            }
+        }
         break;
 
-        case EnterNotify:
-        case LeaveNotify:
-            GETWINDOW( xcrossing );
-            GETMOUSE( xcrossing );  /* XXX Why do we need the mouse info? */
-            
-            /*
-             * XXX This hack allows borderless windows to be used
-             * XXX as main windows.  We should find
-             * XXX a better way so that window managers know how
-             * XXX to assign the input focus, rather than taking
-             * XXX control away from the window manager.
-             */
-            if( window->IsBorderless )
-            {
-                if( EnterNotify == event.type )
-                {
-                    /* Save the current focus state for later      */
-                    XGetInputFocus(
-                        ogDisplay.Display,
-                        &window->Window.PrevFocus,
-                        &window->Window.PrevFocusReturnTo
-                    );
+    case DestroyNotify:
+        /*
+         * This is sent to confirm the XDestroyWindow call.
+         *
+         * XXX WHY is this commented out?  Should we re-enable it?
+         */
+        /* ogAddToWindowDestroyList ( window ); */
+        break;
 
-                    /* Set the current focus to the window         */
-                    XSetInputFocus(
-                        ogDisplay.Display,
-                        window->Window.Handle,
-                        RevertToNone, CurrentTime
-                    );
-                }
-                else
-                    /* Restore the focus state as the mouse leaves */
-                    XSetInputFocus(
-                        ogDisplay.Display,
-                        window->Window.PrevFocus,
-                        window->Window.PrevFocusReturnTo,
-                        CurrentTime
-                    );
-            }
+    case Expose:
+        /*
+         * Partial exposes are not of particular interest to us...
+         *
+         * Potentially we could do some culling in single-buffered
+         * mode, but the API provides no way to pass this information
+         * back to the application - so we mark the entire window
+         * for redisplay.
+         *
+         */
+        if( event->xexpose.count == 0 )
+        {
+            GETWINDOW( xexpose );
+            ogSetWindow( window );
+            glutPostRedisplay( );
+        }
+        break;
 
-            INVOKE_WCB(
-                *window,
-                Entry,
-                ( ( EnterNotify == event.type ) ? GLUT_ENTERED : GLUT_LEFT )
-            );
+    case MapNotify:
+    case UnmapNotify:
+        /*
+         * If we never do anything with this, can we just not ask to
+         * get these messages?
+         */
+        break;
+    case MappingNotify:
+        /*
+         * Have the client's keyboard knowledge updated (xlib.ps,
+         * page 206, says that's a good thing to do)
+         */
+        XRefreshKeyboardMapping( ( XMappingEvent * )event );
+        break;
+
+    case VisibilityNotify:
+        GETWINDOW( xvisibility );
+        /* XXX INVOKE_WCB() does this check for us. */
+        if( !FETCH_WCB( *window, WindowStatus ) )
+            break;
+        ogSetWindow( window );
+
+        /*
+         * Sending this event, the X server can notify us that the window
+         * has just acquired one of the three possible visibility states:
+         * VisibilityUnobscured, VisibilityPartiallyObscured or
+         * VisibilityFullyObscured
+         */
+        switch( event->xvisibility.state )
+        {
+        case VisibilityUnobscured:
+            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_RETAINED ) );
+            window->State.Visible = GL_TRUE;
             break;
 
-        case MotionNotify:
-            GETWINDOW( xmotion );
-            GETMOUSE( xmotion );
+        case VisibilityPartiallyObscured:
+            INVOKE_WCB( *window, WindowStatus,
+                        ( GLUT_PARTIALLY_RETAINED ) );
+            window->State.Visible = GL_TRUE;
+            break;
 
-            if( window->ActiveMenu )
+        case VisibilityFullyObscured:
+            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_COVERED ) );
+            window->State.Visible = GL_FALSE;
+            break;
+
+        default:
+            ogWarning( "Uknown X visibility state: %d",
+                       event->xvisibility.state );
+            break;
+        }
+        break;
+
+    case EnterNotify:
+    case LeaveNotify:
+        GETWINDOW( xcrossing );
+        GETMOUSE( xcrossing );  /* XXX Why do we need the mouse info? */
+            
+        /*
+         * XXX This hack allows borderless windows to be used
+         * XXX as main windows.  We should find
+         * XXX a better way so that window managers know how
+         * XXX to assign the input focus, rather than taking
+         * XXX control away from the window manager.
+         */
+        if( window->IsBorderless )
+        {
+            if( LeaveNotify == event->type )
+                /* Restore the focus state as the mouse leaves */
+                XSetInputFocus(
+                    ogDisplay.Display,
+                    window->Window.PrevFocus,
+                    window->Window.PrevFocusReturnTo,
+                    CurrentTime
+                );
+            else
             {
-                if( window == window->ActiveMenu->ParentWindow )
-                {
-                    window->ActiveMenu->Window->State.MouseX =
-                        event.xmotion.x_root - window->ActiveMenu->X;
-                    window->ActiveMenu->Window->State.MouseY =
-                        event.xmotion.y_root - window->ActiveMenu->Y;
-                }
-                window->ActiveMenu->Window->State.Redisplay = GL_TRUE;
-                ogSetWindow( window->ActiveMenu->ParentWindow );
+                /* Save the current focus state for later      */
+                XGetInputFocus(
+                    ogDisplay.Display,
+                    &window->Window.PrevFocus,
+                    &window->Window.PrevFocusReturnTo
+                );
 
-                break;
+                /* Set the current focus to the window         */
+                XSetInputFocus(
+                    ogDisplay.Display,
+                    window->Window.Handle,
+                    RevertToNone, CurrentTime
+                );
             }
+        }
 
-            /*
-             * XXX For more than 5 buttons, just check {event.xmotion.state},
-             * XXX rather than a host of bit-masks?  Or maybe we need to
-             * XXX track ButtonPress/ButtonRelease events in our own
-             * XXX bit-mask?
-             */
+        INVOKE_WCB(
+            *window,
+            Entry,
+            ( ( EnterNotify == event->type ) ? GLUT_ENTERED : GLUT_LEFT )
+        );
+        break;
+
+    case MotionNotify:
+        GETWINDOW( xmotion );
+        GETMOUSE( xmotion );
+
+        if( window->ActiveMenu )
+        {
+            if( window == window->ActiveMenu->ParentWindow )
+            {
+                window->ActiveMenu->Window->State.MouseX =
+                    event->xmotion.x_root - window->ActiveMenu->X;
+                window->ActiveMenu->Window->State.MouseY =
+                    event->xmotion.y_root - window->ActiveMenu->Y;
+            }
+            window->ActiveMenu->Window->State.Redisplay = GL_TRUE;
+            ogSetWindow( window->ActiveMenu->ParentWindow );
+
+            break;
+        }
+
+        /*
+         * XXX For more than 5 buttons, just check {event.xmotion.state},
+         * XXX rather than a host of bit-masks?  Or maybe we need to
+         * XXX track ButtonPress/ButtonRelease events in our own
+         * XXX bit-mask?
+         */
 #define BUTTON_MASK \
   ( Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask )
-            if ( event.xmotion.state & BUTTON_MASK )
-                INVOKE_WCB( *window, Motion, ( event.xmotion.x,
-                                               event.xmotion.y ) );
-            else
-                INVOKE_WCB( *window, Passive, ( event.xmotion.x,
-                                                event.xmotion.y ) );
-            break;
+        if ( event->xmotion.state & BUTTON_MASK )
+            INVOKE_WCB( *window, Motion, ( event->xmotion.x,
+                                           event->xmotion.y ) );
+        else
+            INVOKE_WCB( *window, Passive, ( event->xmotion.x,
+                                            event->xmotion.y ) );
+        break;
 
-        case ButtonRelease:
-        case ButtonPress:
+    case ButtonRelease:
+    case ButtonPress:
         {
             GLboolean pressed = GL_TRUE;
             int button;
 
-            if( event.type == ButtonRelease )
+            if( event->type == ButtonRelease )
                 pressed = GL_FALSE;
 
             /*
@@ -869,7 +875,7 @@ void OGAPIENTRY glutMainLoopEvent( void )
              * three, though it only gave symbolic names and official
              * support to the first three.
              */
-            button = event.xbutton.button - 1;
+            button = event->xbutton.button - 1;
 
             /*
              * XXX See the Menu module discussion for the button
@@ -881,9 +887,9 @@ void OGAPIENTRY glutMainLoopEvent( void )
                 if( window == window->ActiveMenu->ParentWindow )
                 {
                     window->ActiveMenu->Window->State.MouseX =
-                        event.xbutton.x_root - window->ActiveMenu->X;
+                        event->xbutton.x_root - window->ActiveMenu->X;
                     window->ActiveMenu->Window->State.MouseY =
-                        event.xbutton.y_root - window->ActiveMenu->Y;
+                        event->xbutton.y_root - window->ActiveMenu->Y;
                 }
 
                 /* In the menu, invoke the callback and deactivate the menu*/
@@ -955,15 +961,15 @@ void OGAPIENTRY glutMainLoopEvent( void )
                 ! FETCH_WCB( *window, MouseWheel ) )
                 break;
 
-            ogState.Modifiers = ogGetXModifiers( &event );
+            ogState.Modifiers = ogGetXModifiers( event );
 
             /* Choose between mouse-button or mouse-wheel reporting. */
             if( ( glutDeviceGet( GLUT_NUM_MOUSE_BUTTONS ) > button ) ||
                 ( !FETCH_WCB( *window, MouseWheel ) ) )
                 INVOKE_WCB( *window, Mouse, ( button,
                                               pressed ? GLUT_DOWN : GLUT_UP,
-                                              event.xbutton.x,
-                                              event.xbutton.y )
+                                              event->xbutton.x,
+                                              event->xbutton.y )
                 );
             else
             {
@@ -980,7 +986,7 @@ void OGAPIENTRY glutMainLoopEvent( void )
                  * XXX in mapping from X button numbering to GLUT.
                  */
                 int wheel_number =
-                    (button - glutDeviceGet( GLUT_NUM_MOUSE_BUTTONS ) ) / 2;
+                    ( button - glutDeviceGet( GLUT_NUM_MOUSE_BUTTONS ) ) / 2;
                 int direction = -1;
                 if( button % 2 )
                     direction = 1;
@@ -988,8 +994,8 @@ void OGAPIENTRY glutMainLoopEvent( void )
                 if( pressed )
                     INVOKE_WCB( *window, MouseWheel, ( wheel_number,
                                                        direction,
-                                                       event.xbutton.x,
-                                                       event.xbutton.y )
+                                                       event->xbutton.x,
+                                                       event->xbutton.y )
                     );
             }
 
@@ -998,8 +1004,8 @@ void OGAPIENTRY glutMainLoopEvent( void )
         }
         break;
 
-        case KeyRelease:
-        case KeyPress:
+    case KeyRelease:
+    case KeyPress:
         {
             OGCBKeyboard keyboard_cb;
             OGCBSpecial special_cb;
@@ -1009,40 +1015,39 @@ void OGAPIENTRY glutMainLoopEvent( void )
 
             /* Detect repeated keys if configured globally or per-window */
 
-            if( ogState.KeyRepeat==GLUT_KEY_REPEAT_OFF ||
-                window->State.IgnoreKeyRepeat==GL_TRUE )
+            if(
+                ogState.KeyRepeat != GLUT_KEY_REPEAT_OFF &&
+                window->State.IgnoreKeyRepeat != GL_TRUE
+            )
+                window->State.KeyRepeating = GL_FALSE;
+            else if( event->type == KeyRelease )
             {
-                if( event.type==KeyRelease )
-                {
-                    /*
-                     * Look at X11 keystate to detect repeat mode.
-                     * While X11 says the key is actually held down, we'll
-                     * ignore KeyRelease/KeyPress pairs.
-                     */
+                /*
+                 * Look at X11 keystate to detect repeat mode.
+                 * While X11 says the key is actually held down, we'll
+                 * ignore KeyRelease/KeyPress pairs.
+                 */
 
-                    /* 32*8 = 256, the range of keycodes for XQueryKeymap */
-                    char keys[ 32 ];
-                    int key_byte = event.xkey.keycode >> 3;
-                    int key_mask = 1 << (event.xkey.keycode % 8);
-                    XQueryKeymap( ogDisplay.Display, keys );
-                    if( 256 > event.xkey.keycode )
-                    {
-                        if( keys[ key_byte ] & key_mask )
-                            window->State.KeyRepeating = GL_TRUE;
-                        else
-                            window->State.KeyRepeating = GL_FALSE;
-                    }
+                /* 32*8 = 256, the range of keycodes for XQueryKeymap */
+                char keys[ 32 ];
+                int key_byte = event->xkey.keycode >> 3;
+                int key_mask = 1 << ( event->xkey.keycode & 7 );
+                XQueryKeymap( ogDisplay.Display, keys );
+                if( 256 > event->xkey.keycode )
+                {
+                    if( keys[ key_byte ] & key_mask )
+                        window->State.KeyRepeating = GL_TRUE;
+                    else
+                        window->State.KeyRepeating = GL_FALSE;
                 }
             }
-            else
-                window->State.KeyRepeating = GL_FALSE;
 
             /* Cease processing this event if it is auto repeated */
 
             if( window->State.KeyRepeating )
                 break;
 
-            if( event.type == KeyPress )
+            if( KeyPress == event->type )
             {
                 keyboard_cb = FETCH_WCB( *window, Keyboard );
                 special_cb  = FETCH_WCB( *window, Special  );
@@ -1066,8 +1071,9 @@ void OGAPIENTRY glutMainLoopEvent( void )
                 /*
                  * Check for the ASCII/KeySym codes associated with the event:
                  */
-                len = XLookupString( &event.xkey, asciiCode, sizeof(asciiCode),
-                                     &keySym, &composeStatus
+                len = XLookupString( &( event->xkey ), asciiCode,
+                                     sizeof( asciiCode ), &keySym,
+                                     &composeStatus
                 );
 
                 /*
@@ -1081,9 +1087,9 @@ void OGAPIENTRY glutMainLoopEvent( void )
                     if( keyboard_cb )
                     {
                         ogSetWindow( window );
-                        ogState.Modifiers = ogGetXModifiers( &event );
+                        ogState.Modifiers = ogGetXModifiers( event );
                         keyboard_cb( asciiCode[ 0 ],
-                                     event.xkey.x, event.xkey.y
+                                     event->xkey.x, event->xkey.y
                         );
                         ogState.Modifiers = 0xffffffff;
                     }
@@ -1135,36 +1141,63 @@ void OGAPIENTRY glutMainLoopEvent( void )
                     if( special_cb && (special != -1) )
                     {
                         ogSetWindow( window );
-                        ogState.Modifiers = ogGetXModifiers( &event );
-                        special_cb( special, event.xkey.x, event.xkey.y );
+                        ogState.Modifiers = ogGetXModifiers( event );
+                        special_cb( special, event->xkey.x, event->xkey.y );
                         ogState.Modifiers = 0xffffffff;
                     }
                 }
             }
+	    break;
         }
+
+    case ReparentNotify:
+        break; /* XXX Should disable this event */
+
+    default:
+        ogWarning( "Unknown X event type: %d", event->type );
         break;
-
-        case ReparentNotify:
-            break; /* XXX Should disable this event */
-
-        default:
-            ogWarning ("Unknown X event type: %d", event.type);
-            break;
-        }
-    }
-
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-
-    MSG stMsg;
-
-    while( PeekMessage( &stMsg, NULL, 0, 0, PM_NOREMOVE ) )
-    {
-        if( GetMessage( &stMsg, NULL, 0, 0 ) == 0 )
-            oghTakeActionOnWindowClose( );
-        TranslateMessage( &stMsg );
-        DispatchMessage( &stMsg );
     }
 #endif
+}
+
+
+/*!
+    \fn
+    \brief    Dispatches all pending events.
+    \ingroup  mainloop
+
+              The general outline of this function is to first drain
+              the queue of windowsystem events, in most cases dispatching
+              each as it is found.  After the queue is empty, we check
+              for timer-based events, coalesced window events (e.g.,
+              redisplays), and windows that need to be closed.
+
+              The cross-reference section for this function's
+              documentation should ideally contain every
+              callback, but the list would be tediously long and
+              prone to omissions.
+
+    \note     Does not necessarily dispatch events that are received
+              <i>after</i> this function starts processing.
+    \note     This function does not seem to afford you any more
+              capability than you get with glutMainLoop() plus
+              glutIdleFunc().  You do, however, gain some convenience
+              in accessing your data structures (which may be local
+              variables in the place from which you called
+              glutMainLoopEvent()).  This function is probably worthwhile
+              for convenience, but is not strictly required.
+    \see      glutMainLoop(), glutIdleFunc()
+*/
+void OGAPIENTRY glutMainLoopEvent( void )
+{
+    ogEventMsg event;
+    freeglut_assert_ready; /* XXX Looks like assert() abuse... */
+
+    while( oghPendingWindowEvents( ) )
+    {
+        oghGetWindowEvent( &event );
+        oghDispatchEvent( &event );
+    }
 
     if( ogState.Timers.First )
         oghCheckTimers( );
@@ -1172,6 +1205,8 @@ void OGAPIENTRY glutMainLoopEvent( void )
     oghDisplayAll( );
 
     ogCloseWindows( );
+    if( ogState.GLDebugSwitch )
+        glutReportErrors( );
 }
 
 /*!
@@ -1223,7 +1258,7 @@ void OGAPIENTRY glutMainLoop( void )
      */
     while( window )
     {
-        if ( FETCH_WCB( *window, Visibility ) )
+        if( FETCH_WCB( *window, Visibility ) )
         {
             SOG_Window *current_window = ogStructure.Window;
 
@@ -1231,7 +1266,7 @@ void OGAPIENTRY glutMainLoop( void )
             ogSetWindow( current_window );
         }
 
-        window = (SOG_Window *)window->Node.Next;
+        window = ( SOG_Window * )window->Node.Next;
     }
 #endif
 
@@ -1240,7 +1275,7 @@ void OGAPIENTRY glutMainLoop( void )
     {
         SOG_Window *window;
 
-	ogState.InMainLoop = 1;
+        ogState.InMainLoop = 1;
         if( !setjmp( ogState.BackToMainLoop ) )
             glutMainLoopEvent( );
 
@@ -1251,7 +1286,7 @@ void OGAPIENTRY glutMainLoop( void )
         for( window = ( SOG_Window * )ogStructure.Windows.First;
              window;
              window = ( SOG_Window * )window->Node.Next )
-            if ( !( window->IsMenu ) )
+            if( !( window->IsMenu ) )
                 break;
 
         if( ! window )
@@ -1320,7 +1355,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
     PAINTSTRUCT ps;
     LONG lRet = 1;
 
-    if ( !window && ( uMsg != WM_CREATE ) )
+    if( !window && ( uMsg != WM_CREATE ) )
         return DefWindowProc( hWnd, uMsg, wParam, lParam );
 
     /*
@@ -1403,9 +1438,10 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          * XXX passed to glutCreateMenuWindow()).
          *
          * window->State.NeedToResize = GL_TRUE;
-         * window->State.Width  = ogState.Size.X;
-         * window->State.Height = ogState.Size.Y;
          */
+         window->State.Width  = ogState.Size.X;
+         window->State.Height = ogState.Size.Y;
+         
         ReleaseDC( window->Window.Handle, window->Window.Device );
 #if TARGET_HOST_WINCE
         /* Take over button handling */
@@ -1620,13 +1656,10 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
 #if !TARGET_HOST_WINCE
         if( GetSystemMetrics( SM_SWAPBUTTON ) )
-        {
             if( button == GLUT_LEFT_BUTTON )
                 button = GLUT_RIGHT_BUTTON;
-            else
-                if( button == GLUT_RIGHT_BUTTON )
-                    button = GLUT_LEFT_BUTTON;
-        }
+            else if( button == GLUT_RIGHT_BUTTON )
+                button = GLUT_LEFT_BUTTON;
 #endif
 
         if( button == -1 )
@@ -2012,7 +2045,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         break;
 
     case WM_NCPAINT:  /* 0x0085 */
-      /* Need to update the border of this window */
+        /* Need to update the border of this window */
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
         /* Pass it on to "DefWindowProc" to repaint a standard border */
         break;

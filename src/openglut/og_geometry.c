@@ -79,8 +79,6 @@
               The glutWireCube() function draws an axis-aligned wireframe cube
               with a specified width, height and depth.
 
-    \author   Code contributed by Andreas Umbach <marvin@dataway.ch>
-    \todo     A single block of line segments may be faster than 6 line loops
     \see      glutSolidCube()
 */
 void OGAPIENTRY glutWireCube( GLdouble width )
@@ -88,20 +86,22 @@ void OGAPIENTRY glutWireCube( GLdouble width )
     double size = width * 0.5;
 
 #   define V(a,b,c) glVertex3d( a size, b size, c size );
-#   define N(a,b,c) glNormal3d( a, b, c );
 
-    /*
-     * PWO: I dared to convert the code to use macros...
-     */
-    glBegin( GL_LINE_LOOP ); N( 1.0, 0.0, 0.0); V(+,-,+); V(+,-,-); V(+,+,-); V(+,+,+); glEnd();
-    glBegin( GL_LINE_LOOP ); N( 0.0, 1.0, 0.0); V(+,+,+); V(+,+,-); V(-,+,-); V(-,+,+); glEnd();
-    glBegin( GL_LINE_LOOP ); N( 0.0, 0.0, 1.0); V(+,+,+); V(-,+,+); V(-,-,+); V(+,-,+); glEnd();
-    glBegin( GL_LINE_LOOP ); N(-1.0, 0.0, 0.0); V(-,-,+); V(-,+,+); V(-,+,-); V(-,-,-); glEnd();
-    glBegin( GL_LINE_LOOP ); N( 0.0,-1.0, 0.0); V(-,-,+); V(-,-,-); V(+,-,-); V(+,-,+); glEnd();
-    glBegin( GL_LINE_LOOP ); N( 0.0, 0.0,-1.0); V(-,-,-); V(-,+,-); V(+,+,-); V(+,-,-); glEnd();
+    /* Squares in xy plane */
 
+    glBegin(GL_LINE_LOOP); V(+,+,+); V(-,+,+); V(-,-,+); V(+,-,+); glEnd();
+    glBegin(GL_LINE_LOOP); V(+,+,-); V(-,+,-); V(-,-,-); V(+,-,-); glEnd();
+
+    /* Connect squares in z direction */
+
+    glBegin(GL_LINES);
+        V(+,+,+); V(+,+,-); 
+        V(-,+,+); V(-,+,-);
+        V(-,-,+); V(-,-,-); 
+        V(+,-,+); V(+,-,-); 
+    glEnd();
+        
 #   undef V
-#   undef N
 }
 
 /*!

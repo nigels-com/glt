@@ -434,8 +434,9 @@ struct tagSOG_WindowState
 #define SET_WCB(window,cbname,func)                            \
 do                                                             \
 {                                                              \
-    if( FETCH_WCB( window, cbname ) != func )                  \
-        (((window).CallBacks[CB_ ## cbname]) = (void *) func); \
+    SOG_Window *win = &window;                                 \
+    if( FETCH_WCB( *win, cbname ) != func )                    \
+        ((win->CallBacks[CB_ ## cbname]) = (void *) func);     \
 } while( 0 )
 
 /*
@@ -474,10 +475,11 @@ do                                                             \
 #define INVOKE_WCB(window,cbname,arg_list)    \
 do                                            \
 {                                             \
-    if( FETCH_WCB( window, cbname ) )         \
+    SOG_Window *win = &window;                \
+    if( FETCH_WCB( *win, cbname ) )           \
     {                                         \
-        ogSetWindow( &window );               \
-        FETCH_WCB( window, cbname ) arg_list; \
+        ogSetWindow( win );                   \
+        FETCH_WCB( *win, cbname ) arg_list;   \
     }                                         \
 } while( /*CONSTCOND*/0 )
 
@@ -726,17 +728,6 @@ extern SOG_State ogState;
  * subsystems have been properly initialized and are ready to be used.
  */
 #define  freeglut_assert_ready  assert( ogState.Initialised );
-
-/*
- * Following definitions are somewhat similiar to GLib's,
- * but do not generate any log messages:
- */
-#define  freeglut_return_if_fail( expr ) \
-    if( !( expr ) )                      \
-        return;
-#define  freeglut_return_val_if_fail( expr, val ) \
-    if( !( expr ) )                               \
-        return val;
 
 /*
  * A call to those macros assures us that there is a current

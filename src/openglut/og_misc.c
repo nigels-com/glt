@@ -186,9 +186,8 @@ void OGAPIENTRY glutSetKeyRepeat( int repeatMode )
 void OGAPIENTRY glutForceJoystickFunc( void )
 {
     freeglut_assert_ready;
-    freeglut_return_if_fail( ogStructure.Window != NULL );
-    freeglut_return_if_fail( FETCH_WCB( *( ogStructure.Window ), Joystick ) );
-    ogJoystickPollWindow( ogStructure.Window );
+    if( ogStructure.Window && FETCH_WCB( *( ogStructure.Window ), Joystick ) )
+        ogJoystickPollWindow( ogStructure.Window );
 }
 
 /*!

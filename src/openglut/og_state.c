@@ -87,7 +87,7 @@ static int oghGetConfig( int attribute )
                  the display mode for a new window.
                - \a GLUT_INIT_WINDOW_HEIGHT An alternate way to set the
                  height of new windows.
-               - \a GLUT_INIT_WINDOW_WIDTH An alterate way to set the
+               - \a GLUT_INIT_WINDOW_WIDTH An alternate way to set the
                  width of new windows.
                - \a GLUT_INIT_WINDOW_X An alternate way to set the
                  initial horizontal position of new windows.
@@ -215,13 +215,18 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
 
     \todo     Go back and flesh out the above list.
     \todo     This function is a bit messy, especially the WINCE part.  Fix.
+    \todo     Lots of code uses return to hop out.  Since it's such a
+              sprawling function, it's easy to be in the middle and not
+              be 100% sure if there's anything important at the end of
+              the function, or if it is safe to just "drop out" of
+              the current case and head for the bottom.
     \see      glutSetOption(), glutDeviceGet(), glutGetModifiers(),
               glutLayerGet()
 */
 int OGAPIENTRY glutGet( GLenum eWhat )
 {
+    int ret = -1;
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-    int returnValue;
     GLboolean boolValue;
 #endif
 
@@ -384,51 +389,51 @@ int OGAPIENTRY glutGet( GLenum eWhat )
      */
     case GLUT_WINDOW_RGBA:
         glGetBooleanv( GL_RGBA_MODE, &boolValue );
-        returnValue = boolValue ? 1 : 0;
-        return returnValue;
+        ret = boolValue ? 1 : 0;
+        return ret;
     case GLUT_WINDOW_DOUBLEBUFFER:
         glGetBooleanv( GL_DOUBLEBUFFER, &boolValue );
-        returnValue = boolValue ? 1 : 0;
-        return returnValue;
+        ret = boolValue ? 1 : 0;
+        return ret;
     case GLUT_WINDOW_STEREO:
         glGetBooleanv( GL_STEREO, &boolValue );
-        returnValue = boolValue ? 1 : 0;
-        return returnValue;
+        ret = boolValue ? 1 : 0;
+        return ret;
 
     case GLUT_WINDOW_RED_SIZE:
-        glGetIntegerv( GL_RED_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_RED_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_GREEN_SIZE:
-        glGetIntegerv( GL_GREEN_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_GREEN_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_BLUE_SIZE:
-        glGetIntegerv( GL_BLUE_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_BLUE_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_ALPHA_SIZE:
-        glGetIntegerv( GL_ALPHA_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_ALPHA_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_ACCUM_RED_SIZE:
-        glGetIntegerv( GL_ACCUM_RED_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_ACCUM_RED_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_ACCUM_GREEN_SIZE:
-        glGetIntegerv( GL_ACCUM_GREEN_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_ACCUM_GREEN_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_ACCUM_BLUE_SIZE:
-        glGetIntegerv( GL_ACCUM_BLUE_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_ACCUM_BLUE_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_ACCUM_ALPHA_SIZE:
-        glGetIntegerv( GL_ACCUM_ALPHA_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_ACCUM_ALPHA_BITS, &ret );
+        return ret;
     case GLUT_WINDOW_DEPTH_SIZE:
-        glGetIntegerv( GL_DEPTH_BITS, &returnValue );
-        return returnValue;
+        glGetIntegerv( GL_DEPTH_BITS, &ret );
+        return ret;
 
     case GLUT_WINDOW_BUFFER_SIZE:
-        returnValue = 1;                                      /* ????? */
-        return returnValue;
+        ret = 1;                                      /* ????? */
+        return ret;
     case GLUT_WINDOW_STENCIL_SIZE:
-        returnValue = 0;                                      /* ????? */
-        return returnValue;
+        ret = 0;                                      /* ????? */
+        return ret;
 
     case GLUT_WINDOW_X:
     case GLUT_WINDOW_Y:
@@ -437,40 +442,45 @@ int OGAPIENTRY glutGet( GLenum eWhat )
     {
         RECT winRect;
 
-        freeglut_return_val_if_fail( ogStructure.Window != NULL, 0 );
-
-        if( ogStructure.Window->State.IsOffscreen )
-            switch( eWhat )
-            {
-            case GLUT_WINDOW_WIDTH:  return ogStructure.Window->State.Width;
-            case GLUT_WINDOW_HEIGHT: return ogStructure.Window->State.Height;
-            }
-        /*
-         * We need to call GetWindowRect() first...
-         *  (this returns the pixel coordinates of the outside of the window)
-         */
-        GetWindowRect( ogStructure.Window->Window.Handle, &winRect );
-
-        /* we must correct the results we've just received */
-#if !TARGET_HOST_WINCE
-        if ( ( ogStructure.GameMode != ogStructure.Window ) &&
-             ( ogStructure.Window->Parent == NULL ) &&
-             ( ! ogStructure.Window->IsUnmanaged ) )
+        ret = 0;
+        if( ogStructure.Window )
         {
-            winRect.left   += GetSystemMetrics( SM_CXSIZEFRAME );
-            winRect.right  -= GetSystemMetrics( SM_CXSIZEFRAME );
-            winRect.top    += GetSystemMetrics( SM_CYSIZEFRAME ) +
-                GetSystemMetrics( SM_CYCAPTION );
-            winRect.bottom -= GetSystemMetrics( SM_CYSIZEFRAME );
-        }
+            if( ogStructure.Window->State.IsOffscreen )
+                switch( eWhat )
+                {
+                case GLUT_WINDOW_WIDTH:
+                    return ogStructure.Window->State.Width;
+                case GLUT_WINDOW_HEIGHT:
+                    return ogStructure.Window->State.Height;
+                }
+            /*
+             * We need to call GetWindowRect() first...
+             *  (this returns the pixel coordinates of the outside of
+             *   the window)
+             */
+            GetWindowRect( ogStructure.Window->Window.Handle, &winRect );
+
+            /* we must correct the results we've just received */
+#if !TARGET_HOST_WINCE
+            if ( ( ogStructure.GameMode != ogStructure.Window ) &&
+                 ( ogStructure.Window->Parent == NULL ) &&
+                 ( ! ogStructure.Window->IsUnmanaged ) )
+            {
+                winRect.left   += GetSystemMetrics( SM_CXSIZEFRAME );
+                winRect.right  -= GetSystemMetrics( SM_CXSIZEFRAME );
+                winRect.top    += GetSystemMetrics( SM_CYSIZEFRAME ) +
+                    GetSystemMetrics( SM_CYCAPTION );
+                winRect.bottom -= GetSystemMetrics( SM_CYSIZEFRAME );
+            }
 #endif
 
-        switch( eWhat )
-        {
-        case GLUT_WINDOW_X:      return winRect.left;
-        case GLUT_WINDOW_Y:      return winRect.top;
-        case GLUT_WINDOW_WIDTH:  return winRect.right - winRect.left;
-        case GLUT_WINDOW_HEIGHT: return winRect.bottom - winRect.top;
+            switch( eWhat )
+            {
+            case GLUT_WINDOW_X:      return winRect.left;
+            case GLUT_WINDOW_Y:      return winRect.top;
+            case GLUT_WINDOW_WIDTH:  return winRect.right - winRect.left;
+            case GLUT_WINDOW_HEIGHT: return winRect.bottom - winRect.top;
+            }
         }
     }
     break;
@@ -541,10 +551,10 @@ else
             GLUT_CREATE_NEW_CONTEXT;
 
     default:
-        ogWarning( "glutGet(): missing enum handle %i\n", eWhat );
+        ogWarning( "glutGet(): missing enum handler %d\n", eWhat );
         break;
     }
-    return -1;
+    return ret;
 }
 
 /*!
@@ -557,48 +567,83 @@ else
               attached devices.  Supported device queries are:
 
                - \a GLUT_HAS_JOYSTICK
-               - \a GLUT_HAS_KEYBOARD
+                 Returns non-zero if there is a joystick.
+               - \a GLUT_HAS_KEYBOARD 
+                 Returns non-zero if there is a keyboard.
                - \a GLUT_HAS_MOUSE
+                 Returns non-zero if there is a mouse.
                - \a GLUT_HAS_SPACEBALL
+                 Returns non-zero if there is a spaceball.
                - \a GLUT_JOYSTICK_AXES
+                 Returns the number of axes for the joystick.
                - \a GLUT_JOYSTICK_POLL_RATE
+                 Returns the rate (in GLUT timer ticks?) at which
+                 the joystick is polled.
                - \a GLUT_NUM_MOUSE_BUTTONS
+                 Return the number of buttons that the user's mouse
+                 has.
                - \a GLUT_OWNS_JOYSTICK
+                 Return non-zero if OpenGLUT believes that it has
+                 successfully acquired access to the joystick.
                - \a GLUT_DEVICE_IGNORE_KEY_REPEAT
+                 Returns non-zero if the <i>current window</i> is
+                 set to disable key repeating.
                - \a GLUT_DEVICE_KEY_REPEAT
+                 Described as returning the key repeat rate in one place,
+                 but actually returns a key repeat mode.
                - \a GLUT_HAS_DIAL_AND_BUTTON_BOX
+                 Returns non-zero if a dials-and-buttons box is present.
                - \a GLUT_HAS_TABLET
+                 Returns non-zero if a tablet is present.
                - \a GLUT_NUM_BUTTON_BOX_BUTTONS
+                 Returns the number of buttons on a dials-and-buttons box,
+                 if any.
                - \a GLUT_NUM_DIALS
+                 Returns the number of dials on a dials-and-buttons box,
+                 if any.
                - \a GLUT_NUM_SPACEBALL_BUTTONS
+                 Returns the number of buttons on a spaceball, if any.
                - \a GLUT_NUM_TABLET_BUTTONS
+                 Returns the number of buttons on a tablet, if any.
 
     \bug      Keyboards are optional, but OpenGLUT doesn't detect
               their absence.
-    \bug      Mice are optional, but OpenGLUT only is able to check
+    \bug      Mice are optional, but OpenGLUT is only able to check
               for them under WIN32.
     \bug      Mice can have a varying number of buttons, but OpenGLUT
               assumes exactly 3 on UNIX_X11.
     \bug      Joystick queries are just hard-coded guesses, as are the
               SGI device queries.
+    \bug      Only supports querying for one joystick.
     \bug      \a GLUT_DEVICE_KEY_REPEAT returns the key repeat mode,
               but the comment says it returns the <i>rate</i>.
+    \bug      Some things, like joystick poll rates, seem to have
+              insufficient context.  Which joystick?  Which window?
+              Maybe we assume the <i>current window</i> and the
+              current joystick (or the first one)?
+    \bug      \a GLUT_DEVICE_KEY_REPEAT should probably return
+              \a ogState.KeyRepeat.
+    \todo     Consider moving to a table-based approach rather than a
+              switch(), letting us move to modular functions.
     \see      glutSetOption(), glutGet(), glutGetModifiers(),
               glutLayerGet()
 */
 int OGAPIENTRY glutDeviceGet( GLenum eWhat )
 {
-    freeglut_assert_ready;
+    int ret = -1;
 
+    freeglut_assert_ready;
     switch( eWhat )
     {
     case GLUT_HAS_KEYBOARD:
-        return TRUE;
+        ret = TRUE;
+        break;
 
 #if TARGET_HOST_UNIX_X11
 
     case GLUT_HAS_MOUSE:
-        return TRUE;
+        ret = TRUE;
+        break;
 
     case GLUT_NUM_MOUSE_BUTTONS:
         /*
@@ -606,64 +651,74 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
          *
          * The present heuristic is to assume that all mice ever
          * produced (future, present, and past) have exactly 3
-         * buttons.  This is obviously wrong.  There are some
-         * heuristics to use to improve on this:
-         *  - Read /var/log/XFree86.0.log (XFree86-specific, but
-         *    in practice a pretty good place to peek).
-         *  - Read /var/run/dmesg.boot (system-specific, a bit, but
-         *    fairly common).
-         *  - Support a command-line param and/or env. var. to
-         *    inform us.
+         * buttons.  This is obviously wrong.  There is no better
+         * alternative proposed at this time.  (But since this part
+         * is X-specific, we might use an env-var, command-line param,
+         * or even X-server- or OS-specific inquiry.
          */
-        return 3;
+        ret = 3;
+        break;
 
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
     case GLUT_HAS_MOUSE:
-        return GetSystemMetrics( SM_MOUSEPRESENT );
+        ret = GetSystemMetrics( SM_MOUSEPRESENT );
+        break;
 
     case GLUT_NUM_MOUSE_BUTTONS:
 #if TARGET_HOST_WINCE
-        return 1;
+        ret = 1;
+        break;
 #else
-        return GetSystemMetrics( SM_CMOUSEBUTTONS );
+        ret = GetSystemMetrics( SM_CMOUSEBUTTONS );
+        break;
 #endif
 
 #endif
 
-    case GLUT_JOYSTICK_POLL_RATE:
     case GLUT_HAS_JOYSTICK:
+        ret = 1;
+        break;
     case GLUT_OWNS_JOYSTICK:
+        ret = ogState.JoysticksInitted;
+        break;
+    case GLUT_JOYSTICK_POLL_RATE:
     case GLUT_JOYSTICK_BUTTONS:
     case GLUT_JOYSTICK_AXES:
-        return 0;
+        ret = 0;
+        break;
 
     case GLUT_HAS_SPACEBALL:
     case GLUT_HAS_DIAL_AND_BUTTON_BOX:
     case GLUT_HAS_TABLET:
-        return FALSE;
+        ret = FALSE;
+        break;
 
     case GLUT_NUM_SPACEBALL_BUTTONS:
     case GLUT_NUM_BUTTON_BOX_BUTTONS:
     case GLUT_NUM_DIALS:
     case GLUT_NUM_TABLET_BUTTONS:
-        return 0;
+        ret = 0;
+        break;
 
     case GLUT_DEVICE_IGNORE_KEY_REPEAT:
-        return ogStructure.Window ?
+        ret = ogStructure.Window ?
             ogStructure.Window->State.IgnoreKeyRepeat :
             0;
+        break;
 
     case GLUT_DEVICE_KEY_REPEAT:
         /* XXX WARNING: THIS IS A BIG LIE!  */
-        return GLUT_KEY_REPEAT_DEFAULT;  /* XXX Return window repeat rate? */
+        ret = GLUT_KEY_REPEAT_DEFAULT;  /* XXX Return window repeat rate? */
+        /* Probably should be ogState.KeyRepeat */
+        break;
 
     default:
         ogWarning( "glutDeviceGet(): missing enum handle %i\n", eWhat );
         break;
     }
 
-    return -1;
+    return ret;
 }
 
 /*!

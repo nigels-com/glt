@@ -75,10 +75,10 @@ SOG_State ogState =
     0,                      /* FPSInterval */
     0,                      /* SwapCount */
     0,                      /* SwapTime */
-#   if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-        { 0, GL_FALSE },        /* Time                */
+#if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+    { 0, GL_FALSE },        /* Time                */
 #else
-        { { 0, 0 }, GL_FALSE }, /* Time                */
+    { { 0, 0 }, GL_FALSE }, /* Time                */
 #endif
     { NULL, NULL },         /* Timers              */
     { NULL, NULL },         /* FreeTimers          */
@@ -94,9 +94,9 @@ SOG_State ogState =
     NULL,                   /* ProgramName         */
     GL_FALSE,               /* JoysticksInitted    */
 #if TARGET_HOST_UNIX_X11
-    {},                     /* A jmpbuf BackToMainLoop */
-#elif TARGET_HOST_WIN32
-    0,
+    {0},                    /* A jmpbuf BackToMainLoop */
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+    0,                      /* A jmpbuf BackToMainLoop */
 #endif
     0,                      /* InMainLoop flag     */
 };
@@ -236,10 +236,6 @@ void ogDeinitialize( void )
         return;
     }
 
-    /* XXX Why is this commented out? */
-    /* XXX If we don't want it, why is it here at all? */
-    /* ogState.Initialised = GL_FALSE; */
-
     /*
      * If there was a menu created, destroy the rendering context
      */
@@ -251,13 +247,13 @@ void ogDeinitialize( void )
 
     ogDestroyStructure( );
 
-    while( ( timer = ogState.Timers.First ) )
+    while( timer = ogState.Timers.First )
     {
         ogListRemove( &ogState.Timers, &timer->Node );
         free( timer );
     }
 
-    while( ( timer = ogState.FreeTimers.First ) )
+    while( timer = ogState.FreeTimers.First )
     {
         ogListRemove( &ogState.FreeTimers, &timer->Node );
         free( timer );
@@ -317,26 +313,27 @@ void ogDeinitialize( void )
 
 
 #if TARGET_HOST_UNIX_X11
-
-    /*
-     * Make sure all X-client data we have created will be destroyed on
-     * display closing
-     */
+    /* Ask that X-client data we have created be destroyed on display close. */
     XSetCloseDownMode( ogDisplay.Display, DestroyAll );
 
-    /*
-     * Close the display connection, destroying all windows we have
-     * created so far
-     */
+    /* Close display connection; destroy all windows we have created so far. */
     XCloseDisplay( ogDisplay.Display );
-
 #endif
 }
 
 /*
- * Everything inside the following #ifndef is copied from the X sources.
+ * Everything inside the following #if is copied from the X sources.
+ *
+ * (NB: "The X sources" are presumably something like the standard
+ *  XFree86 v4.4 release.  Unfortunately, the importer neglected
+ *  to say, so that will probably remain a mystery.  Since the
+ *  code is embedded in an OpenGLUT source file, it was reformatted
+ *  to OpenGLUT style.  Should we ever wish to refresh this
+ *  function from another X server in the future, it should probably
+ *  be stuck in a SEPARATE file, and should be ATTRIBUTED properly so
+ *  that we can figure out where the heck it came from (specific
+ *  versions, people), and allowed to stay in its own style.)
  */
-
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
 /*
@@ -554,7 +551,8 @@ static int XParseGeometry(
                - \a -indirect Attempt only indirect OpenGL rendering.
                  See \a -direct.
                - \a -iconic Open the window in iconized form.
-               - \a -gldebug Print any detected OpenGL errors.
+               - \a -gldebug Print any detected OpenGL errors.  Presently
+                 done at the bottom of glutMainLoopEvent().
                - \a -sync Synchronize the window system communications
                  heavily.
 
@@ -571,8 +569,6 @@ static int XParseGeometry(
               those issues.  This is also where OpenGLUT retrieves
               your program's name to help disambiguate error and
               warning messages it may be forced to emit.
-    \note     Option -gldebug sets a flag,
-              but is not actually used at this time.
     \note     Option -sync sets a flag, but is not actually used at this time.
     \note     Lots of code does XFlush() on the X server, regardless
               of whether -sync is specified.  Much of that appears to
@@ -700,7 +696,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
     for( i = 1; i < *pargc; i++, j++ )
         if( argv[ i ] == NULL )
         {
-            /* Guaranteed to end because there are "*pargc" arguments left */
+            /* Guaranteed to end because there are {*pargc} arguments left */
             while( argv[ j ] == NULL )
                 j++;
             argv[ i ] = argv[ j ];

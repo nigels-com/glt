@@ -46,7 +46,7 @@ static void oghVisibility( int status )
 
     freeglut_assert_ready;
     if( !ogStructure.Window )
-	return;
+        return;
 
     if( ( GLUT_HIDDEN == status )  || ( GLUT_FULLY_COVERED == status ) )
         glut_status = GLUT_NOT_VISIBLE;
@@ -562,7 +562,7 @@ void OGAPIENTRY glutEntryFunc( void (* callback)( int state ) )
               traditional GLUT, the application terminates.
               In freeglut and OpenGLUT, the application can
               choose to persist and treat the window close
-              event as a normal event.  This function is
+              event as a normal event.  This callback is
               how that event is transmitted to the application.
 
               This callback is bound to the <i>current window</i>.
@@ -592,7 +592,7 @@ void OGAPIENTRY glutCloseFunc( void (* callback)( void ) )
               traditional GLUT, the application terminates.
               In freeglut and OpenGLUT, the application can
               choose to persist and treat the window close
-              event as a normal event.  This function is
+              event as a normal event.  This callback is
               how that event is transmitted to the application.
 
               This callback is bound to the <i>current window</i>.
@@ -849,7 +849,7 @@ void OGAPIENTRY glutSpaceballButtonFunc(
               The callback is bound to the <i>current window</i>.
 
     \note     OpenGLUT does not implement button-box support.
-    \note     In contrast, mouse buttons are numbered from 0 in
+    \note     Also in contrast, mouse buttons are numbered from 0 in
               the GLUT API.  This is a wrinkle.
     \see      glutDialsFunc()
 */
@@ -866,7 +866,7 @@ void OGAPIENTRY glutButtonBoxFunc( void (* callback)( int button, int state ) )
 
               A dials-and-buttons box has dials numbered from 1 to
               glutDeviceGet(\a GLUT_NUM_BUTTON_BOX_DIALS), inclusive.
-              The parameters callback are the \a dial and its
+              The parameters to \a callback are the \a dial and its
               \a value the latter being an absolute rotation in
               degrees.
 
