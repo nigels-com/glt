@@ -4,9 +4,12 @@
     \ingroup GLT
     \todo i2string
 
-    $Id: info.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: info.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: info.cpp,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -284,16 +287,16 @@ string GltVersionInformation()
     str += jpeg;
     #endif
 
-	#ifdef GLUTM_FREEGLUT
+    #ifdef GLUTM_FREEGLUT
 
-	#ifdef FREEGLUT_VERSION_2_0
-	string fg("freeglut 2.0\n");
-	#else
-	string fg("freeglut 1.0\n");
-	#endif
-    
-	str += fg;
-	#endif
+    #ifdef FREEGLUT_VERSION_2_0
+    string fg("freeglut 2.0\n");
+    #else
+    string fg("freeglut 1.0\n");
+    #endif
+
+    str += fg;
+    #endif
 
     return str;
 }

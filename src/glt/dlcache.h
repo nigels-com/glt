@@ -30,9 +30,12 @@
     \brief   Display List Cache
     \ingroup GLT
 
-    $Id: dlcache.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: dlcache.h,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: dlcache.h,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -138,7 +141,7 @@ public:
     void draw(const Key &id)
     {
         GLERROR;
-        
+
         // If caching is disbled, draw directly.
 
         if (!_enable)

@@ -11,9 +11,12 @@ using namespace std;
 /*! \file
     \ingroup GLT
 
-    $Id: error.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: error.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: error.cpp,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -45,7 +48,7 @@ gltError(const char *format, ...)
 {
     va_list argp;
     va_start(argp, format);
-    
+
     fprintf (stderr, "GLT error: ");
     vfprintf(stderr, format, argp);
     fprintf (stderr, "\n");
@@ -58,7 +61,7 @@ gltWarning(const char *format, ...)
 {
     va_list argp;
     va_start(argp, format);
-    
+
     fprintf (stderr, "GLT warning: ");
     vfprintf(stderr, format, argp);
     fprintf (stderr, "\n");

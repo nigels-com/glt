@@ -3,9 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: texture.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: texture.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: texture.cpp,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -482,7 +485,7 @@ GltTexture::set() const
         glBindTexture(_target,_id);
 }
 
-bool 
+bool
 GltTexture::defined() const
 {
     return _id!=0;

@@ -5,15 +5,18 @@
 /*! \file
     \ingroup GLT
 
-	Based on Polyfont Copyright (C) 2003 Bob Pendleton
+    Based on Polyfont Copyright (C) 2003 Bob Pendleton
 
-	Polyfonts is a polygon font drawing library for use with SDL. Any
-	TTF font can be converted for use with this library. Contact the
-	author for details.
+    Polyfonts is a polygon font drawing library for use with SDL. Any
+    TTF font can be converted for use with this library. Contact the
+    author for details.
 
-    $Id: fontpoly.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: fontpoly.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: fontpoly.cpp,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -59,8 +62,8 @@ GltFontPolygon::GltFontPolygon(void *data)
     if (data)
         init(data);
 
-	_hStep = 40;
-	_vStep = 40;
+    _hStep = 40;
+    _vStep = 40;
 }
 
 GltFontPolygon::~GltFontPolygon()
@@ -75,7 +78,7 @@ GltFontPolygon::init(void *data)
 
     if (data)
     {
-		_font = static_cast<pffont *>(data);
+        _font = static_cast<pffont *>(data);
     }
 }
 
@@ -84,43 +87,43 @@ GltFontPolygon::clear()
 {
 }
 
-bool 
+bool
 GltFontPolygon::print(const GltChar ch) const
 {
-	const pfglyph *g = getGlyph(ch);
-	if (!g)
-		return false;
+    const pfglyph *g = getGlyph(ch);
+    if (!g)
+        return false;
 
-	for (int k=0; k<_weight; k++)
-	{
-		int      segs = g->numsegments;
-		pfint16 *d    = g->segments;
+    for (int k=0; k<_weight; k++)
+    {
+        int      segs = g->numsegments;
+        pfint16 *d    = g->segments;
 
-		for (int i=0; i<segs; i++)
-		{
-			int prim   = *d++;
-			int points = *d++;
+        for (int i=0; i<segs; i++)
+        {
+            int prim   = *d++;
+            int points = *d++;
 
-			glBegin(prim);
-			for (int j=0; j<points; j++)
-			{
-				float gx = unfix(*d++);
-				float gy = unfix(*d++);
+            glBegin(prim);
+            for (int j=0; j<points; j++)
+            {
+                float gx = unfix(*d++);
+                float gy = unfix(*d++);
 
-				gx += weightOffset[k].x;
-				gy += weightOffset[k].y;
+                gx += weightOffset[k].x;
+                gy += weightOffset[k].y;
 
-				gx = skew(gx, gy);
+                gx = skew(gx, gy);
 
-				glVertex2f(gx*_hStep, 0.75*_vStep - gy*_vStep);
-			}
-			glEnd();
-		}
-	}
+                glVertex2f(gx*_hStep, 0.75*_vStep - gy*_vStep);
+            }
+            glEnd();
+        }
+    }
 
-	glTranslatef(g->advance*_hStep,0.0f,0.0f);
+    glTranslatef(g->advance*_hStep,0.0f,0.0f);
 
-	return true;
+    return true;
 }
 
 bool
@@ -128,21 +131,21 @@ GltFontPolygon::print(const GltString &str) const
 {
     if (_font)
     {
-		// Push modelview matrix so that we can skip
-		// back to the start of the line before moving
-		// downwards for the next string.
+        // Push modelview matrix so that we can skip
+        // back to the start of the line before moving
+        // downwards for the next string.
 
-		glPushMatrix();
+        glPushMatrix();
         glPushAttrib(GL_LIST_BIT|GL_CURRENT_BIT);
             for (uint32 i=0; i<str.length(); i++)
                 print(str[i]);
         glPopAttrib();
-		glPopMatrix();
+        glPopMatrix();
 
-		// Adjust modelview matrix for outputting to the
-		// next line.
+        // Adjust modelview matrix for outputting to the
+        // next line.
 
-		glTranslatef(0.0f,_vStep,0.0f);
+        glTranslatef(0.0f,_vStep,0.0f);
 
         return true;
     }
@@ -153,14 +156,14 @@ GltFontPolygon::print(const GltString &str) const
 int
 GltFontPolygon::width(const GltChar ch) const
 {
-	const pfglyph *g = getGlyph(ch);
-	if (!g)
-		return 0;
+    const pfglyph *g = getGlyph(ch);
+    if (!g)
+        return 0;
 
-	return ceil(g->advance*_hStep);
+    return ceil(g->advance*_hStep);
 }
 
-int 
+int
 GltFontPolygon::comp(const void *key, const void *target)
 {
   pfglyph *k = (pfglyph *)key;
@@ -172,21 +175,21 @@ GltFontPolygon::comp(const void *key, const void *target)
 const pfglyph *
 GltFontPolygon::getGlyph(const wchar_t c) const
 {
-	if (!_font)
-		return NULL;
+    if (!_font)
+        return NULL;
 
-	pfglyph key;
-	key.glyph = c;
+    pfglyph key;
+    key.glyph = c;
 
-	return (pfglyph *) bsearch(
-		(void *) (&key),
-		(void *) (_font->glyphs),
-		_font->numglyphs,
-		sizeof(pfglyph),
-		comp);
+    return (pfglyph *) bsearch(
+        (void *) (&key),
+        (void *) (_font->glyphs),
+        _font->numglyphs,
+        sizeof(pfglyph),
+        comp);
 }
 
-float 
+float
 GltFontPolygon::skew(float x, float y) const
 {
   return x + (_skew * y);

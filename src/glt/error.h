@@ -30,9 +30,12 @@
     \brief   OpenGL Debugging Tools
     \ingroup GLT
 
-    $Id: error.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: error.h,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: error.h,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -78,34 +81,34 @@ void gltWarning(const char *format, ...);    ///< Display warning
 #if defined(WIN32)
     #define GLERROR                                          \
     {                                                        \
-		if (!wglGetCurrentContext())						 \
-			gltError("No OpenGL rendering context.");		 \
-		else												 \
-		{													 \
-			GLenum code = glGetError();                      \
-	        while (code!=GL_NO_ERROR)                        \
-		    {                                                \
-			    gltError("glGetError %s:%d %s",              \
+        if (!wglGetCurrentContext())                         \
+            gltError("No OpenGL rendering context.");        \
+        else                                                 \
+        {                                                    \
+            GLenum code = glGetError();                      \
+            while (code!=GL_NO_ERROR)                        \
+            {                                                \
+                gltError("glGetError %s:%d %s",              \
                     __FILE__,__LINE__,gluErrorString(code)); \
-				code = glGetError();                         \
-			}                                                \
-		}													 \
+                code = glGetError();                         \
+            }                                                \
+        }                                                    \
     }
 #else
     #define GLERROR                                          \
     {                                                        \
-		if (0)  /* TODO - GLX rendering context check */     \
-			gltError("No OpenGL rendering context.");		 \
-		else												 \
-		{													 \
+        if (0)  /* TODO - GLX rendering context check */     \
+            gltError("No OpenGL rendering context.");        \
+        else                                                 \
+        {                                                    \
         GLenum code = glGetError();                          \
         while (code!=GL_NO_ERROR)                            \
         {                                                    \
-			    gltError("glGetError %s:%d %s",              \
+                gltError("glGetError %s:%d %s",              \
                     __FILE__,__LINE__,gluErrorString(code)); \
             code = glGetError();                             \
         }                                                    \
-		}													 \
+        }                                                    \
     }
 #endif
 #endif

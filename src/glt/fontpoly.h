@@ -32,9 +32,12 @@
     \brief   Polyfont OpenGL Font
     \ingroup GLT
 
-    $Id: fontpoly.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: fontpoly.h,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: fontpoly.h,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -52,15 +55,15 @@
     \brief Polyfont font class
     \ingroup GLT
 
-	http://www.gameprogrammer.com/polyfonts/polyfonts.html
+    http://www.gameprogrammer.com/polyfonts/polyfonts.html
 */
 
 class GltFontPolygon : public GltFont
 {
 public:
- 
-    GltFontPolygon(void *data = NULL);				///< Constructor
-    ~GltFontPolygon();								///< Destructor
+
+    GltFontPolygon(void *data = NULL);              ///< Constructor
+    ~GltFontPolygon();                              ///< Destructor
 
     void init(void *);
     void clear();
@@ -71,18 +74,18 @@ public:
 
 private:
 
-	pffont *_font;
+    pffont *_font;
 
-	float pfGetCharDescent(wchar_t c) const;
+    float pfGetCharDescent(wchar_t c) const;
 
-	const pfglyph *getGlyph(const wchar_t c) const;
-	static int     comp(const void *key, const void *target);
+    const pfglyph *getGlyph(const wchar_t c) const;
+    static int     comp(const void *key, const void *target);
 
-	float skew(float x, float y)       const;
+    float skew(float x, float y)       const;
 
-	bool  _center;
-	int   _weight;
-	real  _skew;
+    bool  _center;
+    int   _weight;
+    real  _skew;
 };
 
 #endif

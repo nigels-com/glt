@@ -30,9 +30,12 @@
     \brief OpenGL Texture Class
     \ingroup GLT
 
-    $Id: texture.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: texture.h,v 2.2 2004/02/16 01:26:18 nigels Exp $
 
     $Log: texture.h,v $
+    Revision 2.2  2004/02/16 01:26:18  nigels
+    Whitespace differences
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -122,7 +125,7 @@ public:
     void set() const;
 
     bool defined() const;   ///< Is the texture object defined?
-    
+
     /*!
         \brief      Set wrapping of OpenGL texture coordinates
         \param      s    Horizontal mapping mode
