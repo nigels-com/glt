@@ -9,9 +9,15 @@
 
     \ingroup GLT
 
-    $Id: mcubes.cpp,v 2.1 2004/03/05 05:51:03 nigels Exp $
+    $Id: mcubes.cpp,v 2.2 2004/03/07 04:49:17 nigels Exp $
 
     $Log: mcubes.cpp,v $
+    Revision 2.2  2004/03/07 04:49:17  nigels
+    Further code refinements
+    There appears to be a limitation/bug with some cell configurations.
+    It is not always possible to reconnect the face segments into polygons.
+    Also, non-planar polygons may be passed to OpenGL in some situations.
+
     Revision 2.1  2004/03/05 05:51:03  nigels
     Resolved gaps in sphere and heart when gcc optimisations (-O3) enabled
     General tidy-up of code, more to follow, optimistations also possible
@@ -23,9 +29,11 @@
 
 #include <glt/gl.h>
 
+#include <cstdio>
+#include <iostream>
 #include <cstdlib>
 #include <cmath>      // Used by plug-in functions
-#include <iosfwd>
+//#include <iosfwd>
 using namespace std;
 
 typedef struct { float x, y, z;            } Vector3;
@@ -47,13 +55,13 @@ static bool allocate_cubes(void);
 static void free_cubes(void);
 static void sample_level(Sample **level, int ix, Vector3 *vmin, Vector3 *vmax);
 static void tesselate_cube(int iy, int iz);
-static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, int *numline);
-static void interpolate(Vector3 *v, Sample *a, Sample *b);
-static void vect_copy (Vector3 *v1, Vector3 *v2);
-static bool vect_equal(Vector3 *v1, Vector3 *v2);
-static void vect_add  (Vector3 *v1, Vector3 *v2, Vector3 *v3);
-static void vect_sub  (Vector3 *v1, Vector3 *v2, Vector3 *v3);
-static void vect_scale(Vector3 *v1, Vector3 *v2, float k);
+static void analyze_face(const Sample *cube, int a, int b, int c, int d, Pair *line, int *numline);
+static void interpolate(Vector3 *v, const Sample *a, const Sample *b);
+static void vect_copy (Vector3 *v1, const Vector3 *v2);
+static bool vect_equal(const Vector3 *v1, const Vector3 *v2);
+static void vect_add  (Vector3 *v1, const Vector3 *v2, const Vector3 *v3);
+static void vect_sub  (Vector3 *v1, const Vector3 *v2, const Vector3 *v3);
+static void vect_scale(Vector3 *v1, const Vector3 *v2, const float k);
 
 bool
 GltMarchingCubes(
@@ -154,7 +162,6 @@ static bool allocate_cubes()
     return true;
 }
 
-
 static void free_cubes()
 {
     int i;
@@ -253,6 +260,9 @@ static void tesselate_cube(int iy, int iz)
                     line[i+1] = temp;
                     break;
                 }
+
+//                if (j+1==numline)
+//                    cout << "numline = " << numline << endl;
             }
 
             if (j >= numline)
@@ -270,11 +280,11 @@ static void tesselate_cube(int iy, int iz)
    corners. If an intersection is found then the coords of the line segment(s)
    are added to array line and *numline is increased */
 
-static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, int *numline)
+static void analyze_face(const Sample *cube, int a, int b, int c, int d, Pair *line, int *numline)
 {
     Vector3 points[4], vcenter;
     float center;
-    int sign[4];
+    bool sign[4];
     int l1, l2, l3, l4;
     int index = 0;
 
@@ -306,7 +316,7 @@ static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, i
 
     if (index == 2)  /* One line segment */
     {
-        if (sign[0] > 0)    /* Get the line direction right */
+        if (sign[0])    /* Get the line direction right */
         {
             vect_copy(&line[*numline].p1, &points[0]);
             vect_copy(&line[*numline].p2, &points[1]);
@@ -334,7 +344,7 @@ static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, i
             else
                 { l1 = 1; l2 = 2; l3 = 3; l4 = 0; }
 
-            if (sign[l1] > 0)
+            if (sign[l1])
             {
                 vect_copy (&line[*numline].p1, &points[l1]);
                 vect_copy (&line[*numline].p2, &points[l2]);
@@ -347,7 +357,7 @@ static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, i
 
             (*numline)++;
 
-            if (sign[l3] > 0)
+            if (sign[l3])
             {
                 vect_copy (&line[*numline].p1, &points[l3]);
                 vect_copy (&line[*numline].p2, &points[l4]);
@@ -362,13 +372,14 @@ static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, i
         }
 }
 
-static void interpolate(Vector3 *v, Sample *a, Sample *b)
+static void interpolate(Vector3 *v, const Sample *a, const Sample *b)
 {
     Vector3 vtemp;
 
 #if 1
-    Sample *x;
-    Sample *y;
+    const Sample *x;
+    const Sample *y;
+
     if (a->value < b->value)
     {
         x=a; y=b;
@@ -398,34 +409,34 @@ static void interpolate(Vector3 *v, Sample *a, Sample *b)
 #endif
 }
 
-static void vect_copy(Vector3 *v1, Vector3 *v2)
+static void vect_copy(Vector3 *v1, const Vector3 *v2)
 {
     v1->x = v2->x;
     v1->y = v2->y;
     v1->z = v2->z;
 }
 
-bool vect_equal(Vector3 *v1, Vector3 *v2)
+bool vect_equal(const Vector3 *v1, const Vector3 *v2)
 {
     return (v1->x == v2->x && v1->y == v2->y && v1->z == v2->z);
 }
 
 
-static void vect_add(Vector3 *v1, Vector3 *v2, Vector3 *v3)
+static void vect_add(Vector3 *v1, const Vector3 *v2, const Vector3 *v3)
 {
     v1->x = v2->x + v3->x;
     v1->y = v2->y + v3->y;
     v1->z = v2->z + v3->z;
 }
 
-static void vect_sub(Vector3 *v1, Vector3 *v2, Vector3 *v3)
+static void vect_sub(Vector3 *v1, const Vector3 *v2, const Vector3 *v3)
 {
     v1->x = v2->x - v3->x;
     v1->y = v2->y - v3->y;
     v1->z = v2->z - v3->z;
 }
 
-static void vect_scale(Vector3 *v1, Vector3 *v2, float k)
+static void vect_scale(Vector3 *v1, const Vector3 *v2, const float k)
 {
     v1->x = k * v2->x;
     v1->y = k * v2->y;
@@ -482,7 +493,7 @@ float klein(float x,float y,float z)
     y *= 5.0f;
     z *= 5.0f;
 
-    return float( (sqr(x)+sqr(y)+sqr(z)+2*y-1) * (sqr(sqr(x)+sqr(y)+sqr(z)-2*y-1)
+    return 0.1f + float( (sqr(x)+sqr(y)+sqr(z)+2*y-1) * (sqr(sqr(x)+sqr(y)+sqr(z)-2*y-1)
                   -8*sqr(z)) + 16*x*z*(sqr(x)+sqr(y)+sqr(z)-2*y-1) );
 }
 
