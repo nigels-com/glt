@@ -56,7 +56,7 @@ GltTextOverlay::~GltTextOverlay()
 void
 GltTextOverlay::draw() const
 {
-    if (_text.length()==0)
+    if (!visible() || _text.length()==0)
         return;
 
     // Window viewport
