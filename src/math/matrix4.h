@@ -69,18 +69,13 @@ class Matrix
 
 public:
 
-    /// Default constructor
-    Matrix();
-    /// Copy constructor
-    Matrix(const Matrix &matrix);
-    /// Construct from array
-    Matrix(const float *matrix);
-    /// Construct from array
-    Matrix(const double *matrix);
-    /// Construct from OpenGL GL_MODELVIEW_MATRIX or GL_PROJECTION_MATRIX
-    Matrix(const unsigned int glMatrix);
-    /// Construct from string
-    Matrix(const std::string &str);
+    Matrix();                                   ///< Default constructor
+    Matrix(const Matrix &matrix);               ///< Copy constructor
+    Matrix(const float *matrix);                ///< Construct from array
+    Matrix(const double *matrix);               ///< Construct from array
+    Matrix(const unsigned int glMatrix);        ///< Construct from OpenGL GL_MODELVIEW_MATRIX or GL_PROJECTION_MATRIX
+    Matrix(const std::string &str);             ///< Construct from string
+    ~Matrix();                                  ///< Destructor
 
     /// Assignment operator
     Matrix &operator=(const Matrix &);

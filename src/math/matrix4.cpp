@@ -3,9 +3,13 @@
 /*! \file
     \ingroup Math
 
-    $Id: matrix4.cpp,v 2.1 2004/02/16 02:43:16 nigels Exp $
+    $Id: matrix4.cpp,v 2.2 2004/04/26 02:59:54 nigels Exp $
 
     $Log: matrix4.cpp,v $
+    Revision 2.2  2004/04/26 02:59:54  nigels
+    Added Matrix destructor
+    Some reformatting of Matrix header
+
     Revision 2.1  2004/02/16 02:43:16  nigels
     Added shadow and reflection matrices
 
@@ -104,6 +108,10 @@ Matrix::Matrix(const string &str)
         atoc(str,atof,"+-eE.0123456789",_matrix+0,_matrix+16);
 
     assert(n==16);
+}
+
+Matrix::~Matrix()
+{
 }
 
 Matrix &
