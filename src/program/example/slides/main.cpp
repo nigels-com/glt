@@ -32,6 +32,13 @@ using namespace std;
 
 //////////////////////////////////////////
 
+/*
+ * TODO - Recurse into subdirectories
+ *      - Randomise order (shuffle)
+ *      - Transitions
+ *
+ */
+
 class SlidesDemo : public GlutWindow
 {
 public:
@@ -121,6 +128,11 @@ SlidesDemo::OnKeyboard(unsigned char key, int x, int y)
     case ' ':
     case 13:
         setAuto(!_auto);
+        break;
+
+    case 'r':
+    case 'R':
+        _slides.clear();
         break;
 
     case 'q':
