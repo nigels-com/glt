@@ -176,7 +176,7 @@ summary:
 # Programs composed of simply one .cpp file are
 # linked into a binary with the same name
 
-$(BIN)/%$(EXE): $(OBJ)/%.o $(LIB)/*.a
+$(BIN)/%$(EXE): $(OBJ)/%.o $(LIBS)
 	mkdir -p $(BIN) 
 	printf "Linking    %s\n" $(patsubst $(BIN)/%$(EXE),%$(EXE),$@)
 	$(CXX) $< $(CXXLIBS) -o $@ 
@@ -184,7 +184,7 @@ $(BIN)/%$(EXE): $(OBJ)/%.o $(LIB)/*.a
 # Programs composed of multiple compilation units
 # linked into a binary named $(NAME)
 
-$(BIN)/$(NAME)$(EXE): $(DEPENDS) $(OBJECTS) $(LIB)/*.a
+$(BIN)/$(NAME)$(EXE): $(DEPENDS) $(OBJECTS) $(LIBS)
 	mkdir -p $(BIN) 
 	printf "Linking    %s\n" $(NAME)
 	$(CXX) $(OBJECTS) $(CXXLIBS) -o $@ 
