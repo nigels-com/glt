@@ -1,0 +1,253 @@
+default: recurse
+
+##
+## BACKUP
+##
+
+.PHONY: backup backup-src backup-data 
+
+backup: backup-src backup-data
+
+backup-src: 
+	@printf "" > .files
+	@find ./ -type f -name "*.h"      >> .files    # C/C++ header Files
+	@find ./ -type f -name "*.c"      >> .files    # C source files
+	@find ./ -type f -name "*.cpp"    >> .files    # C++ source files
+	@find ./ -type f -name "*.hpp"    >> .files    # C++ header files
+	@find ./ -type f -name "*.rc"     >> .files    # Windows resource files
+	@find ./ -type f -name "*.ico"    >> .files    # Windows icon files
+	@find ./ -type f -name "*.iss"    >> .files    # Windows Inno Setup Script
+	@find ./ -type f -name "*.y"      >> .files    # Yacc/Bison parsers
+	@find ./ -type f -name "*.l"      >> .files    # Flex scanners
+	@find ./ -type f -name "*.iv"     >> .files    # Open Inventor
+	@find ./ -type f -name "*.dsw"    >> .files    # Visual C++ Workspaces
+	@find ./ -type f -name "*.dsp"    >> .files    # Visual C++ Projects
+	@find ./ -type f -name "*.sln"    >> .files    # Visual C++ Solutions
+	@find ./ -type f -name "*.vcproj" >> .files    # Visual C++ Projects
+	@find ./ -type f -name "*.def"    >> .files    # Visual C++ DLL options
+	@find ./ -type f -name "*.stroke" >> .files    # GLUT stroke fonts
+	@find ./ -type f -name "*.cfg"    >> .files    # Doxygen configuration
+	@find ./ -type f -name "Make*"    >> .files    # Makefiles
+	@find ./ -type f -name "*.txt"    >> .files    # Text files
+	@find ./ -type f -name "*.3"      >> .files    # Unix man pages
+	@find ./ -type f -name "*.5"      >> .files    # Unix man pages
+	@find ./ -type f -name "*.doc"    >> .files    # MS Word Documents
+	@find ./ -type f -name "*.sh"     >> .files    # Shell scripts
+	@find ./ -type f -name "*.dox"    >> .files    # Doxygen documentation
+	@find ./ -type f -name "*.css"    >> .files    # Doxygen documentation
+	@find ./ -type f -name "*.html"   >> .files    # Doxygen documentation
+	@find ./ -type f -name "*.ok"     >> .files    # Expected diagnostic test (src/program/test) output
+	sed s/\^./glt/ < .files | sort > .files2
+	cat .files2 | \
+	grep -v "^glt/bin/" | \
+	grep -v "^glt/lib/" | \
+	grep -v "^glt/msvc/Debug/" | \
+	grep -v "^glt/msvc/Release/" | \
+	grep -v "^glt/doc/html/" | \
+	grep -v "^glt/doc/man/" | \
+	grep -v "^glt/src/Inventor/" | \
+	grep -v "^glt/src/freetype/" | \
+	grep -v "^glt/src/openvrml/" | \
+	grep -v "^glt/src/gmp/" | \
+	grep -v "^glt/src/cpw/" | \
+	grep -v "^glt/src/ga/" | \
+	grep -v "^glt/src/purenum/" | \
+	grep -v "^glt/src/SDL/" | \
+	grep -v "^glt/src/SDL_image/" | \
+	grep -v "^glt/src/SDL_mixer/" | \
+	grep -v "~" | \
+	grep -v ".bak" \
+	> .files
+	tar cvzf gltSrc`date +%Y%m%d`.tgz -T .files -C ../
+
+backup-data:
+	@printf "" > .files
+	@find ./ -type f -name "*.ppm"    >> .files    # PPM Textures
+	@find ./ -type f -name "*.ppm.gz" >> .files    # Compressed PPM Textures
+	@find ./ -type f -name "*.pgm"    >> .files    # PGM Textures
+	@find ./ -type f -name "*.pgm.gz" >> .files    # Compressed PGM Textures
+	@find ./ -type f -name "*.bmp"    >> .files    # Windows BMP Textures
+	@find ./ -type f -name "*.png"    >> .files    # PNG Textures
+	@find ./ -type f -name "*.tga"    >> .files    # Targa Textures
+	@find ./ -type f -name "*.gif"    >> .files    # GIF Images
+	@find ./ -type f -name "*.fnt"    >> .files    # VGA Fonts
+	@find ./ -type f -name "*.wrl"    >> .files    # VRML Files
+	@find ./ -type f -name "*.dat"    >> .files    # Generic Data files
+	sed s/\^./glt/ < .files > .files2
+	cat .files2 | \
+	grep -v "^glt/bin/" | \
+	grep -v "^glt/lib/" | \
+	grep -v "^glt/msvc/" | \
+	grep -v "^glt/doc/html/" | \
+	grep -v "^glt/doc/man/" | \
+	grep -v "^glt/src/research/" | \
+	grep -v "~" | \
+	grep -v ".bak" \
+	> .files
+	tar cvzf gltData`date +%Y%m%d`.tgz -T .files -C ../
+
+##
+## DIST
+##
+
+.PHONY: dist-core dist-example dist-glut dist-unifont dist-png dist-jpeg dist-glui dist-zpr dist-csg
+.PHONY: dist-util-win32 dist-example-win32
+.PHONY: dist-doxygen
+
+dist:   dist-core dist-example dist-glut dist-unifont dist-png dist-jpeg dist-glui dist-zpr dist-csg
+
+dist-win32: dist-util-win32 dist-example-win32
+
+GLT_VERSION=0.8-rc3
+
+GLT_CORE=glt-core-$(GLT_VERSION)
+GLT_EXAMPLE=glt-example-$(GLT_VERSION)
+GLT_UNIFONT=glt-unifont-$(GLT_VERSION)
+GLT_GLUT=glt-glut-$(GLT_VERSION)
+GLT_PNG=glt-png-$(GLT_VERSION)
+GLT_JPEG=glt-jpeg-$(GLT_VERSION)
+GLT_GLUI=glt-glui-$(GLT_VERSION)
+GLT_CSG=glt-csg-$(GLT_VERSION)
+
+GLT_UTIL_WIN32=glt-util-win32-$(GLT_VERSION)
+GLT_EXAMPLE_WIN32=glt-example-win32-$(GLT_VERSION)
+GLT_DOX=glt-dox-$(GLT_VERSION)
+ 
+ZPR_VERSION=0.2
+GLT_ZPR=glt-zpr-$(ZPR_VERSION)
+
+dist-core:
+	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
+	printf ""                                > .files2
+	grep "^glt/src/glt/"             .files >> .files2
+	grep "^glt/src/glutm/"           .files >> .files2
+	grep "^glt/src/fonts/"           .files >> .files2
+	grep "^glt/src/math/"            .files >> .files2
+	grep "^glt/src/mesh/"            .files >> .files2
+	grep "^glt/src/misc/"            .files >> .files2
+	grep "^glt/src/node/"            .files >> .files2
+	grep "^glt/src/zlib/"            .files >> .files2
+	grep "^glt/src/program/test/"    .files >> .files2
+	grep "^glt/src/program/util/"    .files >> .files2
+	grep "^glt/src/program/gltVrml/" .files >> .files2
+	echo "glt/src/program/gltVrml/sample.wrl" >> .files2
+	grep "^glt/gcc/"                 .files >> .files2
+	grep "^glt/doc/"                 .files >> .files2
+	grep "^glt/msvc/glt.dsw"         .files >> .files2
+	grep "^glt/msvc/test.dsw"        .files >> .files2
+	grep "^glt/msvc/util.dsw"        .files >> .files2
+	grep "^glt/msvc/glt/"            .files >> .files2
+	grep "^glt/msvc/test/"           .files >> .files2
+	grep "^glt/msvc/util/"	         .files >> .files2
+	grep "^glt/Makefile"             .files >> .files2
+	grep "^glt/src/Makefile"         .files >> .files2
+	grep "^glt/src/program/Makefile" .files >> .files2
+	tar cvzf            $(GLT_CORE).tgz -T .files2 -C ../ 
+	cd ..; zip -9u@ glt/$(GLT_CORE).zip < glt/.files2; cd glt
+
+dist-example:
+	tar tzf gltSrc`date +%Y%m%d`.tgz                      > .files
+	printf ""                                             > .files2
+	grep    "^glt/src/program/example/"          .files  >> .files2
+	grep    "^glt/msvc/example.dsw"              .files  >> .files2
+	grep    "^glt/msvc/example/"                 .files  >> .files2
+	grep    "^glt/src/program/gltChaos/"         .files  >> .files2
+	grep    "^glt/src/program/gltLife/"          .files  >> .files2
+	grep    "^glt/msvc/gltChaos."                .files  >> .files2
+	grep    "^glt/msvc/gltLife."                 .files  >> .files2
+	grep -v "^glt/src/program/example/unifonte/" .files2 >  .files3
+	tar cvzf            $(GLT_EXAMPLE).tgz -T .files3 -C ../
+	cd ..; zip -9u@ glt/$(GLT_EXAMPLE).zip < glt/.files3; cd glt
+
+dist-unifont:
+	tar tzf gltSrc`date +%Y%m%d`.tgz                  > .files
+	printf ""                                         > .files2
+	grep "^glt/src/unifont/"                  .files >> .files2
+	grep "^glt/src/program/example/unifonte/" .files >> .files2
+	grep "^glt/msvc/unifont.dsw"              .files >> .files2
+	grep "^glt/msvc/unifont/"                 .files >> .files2
+	tar cvzf            $(GLT_UNIFONT).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_UNIFONT).zip < glt/.files2; cd glt
+
+dist-glut:
+	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
+	printf ""                                > .files2
+	grep "^glt/src/glut/"            .files >> .files2
+	grep "^glt/src/GL/glut"          .files >> .files2
+	grep "^glt/msvc/glut32."         .files >> .files2
+	tar cvzf            $(GLT_GLUT).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_GLUT).zip < glt/.files2; cd glt
+
+dist-glui:
+	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
+	printf ""                                > .files2
+	grep "^glt/src/glui/"            .files >> .files2
+	grep "^glt/src/GL/glui.h"        .files >> .files2
+	grep "^glt/src/program/glui/"    .files >> .files2
+	grep "^glt/msvc/glui.dsw"        .files >> .files2
+	grep "^glt/msvc/glui/"           .files >> .files2
+	tar cvzf            $(GLT_GLUI).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_GLUI).zip < glt/.files2; cd glt
+
+dist-png:
+	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
+	printf ""                                > .files2
+	grep "^glt/src/png/"             .files >> .files2
+	grep "^glt/msvc/png.dsw"         .files >> .files2
+	grep "^glt/msvc/libs/png.dsp"    .files >> .files2
+	tar cvzf            $(GLT_PNG).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_PNG).zip < glt/.files2; cd glt
+
+dist-jpeg:
+	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
+	printf ""                                > .files2
+	grep "^glt/src/jpeg/"             .files >> .files2
+	grep "^glt/msvc/jpeg.dsw"         .files >> .files2
+	grep "^glt/msvc/jpeg.dsp"         .files >> .files2
+	tar cvzf            $(GLT_JPEG).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_JPEG).zip < glt/.files2; cd glt
+
+dist-zpr:
+	tar tzf gltSrc`date +%Y%m%d`.tgz        > .files
+	printf ""                               > .files2
+	grep "^glt/src/program/gltZpr/"	.files >> .files2
+	grep "^glt/msvc/gltZpr"		.files >> .files2
+	tar cvzf            $(GLT_ZPR).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_ZPR).zip < glt/.files2; cd glt
+	
+dist-csg:
+	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
+	printf ""                                > .files2
+	grep "^glt/src/csg/"             .files >> .files2
+	grep "^glt/src/program/csg/"     .files >> .files2
+	grep "^glt/msvc/csg.dsw"         .files >> .files2
+	grep "^glt/msvc/csgutil.dsw"     .files >> .files2
+	grep "^glt/msvc/csg/"            .files >> .files2
+	tar cvzf            $(GLT_CSG).tgz -T .files2 -C ../
+	cd ..; zip -9u@ glt/$(GLT_CSG).zip < glt/.files2; cd glt
+
+#
+# WIN32 Binary Packages
+#
+
+
+dist-util-win32:
+	find src/program/util/ -name "*.cpp" | cut -d / -f 4 > .files
+	sed s/.cpp/.exe/ < .files                            > .files2
+	cd msvc/Release; \
+	upx -9  `cat ../../.files2`;  \
+	zip -9u@ ../../$(GLT_UTIL_WIN32).zip < ../../.files2
+	
+dist-example-win32:
+	find src/program/example/* -type d -maxdepth 0 | cut -d / -f 4 > .files
+	for i in `cat .files`; do printf "%s.exe\n" $$i; done > .files2
+	cd msvc/Release; \
+	upx -9  `cat ../../.files2`;  \
+	zip -9u@ ../../$(GLT_EXAMPLE_WIN32).zip < ../../.files2
+
+#
+# Doxygen
+#
+
+dist-doxygen:
+	tar cvzf $(GLT_DOX).tgz doc/html/

@@ -1,0 +1,7 @@
+/*! \defgroup Mesh GLT Mesh
+    \brief    Polygon Mesh Functionality and VRML Support
+    
+    The mesh module of GLT is concerned with the handling
+    of polygonal mesh data.  Rudimentary triangle and quadrilateral
+    mesh, as well as VRML parsing is supported.
+*/

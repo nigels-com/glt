@@ -1,0 +1,268 @@
+/*! \defgroup GLT GLT Core
+    \brief    Core OpenGL Functionality
+    
+    The core module of GLT is concerned with OpenGL functionality
+    such as OpenGL transformation, lighting and material modes,
+    fonts and textures, viewport and raster position management.
+*/
+
+/*! \mainpage GLT OpenGL C++ Toolkit
+
+	GLT is a C++ class library for programming interactive 3D graphics with OpenGL.
+	
+	GLT can be used as an object oriented interface to OpenGL, or as a library of
+	pre-canned functionality for transformations, shapes, fonts, images, textures
+	and so on.
+	
+	GLT is extremely portable.  It depends only on OpenGL.  It has been 
+	compiled and tested on Windows NT with Visual C++ 6.0 and Cygwin/Ming32 gcc.
+	Linux and SGI IRIX are also supported.
+
+	GLT is a work in progress, and by no means covers the entire OpenGL
+	specification.  However, it already includes several useful classes and
+	is designed so that additional classes can be added easily.  It may 
+	also serve as a useful reference, or a HOW-TO for solving common problems.
+
+	\ref intro        "Introduction"
+	
+	\ref installation "Installation"
+
+	\ref make		  "Using GNU Make"
+	
+	\ref utilities    "Utilities"
+
+	\ref todo         "TODO"
+
+*/
+
+/*! \page intro Introduction to GLT
+
+	\section principles Guiding Principles
+	
+		- Unrestrictive license: <a href="http://www.gnu.org/copyleft/lesser.html">LGPL</a>
+		- Clean, extensible, documented C++ implementation
+		- Portable to all platforms supporting C++ and OpenGL
+		- Convenient for use in general purpose OpenGL programming
+		- Concise and clear code
+		- Useful for real-world applications and common tasks
+		- Complete set of functionality
+		- Transparent use of OpenGL and C++, leaving underlying API's exposed
+		- Self contained, requiring a minimal set of external libraries
+	
+	\subsection opensource Open Source License
+	
+	GLT is available under the terms of the LGPL open-source license.
+	This allows commercial and non-commercial use.  GLT is intended
+	for a wide variety of applications including (but not specifically) games.
+
+	\subsection classlibrary C++ Class Library
+
+	GLT classes are intended to be convenient, concise, useful and
+	complete.  C++ language features such as operator overloading and
+	automatic constructors and destructors improve the consistancy,
+	reliability and compactness of code.  GLT makes use of, and
+	complements the standard C++ library including streams, templated 
+	containers and iterators.
+	
+	\subsection portability Portability
+	
+	GLT programs are portable.  All GLT functionality is portable
+	to other platforms.  GLT programs tend not to depend on platform
+	specific layers for window management, font support, and so on.
+
+	\subsection transparency Transparency
+	
+	While GLT is a wrapper for OpenGL, the library allows
+	complete access to the underlying APIs, for true flexibility.
+
+	\subsection selfContained Self-contained
+	
+	GLT programs are self-contained.  Libraries are statically linked
+	whenever possible and resources such as textures compiled into the 
+	executable.  Benefits include convenience, ease of installation and
+	robustness.  Avoiding DLL hell is also considered a Good Thing(tm).
+	
+	\section license License
+
+	GLT is licensed under the <a href="http://www.gnu.org/copyleft/lesser.html">
+	GNU Lesser General Public License</a>.  This means that all source code, tools and
+	documentation is available free of charge for any purpose.
+
+	The main constraints of the LGPL license:
+	-	Modifications of the GLT library should be made publically available.
+	-	Make the GLT library available as source with copyrights intact.
+	-	Clearly document customisations, modifications or changes to GLT.
+	
+	\subsection disclaimer Disclaimer
+
+	No warranty or responsibility in relation to the suitability, functionality,
+	reliability or robustness of the software.  This software is under constant
+	revision, with changes likely to some parts of the API.  All reasonable efforts
+	are made to supply the software without known defects or exploits, however
+	no responsibility can be accepted by the authors.
+	
+	\section architecture Architecture
+	
+	GLT is organised into several modules:
+		- \a Core OpenGL low level functionality
+		- \a Misc Miscellaneous non-graphical functionality
+		- \a Math Mathematical functionality for 3D graphics
+		- \a Mesh Polygon mesh functionality and VRML support
+		- \a Node Simple scene-graph functionality
+		- \a GlutMaster C++ Interface to the GLUT API
+	
+	GLT includes several 3rd party libraries which are optional:
+		- \a zLib compression library
+		- \a libPNG library for Portable Network Graphics (PNG) image support
+		- \a jpegLib library for Joint Photographic Experts Group (JPEG) image support
+		- \a GLUT library for portable window-level functionality
+*/
+
+/*! \page installation Installation
+	
+	\section downloads Downloads
+	
+	The GLT library is available for download as either TGZ or ZIP archives.
+	The main difference between these is that the files in the TGZ archives
+	follow the UNIX newline convention, and files in ZIP archive follow the
+	Windows newline convention.  It's also a way that I can guage the level
+	of interest in UNIX and Windows versions of GLT.
+	
+	The current version of GLT is always available for download at
+	<a href="http://www.nigels.com/glt/download.html">http://www.nigels.com/glt/download.html</a>.
+	
+	Current and previous versions of GLT are available for download at
+	<a href="http://sourceforge.net/project/showfiles.php?group_id=36869">Source Forge</a>.
+	
+	Summarising the available download archives:
+	-	<b>glt-core</b>    Core GLT sources and build environment
+	-   <b>glt-dox</b>     Documentation files for GLT
+	-	<b>glt-example</b> Source code for example programs
+	-	<b>glt-unifont</b> Source code for bitmapped Unicode font support
+	-	<b>glt-png</b>     Source code for PNG image support
+	-	<b>glt-jpeg</b>    Source code for JPEG image support
+	-	<b>glt-glut</b>    Source code for GLUT library
+	-	<b>glt-glui</b>    Source code for GLUI library  	
+	
+	Windows binaries are also available:
+	-	<b>glt-util-win32</b>     Binaries for command-line utility programs
+	-	<b>glt-example-win32</b>  Binaries for GLT example programs
+	-	<b>glt-inventor-win32</b> Binaries for Open Inventor example programs
+	
+	All components of GLT are optional, with the exception of the core
+	GLT sources, makefiles and Visual C++ projects.  Systems with pre-existing
+	installations of PNG, JPEG, GLUT or GLUI libraries do not require
+	the GLT source distributions unless it is intended to utilise static
+	versions of these libraries.
+	
+	GLT makes use of configuration files for enabling the use of libraries
+	such as zLib, PNG, JPEG and GLUT.  Further details are provided in the
+	\ref config "configuration section" of this document.
+		
+	\section tree File Structure
+	
+	The GLT library is arranged into a self-contained file structure
+	containing source files, makefiles, MS VC++ project files, documentation,
+	intermediate files, static libraries and binaries.
+	
+	- <b>glt/</b>			   GLT root directory
+	- <b>glt/doc/</b>          GLT API Documentation
+	- <b>glt/doc/html/</b>     Doxygen generated documentation in HTML format
+	- <b>glt/gcc/</b>          Central makefiles and build configuration for make/gcc
+	- <b>glt/lib/</b>          Make/gcc compiled libraries
+	- <b>glt/bin/</b>          Make/gcc compiled binaries
+	- <b>glt/msvc/</b>         MS VC++ project and associated files
+	- <b>glt/msvc/tmp/</b>     Temporary files: .obj, .pch, .idb, .pdb
+	- <b>glt/msvc/Debug/</b>   Debug libraries and executables
+	- <b>glt/msvc/Release/</b> Release libraries and executables
+	- <b>glt/src/</b>		   GLT sources
+	- <b>glt/src/glt</b>       Core GLT library sources
+	- <b>glt/src/math</b>      GLT math library sources
+	- <b>glt/src/misc</b>      GLT misc library sources
+	- <b>glt/src/mesh</b>      GLT mesh library sources
+	- <b>glt/src/node</b>      GLT scene-graph node library sources
+	- <b>glt/src/node</b>      GLT scene-graph node library sources
+	- <b>glt/src/glutm</b>     GlutMaster library sources
+	- <b>glt/src/program</b>   Program sources, including examples and utilities
+	
+	Additional optional modules:
+	
+	- <b>glt/src/glut</b>      GLUT library sources
+	- <b>glt/src/png</b>       PNG library sources
+	- <b>glt/src/zlib</b>      zLib library sources
+	- <b>glt/src/jpeg</b>      JPEG library sources
+	- <b>glt/src/glui</b>      GLUI library sources
+		
+	It is recommended that GLT-based projects are located within the GLT
+	heirachy: <b>glt/src/program/myname/myprogram/</b>.
+	
+	At this stage GLT is not intended to be installed as a system-level
+	library, in /usr/local/include etc.  The ability to install GLT system-wide
+	is planned as a future (optional) feature.
+
+	\section config Configuration
+
+	For both UNIX and Windows:
+	
+ 	-# Configure compile options in glt/src/glt/config.h
+ 		- <b>GLT_FAST_FLOAT</b>      float arithmetic rather than double
+		- <b>GLT_COLOR_NAMES</b>	 include string based color lookup
+	-# Configure compile options in glt/src/glutm/config.h
+ 		- <b>GLUTM_OPEN_INVENTOR</b> GlutMaster OpenInventor support
+ 		- <b>GLUTM_DEBUG</b>         Debugging output
+ 		- <b>GLUTM_SAVER</b>         Win32 screensaver support
+ 		- <b>GLUT_STATIC</b>         Link GLUT statically
+    -# Configure compile options in glt/src/misc/config.h
+  		- <b>GLT_ZLIB</b>            Use zLib library
+ 		- <b>GLT_PNG</b>             Use PNG library
+ 		- <b>GLT_JPEG</b>            Use JPG library
+ 		- <b>GLT_UNICODE</b>         Use C++ widestrings
+  		- <b>GLT_HASH_MAP</b>        Use C++ std::hash_map
+  
+	\section make Compilation with GNU make/gcc
+
+	From the GLT root directory, type <b>make</b>.
+	
+	Some other make targets:
+	- <b>clean</b> remove intermediate files
+	- <b>expand</b> replace TABs and strip trailing whitepace from source files
+	
+	\section msvc Compilation with MS Visual C++
+
+   -# Build the GLT workspace:     <b>glt/msvc/glt.dsw</b>
+   -# Build the Unifont workspace: <b>glt/msvc/unifont.dsw</b>, if installed.
+   -# Build the GLUT workspace:    <b>glt/msvc/glut32.dsw</b>, if installed.
+   -# Build the PNG workspace:     <b>glt/msvc/glut32.dsw</b>, if installed.
+   -# Build other example and utility workspaces, as required.
+*/
+
+/*! \page release Release Procedure
+
+    \section introduction Introduction
+    
+    This section serves to document the release procedure for GLT.
+
+	\section version Version
+
+	The GLT version number should be updated in several different locations:
+	- src/glt/config.h
+	- doc/doxygen.cfg
+
+	\section config Configuration
+	
+	Default GLT configuration in src/glt/config.h
+	- GLT_FAST_FLOAT is not defined
+	- GLT_COLOR_NAMES is defined
+	
+	Default GLT configuration in src/glutm/config.h
+	- GLUTM_SAVER is not defined for WIN32 or Unix
+	- GLUTM_OPEN_INVENTOR is not defined for WIN32 or Unix
+	- GLUTM_DEBUG is not defined for WIN32 or Unix
+	
+	Default GLT configuration in src/misc/config.h
+    - GLT_ZLIB is defined
+	- GLT_PNG is not defined for WIN32, defined for Unix
+	- GLT_JPEG is not defined for WIN32, defined for Unix
+	- GLT_UNICODE is not defined
+    
+*/
