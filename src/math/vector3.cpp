@@ -3,17 +3,14 @@
 /*! \file
     \ingroup Math
 
-    $Id: vector3.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: vector3.cpp,v 2.1 2004/02/16 02:39:28 nigels Exp $
 
     $Log: vector3.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/16 02:39:28  nigels
+    Vector3::writePov
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.22  2003/09/16 01:44:58  nigels
+    Tweaks
 
     Revision 1.21  2003/07/22 03:58:06  nigels
     Vector -> Vector3
@@ -179,17 +176,6 @@ Vector3::operator> (const Vector3 &v) const
     if (x()!=v.x()) return x()>v.x();
     if (y()!=v.y()) return y()>v.y();
     return z()>v.z();
-}
-
-ostream &
-Vector3::writePov(ostream &os) const
-{
-    os << "< ";
-    os << x() << ',';
-    os << y() << ',';
-    os << z() << " >";
-
-    return os;
 }
 
 Vector3
@@ -374,6 +360,17 @@ Vector3::vmax(const Vector3 &v)
     _vector[1] = MAX(_vector[1],v[1]);
     _vector[2] = MAX(_vector[2],v[2]);
     return *this;
+}
+
+ostream &
+Vector3::writePov(ostream &os) const
+{
+    os << "< ";
+    os << x() << ',';
+    os << y() << ',';
+    os << z() << " >";
+
+    return os;
 }
 
 ///////////////////////// OpenGL
