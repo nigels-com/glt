@@ -12,7 +12,6 @@
 ****************************************************************************/
 
 #include <string.h>
-#include <GL/glut.h>
 #include <GL/glui.h>
 
 /** These are the live variables passed into GLUI ***/

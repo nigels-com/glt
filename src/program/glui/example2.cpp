@@ -11,7 +11,6 @@
 ****************************************************************************/
 
 #include <string.h>
-#include <GL/glut.h>
 #include <GL/glui.h>
 
 float xy_aspect;
