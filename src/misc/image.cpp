@@ -4,17 +4,17 @@
     \brief   Image utility routines
     \ingroup Misc
 
-    $Id: image.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: image.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
 
     $Log: image.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/10 13:43:46  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
+    Revision 1.40  2003/11/12 06:46:37  nigels
+    Expand
 
-    - Jacques.
+    Revision 1.39  2003/10/15 11:58:32  nigels
+    Some tidy-up of channel extraction
 
     Revision 1.38  2003/08/21 04:29:03  nigels
     *** empty log message ***
@@ -87,18 +87,20 @@ bool is256Colors(const string &rgb)
     return true;
 }
 
-void getChannel(string &dest,const string &rgb,const uint32 size,const uint32 channel)
+bool getChannel(string &dest,const string &src,const uint32 size,const uint32 channel)
 {
-    assert(rgb.size()%size==0);
+    assert(src.size()%size==0);
     assert(channel<size);
 
-    if (rgb.size()%size || channel>=size)
-        return;
+    if (src.size()%size || channel>=size)
+        return false;
 
-    dest.resize(rgb.size()/size);
+    dest.resize(src.size()/size);
 
-    for (size_t i=channel,j=0; i<rgb.size(); i+=size,j++)
-        dest[j] = rgb[i];
+    for (string::size_type i=channel,j=0; i<src.size(); i+=size,j++)
+       dest[j] = src[i];
+
+    return true;
 }
 
 void rgb2Indexed(string &dest,const string &rgb)

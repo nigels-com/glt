@@ -93,7 +93,7 @@ bool is256Colors(const std::string &rgb);
     \param      size    Number of channels in source buffer
     \param      channel Channel to be extracted
 */
-void getChannel(std::string &dest,const std::string &src,const uint32 size,const uint32 channel);
+bool getChannel(std::string &dest,const std::string &src,const uint32 size,const uint32 channel);
 
 /*!
     \brief      Convert RGB data to indexed

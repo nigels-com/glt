@@ -44,12 +44,14 @@
 #define GLT_ZLIB
 #define GLT_PNG
 #define GLT_JPEG
+#define GLT_UNICODE
 #endif
 
 #ifdef GLT_UNIX
 #define GLT_ZLIB
 #define GLT_PNG
 #define GLT_JPEG
+#define GLT_UNICODE
 #endif
 
 //

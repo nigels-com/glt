@@ -4,17 +4,23 @@
     \brief   string and wstring utility routines
     \ingroup Misc
 
-    $Id: string.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: string.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
 
     $Log: string.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/10 13:43:46  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
+    Revision 1.34  2003/11/12 06:46:37  nigels
+    Expand
 
-    - Jacques.
+    Revision 1.33  2003/10/10 10:19:24  nigels
+    Added urlSplit to break url string into protocol, host, port and location
+
+    Revision 1.32  2003/09/16 09:47:29  nigels
+    :
+
+    Revision 1.31  2003/09/16 01:46:02  nigels
+    Added toUpper toLower and path manipulation
 
     Revision 1.30  2003/07/22 03:58:58  nigels
     *** empty log message ***
@@ -53,7 +59,7 @@
 #include <fstream>
 using namespace std;
 
-bool isBinary(const std::string &str)
+bool isBinary(const string &str)
 {
     const char *begin = str.c_str();
     const char *end   = begin + str.size();
@@ -66,6 +72,132 @@ bool isBinary(const std::string &str)
     }
 
     return false;
+}
+
+string toLower(const string &str)
+{
+    string tmp;
+    for (uint32 i=0; i<str.size(); i++)
+        tmp += ::tolower(str[i]);
+    return tmp;
+}
+
+string toUpper(const string &str)
+{
+    string tmp;
+    for (uint32 i=0; i<str.size(); i++)
+        tmp += ::toupper(str[i]);
+    return tmp;
+}
+
+std::string pathDirectory(const string &path)
+{
+    #ifdef GLT_WIN32
+    string::size_type j = path.find_last_of('\\');
+    #endif
+
+    #ifdef GLT_UNIX
+    string::size_type j = path.find_last_of('/');
+    #endif
+
+    if (j==string::npos)
+        return string();
+    else
+        return path.substr(0,j);
+}
+
+std::string pathFilename(const string &path)
+{
+    #ifdef GLT_WIN32
+    string::size_type i = path.find_last_of('\\');
+    #endif
+
+    #ifdef GLT_UNIX
+    string::size_type i = path.find_last_of('/');
+    #endif
+
+    string::size_type j = path.find_last_of('.');
+
+    if (i==string::npos)
+        i = 0;
+    else
+        i++;
+
+    if (j==string::npos)
+        return path.substr(i);
+    else
+        return path.substr(i,j);
+}
+
+std::string pathExtension(const string &path)
+{
+    string::size_type j = path.find_last_of('.');
+
+    if (j==string::npos)
+        return string();
+    else
+        return path.substr(j+1);
+}
+
+std::string path(const string &dir,const string &name,const string &extension)
+{
+    string tmp(dir);
+
+    #ifdef GLT_WIN32
+    if (dir.size() && dir[dir.size()-1]!='\\')
+        tmp += "\\";
+    #endif
+
+    #ifdef GLT_UNIX
+    if (dir.size() && dir[dir.size()-1]!='/')
+        tmp += "/";
+    #endif
+
+    tmp += name;
+
+    if (extension.size())
+        tmp += "." + extension;
+
+    return tmp;
+}
+
+bool urlSplit(const std::string &url,std::string &protocol,std::string &host,int &port,std::string &location)
+{
+    string tmp(url);
+
+    // Extract protocol
+
+    string::size_type i,j;
+
+    i = tmp.find("://");
+    if (i!=string::npos)
+    {
+        protocol = tmp.substr(0,i);
+        tmp      = tmp.substr(i+3);
+    }
+
+    // Extract hostname
+
+    i = tmp.find("/");
+    j = tmp.find(":");
+    if (i>0 && i!=string::npos)
+    {
+        if (j<i)
+        {
+            host = tmp.substr(0,j);
+            port = atoi(tmp.substr(j+1));
+            tmp  = tmp.substr(i);
+        }
+        else
+        {
+            host = tmp.substr(0,i);
+            tmp  = tmp.substr(i);
+        }
+    }
+
+    location = tmp;
+
+    return true;
 }
 
 void stripComments(string &dest,const string &src)

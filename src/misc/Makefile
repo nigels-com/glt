@@ -1,5 +1,5 @@
 SUBDIRS = internal
-CPP_SRC = string.cpp text2src.cpp timer.cpp compress.cpp image.cpp observer.cpp \
+CPP_SRC = string.cpp file.cpp text2src.cpp timer.cpp compress.cpp image.cpp observer.cpp \
 	  hex.cpp tga.cpp bmp.cpp jpeg.cpp png.cpp ppm.cpp
 
 ROOT    = ../..

@@ -4,17 +4,11 @@
     \brief   PNG image encoding and decoding
     \ingroup Misc
 
-    $Id: png.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: png.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
 
     $Log: png.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/10 13:43:46  nigels
+    no message
 
     Revision 1.4  2003/05/10 17:03:46  nigels
     int -> uint32

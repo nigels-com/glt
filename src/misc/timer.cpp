@@ -4,17 +4,14 @@
     \brief   Elapsed Time Object
     \ingroup Misc
 
-    $Id: timer.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: timer.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
 
     $Log: timer.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/10 13:43:46  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.16  2003/09/16 09:47:29  nigels
+    :
 
     Revision 1.15  2003/03/06 12:34:47  nigels
     *** empty log message ***
@@ -48,13 +45,7 @@ Timer::~Timer()
 double
 Timer::elapsed() const
 {
-    #ifdef GLT_WIN32
-    return (double) (::clock()-_start)/CLOCKS_PER_SEC;
-    #endif
-
-    #ifdef GLT_UNIX
-    return double(clock())/MILLION;
-    #endif
+    return double(clock())/double(clockPerSec());
 }
 
 clock_t
@@ -81,6 +72,18 @@ Timer::clock() const
         gettimeofday(&tmp,NULL);
         return (tmp.tv_sec-_start.tv_sec)*MILLION+(tmp.tv_usec-_start.tv_usec);
     }
+    #endif
+}
+
+clock_t
+Timer::clockPerSec()
+{
+    #ifdef GLT_WIN32
+    return CLOCKS_PER_SEC;
+    #endif
+
+    #ifdef GLT_UNIX
+    return MILLION;
     #endif
 }
 

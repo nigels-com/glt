@@ -6,17 +6,11 @@
 
     \todo Graceful warning/failure
 
-    $Id: tga.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: tga.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
 
     $Log: tga.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/10 13:43:46  nigels
+    no message
 
     Revision 1.5  2003/08/25 06:09:00  nigels
     Added RLE indexed support

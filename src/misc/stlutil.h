@@ -61,6 +61,24 @@ void shrink(std::vector<T,A> &v)
 }
 
 /*!
+    \brief      Delete a container of dynamically allocated objects
+    \ingroup    Misc
+    \param      v  container of pointers
+*/
+
+template<class T,class A>
+void deleteAll(std::vector<T,A> &v)
+{
+    // For each pointer, call delete
+    typename std::vector<T,A>::iterator i = v.begin();
+    while (i!=v.end())
+        delete *i;
+
+    // Clear container of dangling pointers
+    v.clear();
+}
+
+/*!
     \brief      Print std::vector contents to stream
     \ingroup    Misc
     \param      os       Output stream

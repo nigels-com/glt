@@ -4,17 +4,14 @@
     \brief   Routines for converting data to C/C++ source code
     \ingroup Misc
 
-    $Id: text2src.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: text2src.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
 
     $Log: text2src.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/10 13:43:46  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.13  2003/10/01 02:36:10  nigels
+    Tidy for GLT 0.8
 
     Revision 1.12  2003/03/06 12:34:47  nigels
     *** empty log message ***
@@ -113,9 +110,9 @@ text2source(string &output,const string &input)
 
         i--;
         if (*i=='\n')
-            size = in.size()+cr*5+dq+1;
+            size = in.size()+cr*4+dq+2;
         else
-            size = in.size()+cr*5+dq+5;
+            size = in.size()+cr*4+dq+5;
 
         // Allocate output buffer
         output.resize(size);
@@ -163,12 +160,9 @@ text2source(string &output,const string &input)
 
             *(j++) = '\"';
 
-            // If we're finished, semicolon,
-            // otherwise backslash
+            // If we're finished: semicolon,
 
-            if (i+1<end)
-                *(j++) = '\\';
-            else
+            if (i+1>=end)
                 *(j++) = ';';
 
             // Next line of output
@@ -186,61 +180,3 @@ text2source(string &output,const string &input)
         assert((j-output.c_str())==output.size());
     }
 }
-
-#if 0   // Seems to be bin2src duplicate
-//
-
-void
-binary2source(ostream &os,istream &is)
-{
-    // Set hex number output
-    os.setf(ios::hex,ios::basefield);
-
-    // Begin array
-    os << '{' << endl;
-
-    bool firstTime = true;
-    while (is.good() && !is.eof())
-    {
-        // Read next 16 bytes into buffer
-
-        unsigned char buffer[16];
-        is.read(reinterpret_cast<char *>(buffer),16);
-
-        // Query input stream for number of
-        // bytes actually read into buffer
-
-        streamsize size = is.gcount();
-
-        // Advance to next line of output, if
-        // necessary
-
-        if (size>0 && !firstTime)
-        {
-            os << ',';
-            os << endl;
-        }
-
-        // Output bytes in hex
-        for (streamsize i=0; i<size; i++)
-        {
-            os << "0x" << setw(2) << setfill('0') << static_cast<unsigned int>(buffer[i]);
-
-            // Output commas between each byte
-            if (i<size-1)
-                os << ',';
-        }
-
-        // Now that we have written some output,
-        // each new line of output needs a comma
-        // and endline
-
-        firstTime = false;
-
-    }
-
-    // End array
-    os << endl << "};" << endl;
-}
-
-#endif

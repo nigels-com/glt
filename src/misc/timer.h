@@ -65,35 +65,26 @@ public:
         Interface for individual timers.
     */
 
-    /// Constructor
-    Timer();
-    /// Constructor: Report elapsed time to output stream
-    Timer(std::ostream &);
-    /// Destructor
-    ~Timer();
 
-    /// Get the elapsed time (sec)
-    double elapsed() const;
+    Timer();                                    ///< Constructor
+    Timer(std::ostream &);                      ///< Constructor: Report elapsed time to output stream
+    ~Timer();                                   ///< Destructor
 
-    /// Get the number of clock ticks
-    clock_t clock() const;
+    void start();                               ///< Reset the timer
 
-    /// Reset the timer
-    void start();
+    double  elapsed() const;                    ///< Get the elapsed time (sec)
+    clock_t clock()   const;                    ///< Get the elapsed number of clock ticks
+
+    static clock_t clockPerSec();               ///< Get the number of clock ticks per second
 
     /*
         Interface for controlling
         time globally.
     */
 
-    /// Freeze all timers
-    static void freeze();
-
-    /// Un-freeze all timers
-    static void unFreeze();
-
-    /// Advance all (frozen) timers
-    static void advance(const uint32 msec);
+    static void freeze();                       ///< Freeze all timers
+    static void unFreeze();                     ///< Un-freeze all timers
+    static void advance(const uint32 msec);     ///< Advance all (frozen) timers
 
 private:
 

@@ -206,6 +206,19 @@ public:
         return i->second;
     }
 
+    /// Erase specific item from cache
+    void erase(const T1 &x)
+    {
+        _index.erase(x);
+
+        for (typename List::iterator i = _list.begin(); i!=_list.end(); i++)
+            if (i->first==x)
+            {
+                _list.erase(i);
+                return;
+            }
+    }
+
     /// Clear cache
     void clear()
     {

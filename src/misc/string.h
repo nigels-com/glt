@@ -59,6 +59,48 @@ namespace std
 bool isBinary(const std::string &str);
 
 /*!
+    \brief      Convert string to lower case
+    \ingroup    Misc
+*/
+std::string toLower(const std::string &str);
+
+/*!
+    \brief      Convert string to upper case
+    \ingroup    Misc
+*/
+std::string toUpper(const std::string &str);
+
+/*!
+    \brief      Extract directory from full path
+    \ingroup    Misc
+*/
+std::string pathDirectory(const std::string &path);
+
+/*!
+    \brief      Extract filename from full path, minus extension
+    \ingroup    Misc
+*/
+std::string pathFilename(const std::string &path);
+
+/*!
+    \brief      Extract extension from full path
+    \ingroup    Misc
+*/
+std::string pathExtension(const std::string &path);
+
+/*!
+    \brief      Combine directory, filename and extension into full path
+    \ingroup    Misc
+*/
+std::string path(const std::string &dir,const std::string &filename,const std::string &extension = std::string());
+
+/*!
+    \brief      Break url into host, port and location
+*/
+
+bool urlSplit(const std::string &url,std::string &protocol,std::string &host,int &port,std::string &location);
+
+/*!
     \brief      Strip comments from string
     \ingroup    Misc
 

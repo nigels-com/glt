@@ -4,17 +4,11 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: bmp.cpp,v 2.1 2004/02/10 13:39:12 nigels Exp $
 
     $Log: bmp.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/10 13:39:12  nigels
+    no message
 
     Revision 1.6  2003/08/25 06:08:15  nigels
     *** empty log message ***

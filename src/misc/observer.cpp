@@ -4,17 +4,11 @@
     \brief   Templated type-safe Observer-Subject pattern
     \ingroup Misc
 
-    $Id: observer.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: observer.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
 
     $Log: observer.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:22  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/10 13:43:46  nigels
+    no message
 
     Revision 1.5  2003/03/06 12:34:47  nigels
     *** empty log message ***
