@@ -31,11 +31,14 @@
     \ingroup GLT
     \author  Steve Anger (70714.3113@compuserve.com)
 
-    $Id: mcubes.h,v 1.1 2004/02/08 11:46:28 jgasseli Exp $
+    $Id: mcubes.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: mcubes.h,v $
-    Revision 1.1  2004/02/08 11:46:28  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.9  2003/03/06 12:21:33  nigels
     *** empty log message ***

@@ -4,11 +4,14 @@
     \ingroup GLT
     \todo i2string
 
-    $Id: info.cpp,v 1.1 2004/02/08 11:46:28 jgasseli Exp $
+    $Id: info.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: info.cpp,v $
-    Revision 1.1  2004/02/08 11:46:28  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.17  2003/08/25 06:16:04  nigels
     *** empty log message ***

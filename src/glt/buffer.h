@@ -30,11 +30,14 @@
     \brief   OpenGL Framebuffer Classes
     \ingroup GLT
 
-    $Id: buffer.h,v 1.1 2004/02/08 11:46:13 jgasseli Exp $
+    $Id: buffer.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: buffer.h,v $
-    Revision 1.1  2004/02/08 11:46:13  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.28  2003/05/10 16:58:11  nigels
     Last tweaks for 0.8

@@ -6,11 +6,14 @@
 /*! \file
     \ingroup Mesh
 
-    $Id: mesh.cpp,v 1.1 2004/02/08 11:54:21 jgasseli Exp $
+    $Id: mesh.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: mesh.cpp,v $
-    Revision 1.1  2004/02/08 11:54:21  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.22  2003/05/31 13:31:15  nigels
     3DS now loaded as GltShapes rather than via Mesh

@@ -30,11 +30,14 @@
     \brief   Surface Counting Interface
     \ingroup GLT
 
-    $Id: countsrf.h,v 1.1 2004/02/08 11:45:57 jgasseli Exp $
+    $Id: countsrf.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: countsrf.h,v $
-    Revision 1.1  2004/02/08 11:45:57  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.10  2003/03/06 12:17:35  nigels
     *** empty log message ***

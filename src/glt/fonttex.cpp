@@ -3,11 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fonttex.cpp,v 1.1 2004/02/08 11:46:28 jgasseli Exp $
+    $Id: fonttex.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: fonttex.cpp,v $
-    Revision 1.1  2004/02/08 11:46:28  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.7  2003/08/05 08:03:34  nigels
     *** empty log message ***

@@ -3,11 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: color.cpp,v 1.1 2004/02/08 11:45:57 jgasseli Exp $
+    $Id: color.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: color.cpp,v $
-    Revision 1.1  2004/02/08 11:45:57  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.24  2003/08/05 08:03:14  nigels
     *** empty log message ***

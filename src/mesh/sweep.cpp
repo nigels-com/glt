@@ -3,11 +3,14 @@
 /*! \file
     \ingroup Mesh
 
-    $Id: sweep.cpp,v 1.1 2004/02/08 11:54:53 jgasseli Exp $
+    $Id: sweep.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: sweep.cpp,v $
-    Revision 1.1  2004/02/08 11:54:53  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.9  2003/05/10 17:02:03  nigels
     *** empty log message ***

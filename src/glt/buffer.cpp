@@ -3,11 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: buffer.cpp,v 1.1 2004/02/08 11:46:28 jgasseli Exp $
+    $Id: buffer.cpp,v 1.2 2004/02/08 14:13:18 jgasseli Exp $
 
     $Log: buffer.cpp,v $
-    Revision 1.1  2004/02/08 11:46:28  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:18  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.16  2003/05/10 16:58:11  nigels
     Last tweaks for 0.8

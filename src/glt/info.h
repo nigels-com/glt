@@ -30,11 +30,14 @@
     \brief Output OpenGL information
     \ingroup GLT
 
-    $Id: info.h,v 1.1 2004/02/08 11:46:10 jgasseli Exp $
+    $Id: info.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: info.h,v $
-    Revision 1.1  2004/02/08 11:46:10  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.11  2003/08/05 08:04:02  nigels
     *** empty log message ***

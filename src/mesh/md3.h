@@ -32,11 +32,14 @@
     \todo    Animation support
     \todo    MD3 Documentation
 
-    $Id: md3.h,v 1.1 2004/02/08 11:54:21 jgasseli Exp $
+    $Id: md3.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: md3.h,v $
-    Revision 1.1  2004/02/08 11:54:21  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.8  2003/07/29 08:21:54  nigels
     *** empty log message ***

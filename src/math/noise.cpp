@@ -3,11 +3,14 @@
 /*! \file
     \ingroup Math
 
-    $Id: noise.cpp,v 1.1 2004/02/08 11:54:21 jgasseli Exp $
+    $Id: noise.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: noise.cpp,v $
-    Revision 1.1  2004/02/08 11:54:21  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.3  2003/05/10 17:00:41  nigels
     Tidy and document

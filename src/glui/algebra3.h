@@ -52,9 +52,9 @@
 #ifndef _ALGEBRA3_H_
 #define _ALGEBRA3_H_
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 // this line defines a new type: pointer to a function which returns a
 // float and takes as argument a float

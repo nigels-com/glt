@@ -4,11 +4,14 @@
     \brief   PPM image encoding and decoding
     \ingroup Misc
 
-    $Id: ppm.cpp,v 1.1 2004/02/08 11:55:13 jgasseli Exp $
+    $Id: ppm.cpp,v 1.2 2004/02/08 14:13:22 jgasseli Exp $
 
     $Log: ppm.cpp,v $
-    Revision 1.1  2004/02/08 11:55:13  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:22  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.6  2003/08/25 06:08:32  nigels
     Improved PPM error handling

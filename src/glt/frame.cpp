@@ -3,11 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: frame.cpp,v 1.1 2004/02/08 11:45:45 jgasseli Exp $
+    $Id: frame.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: frame.cpp,v $
-    Revision 1.1  2004/02/08 11:45:45  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.13  2003/09/08 05:18:37  nigels
     Use std::string sprintf

@@ -3,11 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fontunic.cpp,v 1.1 2004/02/08 11:46:28 jgasseli Exp $
+    $Id: fontunic.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: fontunic.cpp,v $
-    Revision 1.1  2004/02/08 11:46:28  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.22  2003/08/05 08:03:42  nigels
     *** empty log message ***
@@ -155,7 +158,7 @@ GltFontUnicode::width(const GltChar ch) const
     assert(_init);
 
     if (_init)
-        return (_index[static_cast<int>(ch+1)] - _index[static_cast<int>(ch)] )>>1;
+        return (_index[ch+1] - _index[ch])>>1;
     else
         return 0;
 }

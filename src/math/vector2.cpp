@@ -3,11 +3,14 @@
 /*! \file
     \ingroup Math
 
-    $Id: vector2.cpp,v 1.1 2004/02/08 11:54:08 jgasseli Exp $
+    $Id: vector2.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: vector2.cpp,v $
-    Revision 1.1  2004/02/08 11:54:08  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.1  2003/07/22 03:56:26  nigels
     *** empty log message ***

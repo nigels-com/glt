@@ -3,11 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: cursor.cpp,v 1.1 2004/02/08 11:46:10 jgasseli Exp $
+    $Id: cursor.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: cursor.cpp,v $
-    Revision 1.1  2004/02/08 11:46:10  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.11  2003/06/02 07:04:28  nigels
     Tweak things for gcc 3.0.1

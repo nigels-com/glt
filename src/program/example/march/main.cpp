@@ -156,7 +156,7 @@ MarchingCubesDemo::OnOpen()
 
     GltLightModel lightModel;
     lightModel.setAmbient(0.0, 0.0, 0.0, 0.0);
-    lightModel.setLocalViewer(GL_TRUE);
+    lightModel.setLocalViewer(GL_FALSE);
     lightModel.setTwoSide(GL_TRUE);
 
     GLERROR
@@ -238,7 +238,7 @@ MarchingCubesDemo::generateDisplayList(GltFunc3d func)
 {
     _list.newList();
     if (func)
-        GltMarchingCubes(func,-1,-1,-1,1,1,1,300,300,300);
+        GltMarchingCubes(func,-1,-1,-1,1,1,1,30,30,30);
     _list.endList();
 }
 

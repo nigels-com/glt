@@ -30,11 +30,14 @@
     \brief   VRML Parser
     \ingroup Mesh
 
-    $Id: vrmlpars.h,v 1.1 2004/02/08 11:54:34 jgasseli Exp $
+    $Id: vrmlpars.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: vrmlpars.h,v $
-    Revision 1.1  2004/02/08 11:54:34  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.9  2003/05/31 11:38:11  nigels
     *** empty log message ***

@@ -30,11 +30,14 @@
     \brief OpenGL Font Interface
     \ingroup GLT
 
-    $Id: font.h,v 1.1 2004/02/08 11:46:10 jgasseli Exp $
+    $Id: font.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: font.h,v $
-    Revision 1.1  2004/02/08 11:46:10  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.18  2003/03/06 12:18:38  nigels
     *** empty log message ***

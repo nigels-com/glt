@@ -7,11 +7,14 @@
     \todo Smooth lighting support
     \todo Texture support
 
-    $Id: read3dsb.cpp,v 1.1 2004/02/08 11:54:53 jgasseli Exp $
+    $Id: read3dsb.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: read3dsb.cpp,v $
-    Revision 1.1  2004/02/08 11:54:53  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.13  2003/08/21 04:29:06  nigels
     *** empty log message ***
@@ -110,13 +113,12 @@ readMaterial(const byte *i, const byte *end)
     if (i+2>end)
         return false;
 
-    #ifndef NDEBUG
-    const uint16& n = * reinterpret_cast<const uint16*>(i);
-    cout << "Material " << name << ", " << n << " faces." << endl;
-    #endif
-
+    const uint16 &n = * reinterpret_cast<const uint16 *>(i);
     i += 2;
 
+    #ifndef NDEBUG
+    cout << "Material " << name << ", " << n << " faces." << endl;
+    #endif
 
     return true;
 }

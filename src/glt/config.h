@@ -30,11 +30,14 @@
     \brief GLT Configuration File
     \ingroup GLT
 
-    $Id: config.h,v 1.1 2004/02/08 11:46:10 jgasseli Exp $
+    $Id: config.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: config.h,v $
-    Revision 1.1  2004/02/08 11:46:10  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.30  2003/07/22 03:39:08  nigels
     Added compile-time color name lookup option

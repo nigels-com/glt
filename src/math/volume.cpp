@@ -3,11 +3,14 @@
 /*! \file
     \ingroup Math
 
-    $Id: volume.cpp,v 1.1 2004/02/08 11:54:08 jgasseli Exp $
+    $Id: volume.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: volume.cpp,v $
-    Revision 1.1  2004/02/08 11:54:08  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.6  2003/03/06 12:30:51  nigels
     *** empty log message ***

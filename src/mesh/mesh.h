@@ -30,11 +30,14 @@
     \brief   Mesh
     \ingroup Mesh
 
-    $Id: mesh.h,v 1.1 2004/02/08 11:54:53 jgasseli Exp $
+    $Id: mesh.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: mesh.h,v $
-    Revision 1.1  2004/02/08 11:54:53  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.16  2003/05/31 13:31:15  nigels
     3DS now loaded as GltShapes rather than via Mesh

@@ -30,11 +30,14 @@
     \brief   One Dimensional Color-Mapping Class
     \ingroup GLT
 
-    $Id: colmap.h,v 1.1 2004/02/08 11:46:10 jgasseli Exp $
+    $Id: colmap.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: colmap.h,v $
-    Revision 1.1  2004/02/08 11:46:10  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.15  2003/05/10 16:58:11  nigels
     Last tweaks for 0.8

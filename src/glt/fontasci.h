@@ -30,11 +30,14 @@
     \brief   Ascii OpenGL Font Interface
     \ingroup GLT
 
-    $Id: fontasci.h,v 1.1 2004/02/08 11:46:10 jgasseli Exp $
+    $Id: fontasci.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: fontasci.h,v $
-    Revision 1.1  2004/02/08 11:46:10  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.15  2003/03/06 12:18:24  nigels
     *** empty log message ***

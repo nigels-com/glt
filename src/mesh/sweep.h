@@ -30,11 +30,14 @@
     \brief   Sweeping
     \ingroup Mesh
 
-    $Id: sweep.h,v 1.1 2004/02/08 11:54:41 jgasseli Exp $
+    $Id: sweep.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: sweep.h,v $
-    Revision 1.1  2004/02/08 11:54:41  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.5  2003/03/06 12:31:14  nigels
     *** empty log message ***

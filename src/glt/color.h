@@ -30,11 +30,14 @@
     \brief   OpenGL Color Interface
     \ingroup GLT
 
-    $Id: color.h,v 1.1 2004/02/08 11:45:57 jgasseli Exp $
+    $Id: color.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
 
     $Log: color.h,v $
-    Revision 1.1  2004/02/08 11:45:57  jgasseli
-    Initial revision
+    Revision 1.2  2004/02/08 14:13:21  jgasseli
+    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
+    errors on my puter.
+
+    - Jacques.
 
     Revision 1.19  2003/05/10 16:58:11  nigels
     Last tweaks for 0.8
