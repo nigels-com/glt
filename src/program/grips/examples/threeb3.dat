@@ -344,7 +344,6 @@ grips.world.system.particles.2.trail.normal.x:              0.000000	# 0x0000000
 grips.world.system.particles.2.trail.normal.y:              1.000000	# 0x000000000000F03F 
 grips.world.system.particles.2.trail.normal.z:              1.000000	# 0x000000000000F03F 
 grips.world.system.particles.2.trail.skip:                  1
-grips.world.system.resetTrails:                             
 grips.display.center:                                       false
 grips.display.box:                                          false
 grips.display.floor:                                        false
@@ -495,3 +494,5 @@ grips.display.particles.points:                             false
 grips.display.particles.trail:                              true
 grips.display.opengl.light1.enabled:                        false
 grips.display.opengl.light2.enabled:                        false
+grips.display.particles.billboard: false
+grips.display.particles.enable: true

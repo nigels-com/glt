@@ -208,3 +208,7 @@ grips.display.particles.points:                             false
 grips.display.particles.trail:                              true
 grips.display.opengl.light1.enabled:                        false
 grips.display.opengl.light2.enabled:                        false
+grips.display.particles.billboard: false
+grips.world.trail.size: 5
+grips.display.particles.enable: true
+grips.wait: 10

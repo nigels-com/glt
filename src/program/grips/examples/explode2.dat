@@ -56,7 +56,6 @@ grips.world.init.color.c.blue: 0.327680
 grips.world.init.color.c.alpha: 1.000000
 grips.world.init.init: 
 grips.world.system.trailSize: 10
-grips.world.system.resetTrails: 
 grips.world.integrator: Projectile
 grips.world.gravity.integrator: Euler-Cromer
 grips.world.gravity.step: 1.000000
@@ -228,3 +227,7 @@ grips.display.particles.points:                             false
 grips.display.particles.trail:                              true
 grips.display.opengl.light1.enabled:                        false
 grips.display.opengl.light2.enabled:                        false
+grips.display.particles.billboard: false
+grips.world.trail.size: 5
+grips.display.particles.enable: true
+grips.wait: 10

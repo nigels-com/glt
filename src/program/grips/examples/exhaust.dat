@@ -207,7 +207,6 @@ grips.world.init.color.c.green: 0.000000
 grips.world.init.color.c.blue: 0.000000
 grips.world.init.color.c.alpha: 1.000000
 grips.world.init.init: 
-grips.world.system.resetTrails: 
 grips.display.center: false
 grips.display.box: false
 grips.display.axes: false
@@ -307,3 +306,6 @@ grips.world.video.enable: false
 grips.display.spin.matrix.reset:
 grips.display.opengl.light1.enabled:                        false
 grips.display.opengl.light2.enabled:                        false
+grips.display.particles.billboard: false
+grips.display.particles.points: false
+grips.display.particles.enable: true
