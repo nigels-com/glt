@@ -14,6 +14,7 @@
 #include <misc/image.h>
 
 #include <fstream>
+#include <iostream>
 using namespace std;
 
 GltSprite::GltSprite()
@@ -147,7 +148,7 @@ void
 GltSprite::draw() const
 {
     // Check that our textures are valid
-    if (_texture.size()==0)
+    if (!visible() || _texture.size()==0)
         return;
 
     GLERROR
@@ -229,3 +230,14 @@ uint32 GltSprite::height() const { return _height;            }
       bool &GltSprite::blend()       { return _blend; }
 const bool &GltSprite::blend() const { return _blend; }
 
+GltFieldPtr
+GltSprite::settings()
+{
+    GltFields *root = new GltFields(name());
+
+    root->add(_blend              ,"blend"  );
+    root->add(_stretch            ,"stretch");
+    root->add(GltShape::settings(),"shape"  );
+
+    return root;
+}

@@ -88,6 +88,8 @@ public:
           bool &blend();                 ///<
     const bool &blend() const;           ///<
 
+    GltFieldPtr settings();
+
 private:
 
     std::vector<GltTexturePtr> _texture;
