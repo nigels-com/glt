@@ -4,17 +4,15 @@
     \ingroup Math
     \todo    Complete w.r.t Vector3
 
-    $Id: vector4.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: vector4.cpp,v 2.1 2004/02/16 02:38:11 nigels Exp $
 
     $Log: vector4.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/16 02:38:11  nigels
+    Extend constructor to accept w
+    Dot product of Vector4
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.8  2003/09/16 01:44:58  nigels
+    Tweaks
 
     Revision 1.7  2003/07/22 03:58:06  nigels
     Vector -> Vector3
@@ -51,12 +49,12 @@ Vector4::Vector4(const Vector2 &v)
     _vector[2] = _vector[3] = 0.0;
 }
 
-Vector4::Vector4(const Vector3 &v)
+Vector4::Vector4(const Vector3 &v,const real w)
 {
     _vector[0] = v.x();
     _vector[1] = v.y();
     _vector[2] = v.z();
-    _vector[3] = 0.0;
+    _vector[3] = w;
 }
 
 Vector4::Vector4(const Vector4 &v)
@@ -125,6 +123,12 @@ Vector4::operator const real *() const
     return (real *) _vector;
 }
 
+real
+Vector4::operator*(const Vector4 &x) const
+{
+    return _vector[0]*x[0] + _vector[1]*x[1] + _vector[2]*x[2];
+}
+
       real &Vector4::x()       { return _vector[0]; }
 const real &Vector4::x() const { return _vector[0]; }
       real &Vector4::y()       { return _vector[1]; }
@@ -133,6 +137,17 @@ const real &Vector4::y() const { return _vector[1]; }
 const real &Vector4::z() const { return _vector[2]; }
       real &Vector4::w()       { return _vector[3]; }
 const real &Vector4::w() const { return _vector[3]; }
+
+ostream &
+Vector4::writePov(ostream &os) const
+{
+    os << "< ";
+    os << x() << ',';
+    os << y() << ',';
+    os << z() << " >";
+
+    return os;
+}
 
 ///////////////////////// OpenGL
 

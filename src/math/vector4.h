@@ -56,7 +56,7 @@ public:
 
     Vector4();                                  ///< Default constructor
     Vector4(const Vector2 &v);                  ///< Copy constructor
-    Vector4(const Vector3 &v);                  ///< Copy constructor
+    Vector4(const Vector3 &v,const real w = 0.0); ///< Copy constructor
     Vector4(const Vector4 &v);                  ///< Copy constructor
 
     /// Constructor
@@ -82,10 +82,15 @@ public:
     operator       real *();                    ///< Access as array
     operator const real *() const;              ///< Access as array
 
+    real operator*(const Vector4 &v) const;     ///< Vector dot product (aka scalar product)
+
     void glVertex()   const;                    ///< Draw OpenGL vertex
     void glNormal()   const;                    ///< Draw OpenGL normal
     void glColor()    const;                    ///< Draw OpenGL color
     void glTexCoord() const;                    ///< Draw OpenGL texture co-ordinate
+
+    /// Write vector in Povray format
+    std::ostream &writePov(std::ostream &os) const;
 
 protected:
 
