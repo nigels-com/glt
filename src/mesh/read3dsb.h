@@ -34,17 +34,11 @@
         - http://www.the-labs.com/Blender/3DS-details.html
         -
 
-    $Id: read3dsb.h,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: read3dsb.h,v 2.1 2004/02/16 14:22:01 nigels Exp $
 
     $Log: read3dsb.h,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/16 14:22:01  nigels
+    Added debug diagnostics
 
     Revision 1.7  2003/05/31 12:53:41  nigels
     Cleanup of Binary 3DS Reader
