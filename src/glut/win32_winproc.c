@@ -619,12 +619,7 @@ __glutWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
          joystick at a time, we must capture it when we get the
          focus and release it when we lose the focus. */
       result = joySetCapture(__glutCurrentWindow->win,
-        JOYSTICKID1, 0, TRUE);
-      if (result != JOYERR_NOERROR) {
-        return 0;
-          }
-      (void) joySetThreshold(JOYSTICKID1,
-            __glutCurrentWindow->joyPollInterval);
+        JOYSTICKID1, __glutCurrentWindow->joyPollInterval, FALSE);
         }
       }
     }
@@ -720,6 +715,8 @@ __glutWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
     return FALSE;
+
+
 
 #if 0
   /* Miscellaneous messages (don't really need to enumerate them,

@@ -25,11 +25,9 @@ glutJoystickFunc(GLUTjoystickCB joystickFunc, int pollInterval)
 
       /* Capture joystick focus if current window has
      focus now. */
+
       result = joySetCapture(__glutCurrentWindow->win,
-        JOYSTICKID1, 0, TRUE);
-      if (result == JOYERR_NOERROR) {
-        (void) joySetThreshold(JOYSTICKID1, pollInterval);
-      }
+        JOYSTICKID1, pollInterval, FALSE);
     }
     __glutCurrentWindow->joyPollInterval = pollInterval;
   } else {
