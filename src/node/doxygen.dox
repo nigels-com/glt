@@ -1,10 +1,10 @@
 /*! \defgroup Node GLT Node
     \brief    Simple Scene-Graph Functionality
-    
+
     The node module of GLT is concerned with heirachical
     (scenegraph style) representation and functionality
     for OpenGL programs.  While not intended as an
     industrial-strength scenegraph, most higher-level
     OpenGL rendering functionality is encapsulated as
-    GltShape derived scenegraph nodes. 
+    GltShape derived scenegraph nodes.
 */
