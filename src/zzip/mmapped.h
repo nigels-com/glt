@@ -3,14 +3,14 @@
 /*
  * simplified zip disk access using a mmapping of the whole archive.
  *
- * Author: 
+ * Author:
  *      Guido Draheim <guidod@gmx.de>
  *
  * Copyright (c) 2003,2004 Guido Draheim
  *          All rights reserved,
- *          use under the restrictions of the 
+ *          use under the restrictions of the
  *          Lesser GNU General Public License
- *          or alternatively the restrictions 
+ *          or alternatively the restrictions
  *          of the Mozilla Public License 1.1
  */
 
@@ -51,7 +51,7 @@ zzip_disk_new(void);
 zzip_disk_extern ZZIP_DISK* _zzip_restrict
 zzip_disk_mmap(int fd);
 
-zzip_disk_extern int 
+zzip_disk_extern int
 zzip_disk_munmap(ZZIP_DISK* disk);
 
 zzip_disk_extern ZZIP_DISK*  _zzip_restrict
@@ -78,13 +78,13 @@ char*
 zzip_disk_entry_to_data(ZZIP_DISK* disk, ZZIP_DISK_ENTRY* entry);
 
 zzip_disk_extern ZZIP_DISK_ENTRY*
-zzip_disk_findfile(ZZIP_DISK* disk, 
-		   char* filename, ZZIP_DISK_ENTRY* after,
-		   zzip_strcmp_fn_t compare);
+zzip_disk_findfile(ZZIP_DISK* disk,
+           char* filename, ZZIP_DISK_ENTRY* after,
+           zzip_strcmp_fn_t compare);
 zzip_disk_extern ZZIP_DISK_ENTRY*
-zzip_disk_findmatch(ZZIP_DISK* disk, 
-		    char* filespec, ZZIP_DISK_ENTRY* after,
-		    zzip_fnmatch_fn_t compare, int flags);
+zzip_disk_findmatch(ZZIP_DISK* disk,
+            char* filespec, ZZIP_DISK_ENTRY* after,
+            zzip_fnmatch_fn_t compare, int flags);
 
 
 zzip_disk_extern ZZIP_DISK_FILE* _zzip_restrict
@@ -95,7 +95,7 @@ zzip_disk_fopen (ZZIP_DISK* disk, char* filename);
 
 zzip_disk_extern _zzip_size_t
 zzip_disk_fread (void* ptr, _zzip_size_t size, _zzip_size_t nmemb,
-		 ZZIP_DISK_FILE* file);
+         ZZIP_DISK_FILE* file);
 zzip_disk_extern int
 zzip_disk_fclose (ZZIP_DISK_FILE* file);
 int

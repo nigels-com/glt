@@ -3,14 +3,14 @@
 /*
  * simplified zip disk access using fseeko on a stdio FILE handle
  *
- * Author: 
+ * Author:
  *      Guido Draheim <guidod@gmx.de>
  *
  * Copyright (c) 2003,2004 Guido Draheim
  *          All rights reserved,
- *          use under the restrictions of the 
+ *          use under the restrictions of the
  *          Lesser GNU General Public License
- *          or alternatively the restrictions 
+ *          or alternatively the restrictions
  *          of the Mozilla Public License 1.1
  */
 
@@ -52,13 +52,13 @@ char*
 zzip_entry_to_data(ZZIP_ENTRY* entry);
 
 zzip_entry_extern ZZIP_ENTRY* _zzip_restrict
-zzip_entry_findfile(FILE* disk, char* filename, 
-		    ZZIP_ENTRY* _zzip_restrict old,
-		   zzip_strcmp_fn_t compare);
+zzip_entry_findfile(FILE* disk, char* filename,
+            ZZIP_ENTRY* _zzip_restrict old,
+           zzip_strcmp_fn_t compare);
 zzip_entry_extern ZZIP_ENTRY* _zzip_restrict
-zzip_entry_findmatch(FILE* disk, char* filespec, 
-		     ZZIP_ENTRY* _zzip_restrict old,
-		    zzip_fnmatch_fn_t compare, int flags);
+zzip_entry_findmatch(FILE* disk, char* filespec,
+             ZZIP_ENTRY* _zzip_restrict old,
+            zzip_fnmatch_fn_t compare, int flags);
 
 zzip_entry_extern ZZIP_ENTRY_FILE* _zzip_restrict
 zzip_entry_fopen (ZZIP_ENTRY* entry, int takeover);
@@ -68,7 +68,7 @@ zzip_entry_ffile (FILE* disk, char* filename);
 
 zzip_entry_extern _zzip_size_t
 zzip_entry_fread (void* ptr, _zzip_size_t size, _zzip_size_t nmemb,
-		 ZZIP_ENTRY_FILE* file);
+         ZZIP_ENTRY_FILE* file);
 zzip_entry_extern int
 zzip_entry_fclose (ZZIP_ENTRY_FILE* file);
 int

@@ -19,7 +19,7 @@ uint32_t __zzip_get32(unsigned char * s)
     return __ZZIP_GET32(s);
 #else
     return ((uint32_t)s[3] << 24) | ((uint32_t)s[2] << 16)
-	|  ((uint32_t)s[1] << 8)  |  (uint32_t)s[0];
+    |  ((uint32_t)s[1] << 8)  |  (uint32_t)s[0];
 #endif
 }
 

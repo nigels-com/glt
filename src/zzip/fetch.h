@@ -2,7 +2,7 @@
 #define _ZZIP_FORMATS_H
 
 #include <zzip/types.h>
-#include <zzip/format.h> 
+#include <zzip/format.h>
 
 /* linux knows "byteswap.h" giving us an optimized variant */
 #ifdef ZZIP_HAVE_BYTESWAP_H
@@ -54,7 +54,7 @@ extern void     __zzip_set16(unsigned char * s, uint16_t v);
 #define zzip_file_header_get_extras(__p)     ZZIP_GET16((__p)->z_extras)
 #define zzip_file_header_set_extras(__p,__x) ZZIP_SET16((__p)->z_extras,(__x))
 #define zzip_file_header_sizeof_tails(__p) (zzip_file_header_get_namlen(__p)+\
-					    zzip_file_header_get_extras(__p) )
+                        zzip_file_header_get_extras(__p) )
 #define zzip_file_header_check_magic(__p)  ZZIP_FILE_HEADER_CHECKMAGIC((__p))
 
 /* zzip_file_trailer - data descriptor per file block */
@@ -96,8 +96,8 @@ extern void     __zzip_set16(unsigned char * s, uint16_t v);
 #define zzip_disk_entry_get_offset(__p)     ZZIP_GET32((__p)->z_offset)
 #define zzip_disk_entry_set_offset(__p,__x) ZZIP_SET32((__p)->z_offset,(__x))
 #define zzip_disk_entry_sizeof_tails(__p) (zzip_disk_entry_get_namlen(__p) +\
-					   zzip_disk_entry_get_extras(__p) +\
-					   zzip_disk_entry_get_comment(__p) )
+                       zzip_disk_entry_get_extras(__p) +\
+                       zzip_disk_entry_get_comment(__p) )
 #define zzip_disk_entry_check_magic(__p)  ZZIP_DISK_ENTRY_CHECKMAGIC((__p))
 
 /* zzip_disk_trailer - the zip archive entry point */
@@ -265,30 +265,30 @@ extern void     __zzip_set16(unsigned char * s, uint16_t v);
         (zzip_file_header_data_stored(__p))
 #define zzip_file_header_data_std_deflated(__p) \
         (zzip_file_header_data_deflated(__p) && \
-	 zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_STD_COMPR)
+     zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_STD_COMPR)
 #define zzip_file_header_data_max_deflated(__p) \
         (zzip_file_header_data_deflated(__p) && \
-	 zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_MAX_COMPR)
+     zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_MAX_COMPR)
 #define zzip_file_header_data_low_deflated(__p) \
         (zzip_file_header_data_deflated(__p) && \
-	 zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_LOW_COMPR)
+     zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_LOW_COMPR)
 #define zzip_file_header_data_min_deflated(__p) \
         (zzip_file_header_data_deflated(__p) && \
-	 zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_MIN_COMPR)
+     zzip_file_header_data_comprlevel(__p) == ZZIP_DEFLATED_MIN_COMPR)
 
 #define zzip_disk_entry_data_not_deflated(__p) \
         (zzip_disk_entry_data_stored(__p))
 #define zzip_disk_entry_data_std_deflated(__p) \
         (zzip_disk_entry_data_deflated(__p) && \
-	 zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_STD_COMPR)
+     zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_STD_COMPR)
 #define zzip_disk_entry_data_max_deflated(__p) \
         (zzip_disk_entry_data_deflated(__p) && \
-	 zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_MAX_COMPR)
+     zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_MAX_COMPR)
 #define zzip_disk_entry_data_low_deflated(__p) \
         (zzip_disk_entry_data_deflated(__p) && \
-	 zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_LOW_COMPR)
+     zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_LOW_COMPR)
 #define zzip_disk_entry_data_min_deflated(__p) \
         (zzip_disk_entry_data_deflated(__p) && \
-	 zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_MIN_COMPR)
+     zzip_disk_entry_data_comprlevel(__p) == ZZIP_DEFLATED_MIN_COMPR)
 
 #endif
