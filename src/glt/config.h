@@ -30,17 +30,17 @@
     \brief GLT Configuration File
     \ingroup GLT
 
-    $Id: config.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: config.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: config.h,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
+    Revision 1.32  2003/12/11 23:46:48  nigels
+    Added PolyFont library
 
-    - Jacques.
+    Revision 1.31  2003/10/03 06:49:41  nigels
+    64bit integers for Linux
 
     Revision 1.30  2003/07/22 03:39:08  nigels
     Added compile-time color name lookup option
@@ -82,6 +82,11 @@
 
 // #define GLT_FAST_FLOAT               // Optional faster math
 #define GLT_COLOR_NAMES             // Include string-based color-lookup
+//#define GLT_POLYFONTS
+
+#if defined(_MSC_VER) && defined(GLT_POLYFONTS)
+#pragma comment(lib, "polyfonts.lib")  // Link against Polyfonts library
+#endif
 
 // Windows Config
 //
@@ -174,20 +179,20 @@
 #error Little-endian (Intel) or Big-endian (Motorolla or Sparc) is not known.
 #endif
 
-/// 8 bit unsigned char
-typedef unsigned char  byte;
+typedef signed short           int16;   ///< 16 bit signed integer
+typedef signed int             int32;   ///< 32 bit signed integer
 
-/// 16 bit unsigned integer
-typedef unsigned short uint16;
+typedef unsigned char          byte;    ///< 8 bit unsigned char
+typedef unsigned short         uint16;  ///< 16 bit unsigned integer
+typedef unsigned int           uint32;  ///< 32 bit unsigned integer
 
-/// 32 bit unsigned integer
-typedef unsigned int   uint32;
+// For now, 64-bit integer types are available on i386 Linux
+// only...
 
-/// 16 bit signed integer
-typedef signed short   int16;
-
-/// 32 bit signed integer
-typedef signed int     int32;
+#if defined(linux) && defined(i386)
+typedef long long signed int   int64;   ///< 64 bit signed integer
+typedef long long unsigned int uint64;  ///< 64 bit unsigned integer
+#endif
 
 #ifdef GLT_FAST_FLOAT
 /// GLT real can be float or double

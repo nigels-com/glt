@@ -3,17 +3,20 @@
 /*! \file
     \ingroup GLT
 
-    $Id: texture.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: texture.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: texture.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
+    Revision 1.40  2003/12/09 05:45:23  nigels
+    Added defined() query to GltTexture
 
-    - Jacques.
+    Revision 1.39  2003/11/12 06:44:42  nigels
+    Expand
+
+    Revision 1.38  2003/10/15 11:56:55  nigels
+    Return false if GLT format not recognised
 
     Revision 1.37  2003/07/29 08:32:17  nigels
     Bug-fix
@@ -479,6 +482,12 @@ GltTexture::set() const
         glBindTexture(_target,_id);
 }
 
+bool 
+GltTexture::defined() const
+{
+    return _id!=0;
+}
+
 const GLsizei &GltTexture::width()  const { return _width; }
 const GLsizei &GltTexture::height() const { return _height; }
 const GLuint   GltTexture::id()     const { return _id; }
@@ -621,7 +630,9 @@ GltTexture::decodeImage
             const char *buffer = reinterpret_cast<const char *>(pixels);
             image = string(buffer,buffer+width*height*components);
         }
+
+        return true;
     }
 
-    return true;
+    return false;
 }

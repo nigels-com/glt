@@ -30,9 +30,12 @@
     \brief   Display List Cache
     \ingroup GLT
 
-    $Id: dlcache.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: dlcache.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: dlcache.h,v $
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
@@ -134,6 +137,8 @@ public:
     /// Draw object with a given ID
     void draw(const Key &id)
     {
+        GLERROR;
+        
         // If caching is disbled, draw directly.
 
         if (!_enable)

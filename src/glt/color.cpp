@@ -3,17 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: color.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: color.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: color.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.25  2003/09/11 01:42:18  nigels
+    Update GltColor and GltLight to use homogeneous co-ordinates
 
     Revision 1.24  2003/08/05 08:03:14  nigels
     *** empty log message ***
@@ -48,50 +45,57 @@ using namespace std;
 
 #include <glt/rgb.h>
 #include <glt/error.h>
-#include <glt/gl.h>
 
 #include <misc/hex.h>
 
+#include <math/vector3.h>
 #include <math/matrix4.h>
 
 GltColor::GltColor()
-: Vector(Vector0), _alpha(1.0)
+: Vector4(Vector0,1.0)
 {
 }
 
 GltColor::GltColor(const float red,const float green,const float blue,const float alpha)
-: Vector(red,green,blue), _alpha(alpha)
+: Vector4(red,green,blue,alpha)
 {
 }
 
 GltColor::GltColor(const double red,const double green,const double blue,const double alpha)
-: Vector(red,green,blue), _alpha(alpha)
+: Vector4(red,green,blue,alpha)
 {
 }
 
 GltColor::GltColor(const int red,const int green,const int blue,const int alpha)
-: Vector(red,green,blue), _alpha(alpha)
+: Vector4(red,green,blue,alpha)
 {
 }
 
 GltColor::GltColor(const GltColor &col,const real alpha)
-: Vector(col), _alpha(alpha)
+: Vector4(col)
+{
+    w() = alpha;
+}
+
+GltColor::GltColor(const Vector3 &col)
+: Vector4(col)
 {
 }
 
-GltColor::GltColor(const Vector &col)
-: Vector(col), _alpha(1.0)
+GltColor::GltColor(const Vector4 &col)
+: Vector4(col)
 {
 }
 
 GltColor::GltColor(const GltColor &col)
-: Vector(col), _alpha(col._alpha)
+: Vector4(col)
 {
 }
 
 GltColor::GltColor(const string &name)
-: _alpha(1.0)
 {
+    w() = 1.0;
+
     // Convert from HTML style color string
 
     if (name.size()>=7)
@@ -159,118 +163,37 @@ GltColor::operator=(const GltColor &col)
     return *this;
 }
 
-void
-GltColor::glColor() const
+const real &
+GltColor::operator[](const int i) const
 {
-    #ifdef GLT_FAST_FLOAT
-    ::glColor4f(x(),y(),z(),_alpha);
-    #else
-    ::glColor4d(x(),y(),z(),_alpha);
-    #endif
+    return Vector4::operator[](i);
 }
 
-void
-GltColor::glColor(const GLdouble alpha) const
+real &
+GltColor::operator[](const int i)
 {
-    #ifdef GLT_FAST_FLOAT
-    ::glColor4f(x(),y(),z(),alpha);
-    #else
-    ::glColor4d(x(),y(),z(),alpha);
-    #endif
+    return Vector4::operator[](i);
 }
 
-void
-GltColor::glClearColor() const
+GltColor::operator real *()
 {
-    ::glClearColor((GLfloat) x(),(GLfloat) y(),(GLfloat) z(),(GLfloat) _alpha);
+    return Vector4::operator real *();
 }
 
-void
-GltColor::glFogColor() const
+GltColor::operator const real *() const
 {
-    const GLfloat col[4] = { (GLfloat) x(), (GLfloat) y(), (GLfloat) z(), (GLfloat) _alpha };
-    ::glFogfv(GL_FOG_COLOR, col);
-}
-
-void
-GltColor::glMaterial(const GLenum face,const GLenum field) const
-{
-    assert(face==GL_FRONT_AND_BACK || face==GL_FRONT || face==GL_BACK);
-    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_EMISSION);
-
-    GLERROR
-
-    const GLfloat val[4] = { (GLfloat) x(), (GLfloat) y(), (GLfloat) z(), (GLfloat) _alpha };
-    ::glMaterialfv(face,field,val);
-
-    GLERROR
-}
-
-void
-GltColor::glLight(const GLenum light,const GLenum field) const
-{
-    assert(light>=GL_LIGHT0 && light<=GL_LIGHT7);
-    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_POSITION || field==GL_SPOT_DIRECTION);
-
-    GLERROR
-
-    const GLfloat val[4] = { (float) x(), (float) y(), (float) z(), (float) _alpha };
-    ::glLightfv(light,field,val);
-
-    GLERROR
-}
-
-void
-GltColor::glGet()
-{
-    GLERROR
-
-    GLfloat val[4];
-    ::glGetFloatv(GL_CURRENT_COLOR,val);
-    x() = val[0]; y() = val[1]; z() = val[2]; _alpha = val[3];
-
-    GLERROR
-}
-
-void
-GltColor::glGetMaterial(const GLenum face,const GLenum field)
-{
-    assert(face==GL_FRONT_AND_BACK || face==GL_FRONT || face==GL_BACK);
-    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_EMISSION);
-
-    GLERROR
-
-    GLfloat val[4];
-    ::glGetMaterialfv(face,field,val);
-    x() = val[0]; y() = val[1]; z() = val[2]; _alpha = val[3];
-
-    GLERROR
-}
-
-void
-GltColor::glGetLight(const GLenum light,const GLenum field)
-{
-    assert(light>=GL_LIGHT0 && light<=GL_LIGHT7);
-    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_POSITION || field==GL_SPOT_DIRECTION);
-
-    GLERROR
-
-    GLfloat val[4];
-    ::glGetLightfv(light,field,val);
-    x() = val[0]; y() = val[1]; z() = val[2]; _alpha = val[3];
-
-    GLERROR
+    return Vector4::operator const real *();
 }
 
       real &GltColor::red()    { return x();    }
       real &GltColor::green()  { return y();    }
       real &GltColor::blue()   { return z();    }
-      real &GltColor::alpha()  { return _alpha; }
+      real &GltColor::alpha()  { return w();    }
 
 const real &GltColor::red()    const { return x();    }
 const real &GltColor::green()  const { return y();    }
 const real &GltColor::blue()   const { return z();    }
-const real &GltColor::alpha()  const { return _alpha; }
+const real &GltColor::alpha()  const { return w();    }
 
 const real
 GltColor::brightness() const
@@ -466,7 +389,116 @@ GltColor operator-(const GltColor &c1, const GltColor &c2)
     return GltColor(c1.red()-c2.red(),c1.green()-c2.green(),c1.blue()-c2.blue(),c1.alpha()-c2.alpha());
 }
 
-//////////////////////////////////////////////////////////////////////
+///////////////////////// OpenGL
+
+#include <glt/gl.h>
+
+void
+GltColor::glColor() const
+{
+    #ifdef GLT_FAST_FLOAT
+    ::glColor4fv(operator const real *());
+    #else
+    ::glColor4dv(operator const real *());
+    #endif
+}
+
+void
+GltColor::glColor(const GLdouble alpha) const
+{
+    #ifdef GLT_FAST_FLOAT
+    ::glColor4f(red(),green(),blue(),GLfloat(alpha));
+    #else
+    ::glColor4d(red(),green(),blue(),alpha);
+    #endif
+}
+
+void
+GltColor::glClearColor() const
+{
+    ::glClearColor((GLfloat) red(),(GLfloat) green(),(GLfloat) blue(),(GLfloat) alpha());
+}
+
+void
+GltColor::glFogColor() const
+{
+    const GLfloat col[4] = { (GLfloat) x(), (GLfloat) y(), (GLfloat) z(), (GLfloat) alpha() };
+    ::glFogfv(GL_FOG_COLOR, col);
+}
+
+void
+GltColor::glMaterial(const GLenum face,const GLenum field) const
+{
+    assert(face==GL_FRONT_AND_BACK || face==GL_FRONT || face==GL_BACK);
+    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_EMISSION);
+
+    GLERROR
+
+    const GLfloat val[4] = { (GLfloat) x(), (GLfloat) y(), (GLfloat) z(), (GLfloat) alpha() };
+    ::glMaterialfv(face,field,val);
+
+    GLERROR
+}
+
+void
+GltColor::glLight(const GLenum light,const GLenum field) const
+{
+    assert(light>=GL_LIGHT0 && light<=GL_LIGHT7);
+    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_POSITION || field==GL_SPOT_DIRECTION);
+
+    GLERROR
+
+    const GLfloat val[4] = { (float) x(), (float) y(), (float) z(), (float) alpha() };
+    ::glLightfv(light,field,val);
+
+    GLERROR
+}
+
+void
+GltColor::glGet()
+{
+    GLERROR
+
+    #ifdef GLT_FAST_FLOAT
+    ::glGetFloatv(GL_CURRENT_COLOR,operator real *());
+    #else
+    ::glGetDoublev(GL_CURRENT_COLOR,operator real *());
+    #endif
+
+    GLERROR
+}
+
+void
+GltColor::glGetMaterial(const GLenum face,const GLenum field)
+{
+    assert(face==GL_FRONT_AND_BACK || face==GL_FRONT || face==GL_BACK);
+    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_EMISSION);
+
+    GLERROR
+
+    GLfloat val[4];
+    ::glGetMaterialfv(face,field,val);
+    x() = val[0]; y() = val[1]; z() = val[2]; alpha() = val[3];
+
+    GLERROR
+}
+
+void
+GltColor::glGetLight(const GLenum light,const GLenum field)
+{
+    assert(light>=GL_LIGHT0 && light<=GL_LIGHT7);
+    assert(field==GL_AMBIENT || field==GL_DIFFUSE || field==GL_SPECULAR || field==GL_POSITION || field==GL_SPOT_DIRECTION);
+
+    GLERROR
+
+    GLfloat val[4];
+    ::glGetLightfv(light,field,val);
+    x() = val[0]; y() = val[1]; z() = val[2]; alpha() = val[3];
+
+    GLERROR
+}
+
+///////////////////////////////////////////////////////////
 
 GltClearColor::GltClearColor(bool getIt)
 {
@@ -481,11 +513,11 @@ GltClearColor::~GltClearColor()
 void
 GltClearColor::get()
 {
-    GLdouble tmp[4];
-    glGetDoublev(GL_COLOR_CLEAR_VALUE,tmp);
-    x() = tmp[0];
-    y() = tmp[1];
-    z() = tmp[2];
+    #ifdef GLT_FAST_FLOAT
+    ::glGetFloatv(GL_COLOR_CLEAR_VALUE,operator real *());
+    #else
+    ::glGetDoublev(GL_COLOR_CLEAR_VALUE,operator real *());
+    #endif
 }
 
 void
@@ -497,8 +529,6 @@ GltClearColor::set() const
 void
 GltClearColor::set(const GltColor &col)
 {
-    x() = col.x();
-    y() = col.y();
-    z() = col.z();
+    GltColor::operator=(col);
     GltColor::glClearColor();
 }

@@ -30,17 +30,14 @@
     \brief OpenGL Light Source Class
     \ingroup GLT
 
-    $Id: light.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: light.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: light.h,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.12  2003/09/11 01:42:18  nigels
+    Update GltColor and GltLight to use homogeneous co-ordinates
 
     Revision 1.11  2003/03/06 12:20:53  nigels
     Documentation refinements
@@ -88,8 +85,8 @@ public:
     GltColor &ambient();                            ///< Ambient contribution
     GltColor &diffuse();                            ///< Diffuse contribution
     GltColor &specular();                           ///< Specular contribution
-    Vector   &position();                           ///< Light source position
-    Vector   &spotDirection();                      ///< Light source direction
+    Vector4  &position();                           ///< Light source position
+    Vector4  &spotDirection();                      ///< Spotlight direction
     GLfloat  &spotExponent();                       ///< Spotlight exponent
     GLfloat  &spotCutoff();                         ///< Spotlight cutoff radius
     GLfloat  &attenutationConstant();               ///< Constant attenuation factor
@@ -101,8 +98,8 @@ public:
     const GltColor &ambient() const;                ///< Ambient contribution
     const GltColor &diffuse() const;                ///< Diffuse contribution
     const GltColor &specular() const;               ///< Specular contribution
-    const Vector   &position() const;               ///< Light source position
-    const Vector   &spotDirection() const;          ///< Light source direction
+    const Vector4  &position() const;               ///< Light source position
+    const Vector4  &spotDirection() const;          ///< Spotlight direction
     const GLfloat  &spotExponent() const;           ///< Spotlight exponent
     const GLfloat  &spotCutoff() const;             ///< Spotlight cutoff radius
     const GLfloat  &attenutationConstant() const;   ///< Constant attenuation factor
@@ -117,8 +114,8 @@ private:
     GltColor _ambient;
     GltColor _diffuse;
     GltColor _specular;
-    Vector   _position;
-    Vector   _spotDirection;
+    Vector4  _position;
+    Vector4  _spotDirection;
     GLfloat  _spotExponent;
     GLfloat  _spotCutoff;
     GLfloat  _attenuationConstant;
@@ -128,8 +125,8 @@ private:
     const static GltColor _ambientDefault;
     const static GltColor _diffuseDefault;
     const static GltColor _specularDefault;
-    const static Vector   _positionDefault;
-    const static Vector   _spotDirectionDefault;
+    const static Vector4  _positionDefault;
+    const static Vector4  _spotDirectionDefault;
     const static GLfloat  _spotExponentDefault;
     const static GLfloat  _spotCutoffDefault;
     const static GLfloat  _attenuationConstantDefault;

@@ -4,9 +4,12 @@
     \ingroup GLT
     \todo i2string
 
-    $Id: info.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: info.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: info.cpp,v $
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
@@ -46,8 +49,12 @@
 #include <glt/gl.h>
 #include <glt/config.h>
 #include <glt/error.h>
+
 #include <misc/string.h>
 #include <misc/config.h>
+
+#include <glutm/config.h>
+#include <glutm/glut.h>
 
 #include <iostream>
 #include <cstdio>
@@ -276,6 +283,17 @@ string GltVersionInformation()
     sprintf(jpeg,"libJPG %d%c\n",JPEG_LIB_VERSION/10,(JPEG_LIB_VERSION%10)+'a'-1);
     str += jpeg;
     #endif
+
+	#ifdef GLUTM_FREEGLUT
+
+	#ifdef FREEGLUT_VERSION_2_0
+	string fg("freeglut 2.0\n");
+	#else
+	string fg("freeglut 1.0\n");
+	#endif
+    
+	str += fg;
+	#endif
 
     return str;
 }

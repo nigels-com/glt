@@ -3,17 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: light.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: light.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: light.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.10  2003/09/11 01:42:18  nigels
+    Update GltColor and GltLight to use homogeneous co-ordinates
 
     Revision 1.9  2002/11/27 00:57:28  nigels
     expand
@@ -38,8 +35,8 @@ using namespace std;
 const GltColor GltLight::_ambientDefault      (0,0,0,1);
 const GltColor GltLight::_diffuseDefault      (1,1,1,1);
 const GltColor GltLight::_specularDefault     (1,1,1,1);
-const Vector   GltLight::_positionDefault     (0,0,1);
-const Vector   GltLight::_spotDirectionDefault(0,0,-1);
+const Vector4  GltLight::_positionDefault     (0,0,1);
+const Vector4  GltLight::_spotDirectionDefault(0,0,-1);
 const GLfloat  GltLight::_spotExponentDefault (0.0);
 const GLfloat  GltLight::_spotCutoffDefault   (180.0);
 const GLfloat  GltLight::_attenuationConstantDefault(1);
@@ -130,8 +127,8 @@ bool     &GltLight::enabled()       { return _enabled; }
 GltColor &GltLight::ambient()       { return _ambient; }
 GltColor &GltLight::diffuse()       { return _diffuse; }
 GltColor &GltLight::specular()      { return _specular; }
-Vector   &GltLight::position()      { return _position; }
-Vector   &GltLight::spotDirection() { return _spotDirection; }
+Vector4  &GltLight::position()      { return _position; }
+Vector4  &GltLight::spotDirection() { return _spotDirection; }
 GLfloat  &GltLight::spotExponent()  { return _spotExponent; }
 GLfloat  &GltLight::spotCutoff()    { return _spotCutoff; }
 
@@ -144,8 +141,8 @@ const bool     &GltLight::enabled()       const { return _enabled; }
 const GltColor &GltLight::ambient()       const { return _ambient; }
 const GltColor &GltLight::diffuse()       const { return _diffuse; }
 const GltColor &GltLight::specular()      const { return _specular; }
-const Vector   &GltLight::position()      const { return _position; }
-const Vector   &GltLight::spotDirection() const { return _spotDirection; }
+const Vector4  &GltLight::position()      const { return _position; }
+const Vector4  &GltLight::spotDirection() const { return _spotDirection; }
 const GLfloat  &GltLight::spotExponent()  const { return _spotExponent; }
 const GLfloat  &GltLight::spotCutoff()    const { return _spotCutoff; }
 

@@ -3,9 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fontasci.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: fontasci.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: fontasci.cpp,v $
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
@@ -88,6 +91,8 @@ GltFontAscii::compileLists(void *data)
         const int bytesPerChar = ((_width+7)>>3)*_height;
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH,0);
+        
         _listBase = glGenLists(256);
         for (int i = 0; i < 255; i++)
         {

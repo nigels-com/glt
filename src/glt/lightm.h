@@ -30,17 +30,11 @@
     \brief OpenGL Lighting Model Class
     \ingroup GLT
 
-    $Id: lightm.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: lightm.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: lightm.h,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
     Revision 1.9  2003/03/06 12:21:05  nigels
     Documentation refinements

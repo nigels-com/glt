@@ -30,17 +30,14 @@
     \brief OpenGL Texture Class
     \ingroup GLT
 
-    $Id: texture.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: texture.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: texture.h,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.32  2003/12/09 05:45:23  nigels
+    Added defined() query to GltTexture
 
     Revision 1.31  2003/08/21 04:27:53  nigels
     *** empty log message ***
@@ -124,6 +121,8 @@ public:
     /// Set the current OpenGL texture
     void set() const;
 
+    bool defined() const;   ///< Is the texture object defined?
+    
     /*!
         \brief      Set wrapping of OpenGL texture coordinates
         \param      s    Horizontal mapping mode

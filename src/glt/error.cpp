@@ -11,17 +11,15 @@ using namespace std;
 /*! \file
     \ingroup GLT
 
-    $Id: error.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: error.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: error.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.8  2003/12/11 23:48:57  nigels
+    Fix potential buffer overflow
+    Check for current OpenGL context in GLERROR
 
     Revision 1.6  2003/05/10 16:58:11  nigels
     Last tweaks for 0.8
@@ -38,22 +36,32 @@ using namespace std;
 
 */
 
+#include <misc/string.h>
+
+#include <cstdarg>
+
 void
-gltError(const std::string &message)
+gltError(const char *format, ...)
 {
-    #if defined(GLT_WIN32) && 0
-    MessageBox(NULL,message.c_str(),"Runtime Error",MB_OK | MB_ICONERROR);
-    #else
-    cerr << "GLT ERROR: " << message << endl;
-    #endif
+    va_list argp;
+    va_start(argp, format);
+    
+    fprintf (stderr, "GLT error: ");
+    vfprintf(stderr, format, argp);
+    fprintf (stderr, "\n");
+
+    va_end(argp);
 }
 
 void
-gltWarning(const std::string &message)
+gltWarning(const char *format, ...)
 {
-    #if defined(GLT_WIN32) && 0
-    MessageBox(NULL,message.c_str(),"Runtime Warning",MB_OK | MB_ICONWARNING);
-    #else
-    cerr << "GLT WARNING: " << message << endl;
-    #endif
+    va_list argp;
+    va_start(argp, format);
+    
+    fprintf (stderr, "GLT warning: ");
+    vfprintf(stderr, format, argp);
+    fprintf (stderr, "\n");
+
+    va_end(argp);
 }

@@ -30,17 +30,15 @@
     \brief   OpenGL Debugging Tools
     \ingroup GLT
 
-    $Id: error.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: error.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: error.h,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.14  2003/12/11 23:48:57  nigels
+    Fix potential buffer overflow
+    Check for current OpenGL context in GLERROR
 
     Revision 1.12  2003/03/06 12:18:15  nigels
     Documentation refinements
@@ -59,6 +57,9 @@
 
 #include <string>
 
+void gltError  (const char *format, ...);    ///< Display error
+void gltWarning(const char *format, ...);    ///< Display warning
+
 /*! \def     GLERROR
     \brief   Check OpenGL error state
     \ingroup GLT
@@ -74,21 +75,40 @@
 
     #include <iostream>
 
-    #define GLERROR                                         \
-    {                                                       \
-        GLenum code = glGetError();                         \
-        while (code!=GL_NO_ERROR)                           \
-        {                                                   \
-            std::cerr << __FILE__;                          \
-            std::cerr << ':' << __LINE__;                   \
-            std::cerr << ' ' << (char *) gluErrorString(code) << std::endl; \
-            code = glGetError();                            \
-        }                                                   \
+#if defined(WIN32)
+    #define GLERROR                                          \
+    {                                                        \
+		if (!wglGetCurrentContext())						 \
+			gltError("No OpenGL rendering context.");		 \
+		else												 \
+		{													 \
+			GLenum code = glGetError();                      \
+	        while (code!=GL_NO_ERROR)                        \
+		    {                                                \
+			    gltError("glGetError %s:%d %s",              \
+                    __FILE__,__LINE__,gluErrorString(code)); \
+				code = glGetError();                         \
+			}                                                \
+		}													 \
+    }
+#else
+    #define GLERROR                                          \
+    {                                                        \
+		if (0)  /* TODO - GLX rendering context check */     \
+			gltError("No OpenGL rendering context.");		 \
+		else												 \
+		{													 \
+        GLenum code = glGetError();                          \
+        while (code!=GL_NO_ERROR)                            \
+        {                                                    \
+			    gltError("glGetError %s:%d %s",              \
+                    __FILE__,__LINE__,gluErrorString(code)); \
+            code = glGetError();                             \
+        }                                                    \
+		}													 \
     }
 #endif
-
-void gltError  (const std::string &message);    ///< Display error
-void gltWarning(const std::string &message);    ///< Display warning
+#endif
 
 #endif
 

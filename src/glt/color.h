@@ -30,17 +30,14 @@
     \brief   OpenGL Color Interface
     \ingroup GLT
 
-    $Id: color.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: color.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: color.h,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.20  2003/09/11 01:42:18  nigels
+    Update GltColor and GltLight to use homogeneous co-ordinates
 
     Revision 1.19  2003/05/10 16:58:11  nigels
     Last tweaks for 0.8
@@ -68,7 +65,7 @@
 
 #include <string>
 
-#include <math/vector3.h>
+#include <math/vector4.h>
 
 /*! \class   GltColor
     \brief   OpenGL RGB Color
@@ -78,7 +75,7 @@
     http://www.faqs.org/faqs/graphics/colorspace-faq/
 */
 
-class GltColor : public Vector
+class GltColor : public Vector4
 {
 public:
     //
@@ -98,7 +95,9 @@ public:
     /// Copy constructor with alpha
     GltColor(const GltColor &col,const real alpha);
     /// Construct from x,y,z tuple
-    GltColor(const Vector &col);
+    GltColor(const Vector3 &col);
+    /// Construct from x,y,z,w tuple
+    GltColor(const Vector4 &col);
     /// Construct from name or HTML color string
     GltColor(const std::string &name);
 
@@ -143,23 +142,21 @@ public:
     // Access
     //
 
-    /// red component
-    real &red();
-    /// green component
-    real &green();
-    /// blue component
-    real &blue();
-    /// alpha component
-    real &alpha();
+          real &red();                          ///< red component
+          real &green();                        ///< green component
+          real &blue();                         ///< blue component
+          real &alpha();                        ///< alpha component
 
-    /// red component
-    const real &red()    const;
-    /// green component
-    const real &green()  const;
-    /// blue component
-    const real &blue()   const;
-    /// alpha component
-    const real &alpha()  const;
+    const real &red()    const;                 ///< red component
+    const real &green()  const;                 ///< green component
+    const real &blue()   const;                 ///< blue component
+    const real &alpha()  const;                 ///< alpha component
+
+          real &operator[](const int i);        ///< i'th co-ordinate
+    const real &operator[](const int i) const;  ///< i'th co-ordinate
+
+    operator       real *();                    ///< Access as array
+    operator const real *() const;              ///< Access as array
 
     //
     // Misc
@@ -203,7 +200,7 @@ public:
     friend GltColor operator-(const GltColor &c1, const GltColor &c2);
 
 private:
-    real _alpha;
+//    real _alpha;
 
     static const int       _rgbSize;
     static const char     *_rgbName [];

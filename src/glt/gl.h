@@ -36,9 +36,12 @@
     Other necessary dependencies such as windows.h
     are handled here.
 
-    $Id: gl.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: gl.h,v 2.1 2004/02/12 13:48:56 nigels Exp $
 
     $Log: gl.h,v $
+    Revision 2.1  2004/02/12 13:48:56  nigels
+    no message
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
@@ -68,8 +71,10 @@
 #include <glt/config.h>
 
 #ifdef GLT_WIN32
-#define NOMINMAX
-#include <windows.h>
+#   ifndef NOMINMAX
+#       define NOMINMAX
+#   endif
+#   include <windows.h>
 #endif
 
 #include <GL/gl.h>
