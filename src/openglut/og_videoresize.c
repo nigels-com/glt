@@ -46,15 +46,34 @@
     \param    eWhat    An enumerated tag.
 
               This function is undocumented.  This function is
-              unimplemeneted.
+              unimplemeneted (presently).
+
+              From GLUT 3.7's implementation, the following is a
+              list of symbols that GLUT 3.7 supported.  These are
+              not necessarily defined in OpenGLUT at this time,
+              nor is support presently available for them:
+
+               - \a GLUT_VIDEO_RESIZE_POSSIBLE (feature presence)
+               - \a GLUT_VIDEO_RESIZE_IN_USE
+               - \a GLUT_VIDEO_RESIZE_X_DELTA
+               - \a GLUT_VIDEO_RESIZE_Y_DELTA
+               - \a GLUT_VIDEO_RESIZE_WIDTH_DELTA
+               - \a GLUT_VIDEORESIZE_HEIGHT_DELTA
+               - \a GLUT_VIDEO_REISZE_X
+               - \a GLUT_VIDEO_RESIZE_Y
+               - \a GLUT_VIDEO_RESIZE_WIDTH
+               - \a GLUT_VIDEO_RESIZE_HEIGHT
+
+              A -1 should be returned for unimplemented features, and
+              a warning printed.
 
     \see      glutVideoResizeGet(), glutSetupVideoResizing(),
               glutStopVideoResizing(), glutVideoResize(), glutVideoPan()
 */
-/* ARGSUSED0 */
 int  OGAPIENTRY glutVideoResizeGet( GLenum eWhat )
 {
-    return 0;
+    ogWarning( "glutVideoResizeGet(): Unimplemented." );
+    return -1;
 }
 
 /*!
@@ -63,7 +82,7 @@ int  OGAPIENTRY glutVideoResizeGet( GLenum eWhat )
     \ingroup  videomode
 
               This function is undocumented.  This function is
-              unimplemeneted.
+              unimplemeneted (presently).
 
     \see      glutVideoResizeGet(), glutSetupVideoResizing(),
               glutStopVideoResizing(), glutVideoResize(), glutVideoPan()
@@ -78,7 +97,7 @@ void OGAPIENTRY glutSetupVideoResizing( void )
     \ingroup  videomode
 
               This function is undocumented.  This function is
-              unimplemeneted.
+              unimplemeneted (presently).
 
     \see      glutVideoResizeGet(), glutSetupVideoResizing(),
               glutStopVideoResizing(), glutVideoResize(), glutVideoPan()
@@ -97,12 +116,20 @@ void OGAPIENTRY glutStopVideoResizing( void )
     \param    h    A height.
 
               This function is undocumented.  This function is
-              unimplemeneted.
+              unimplemeneted (presently).
+
+              This function appears to allow setting the video
+              display rectangle to a sub-rectangle of the
+              hardware buffer.  \a x and \a y are apparently the
+              upper left corner, and \a w and \a h are the width
+              and height of the rectangle.
+
+              It is not clear what should be done if the values
+              are invalid (negative \a x, for example).
 
     \see      glutVideoResizeGet(), glutSetupVideoResizing(),
               glutStopVideoResizing(), glutVideoResize(), glutVideoPan()
 */
-/* ARGSUSED0 */
 void OGAPIENTRY glutVideoResize( int x, int y, int w, int h )
 {
 }
@@ -117,12 +144,15 @@ void OGAPIENTRY glutVideoResize( int x, int y, int w, int h )
     \param    h    A height.
 
               This function is undocumented.  This function is
-              unimplemeneted.
+              unimplemeneted (presently).
+
+              Appears to be for moving the video display about
+              (panning) in a much larger graphic area than
+              will fit on the screen at current resolution.
 
     \see      glutVideoResizeGet(), glutSetupVideoResizing(),
               glutStopVideoResizing(), glutVideoResize(), glutVideoPan()
 */
-/* ARGSUSED0 */
 void OGAPIENTRY glutVideoPan( int x, int y, int w, int h )
 {
 }

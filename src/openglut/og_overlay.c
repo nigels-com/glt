@@ -131,7 +131,7 @@ void OGAPIENTRY glutPostOverlayRedisplay( void )
     \ingroup  overlays
     \param    ID    A window ID.
 
-              This function lets you post a layer update to the layer
+              This function lets you post an overlay update to the overlay
               of any arbitrary window.
 
     \note     Unimplemented.

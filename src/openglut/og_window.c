@@ -35,6 +35,8 @@
 #include <GL/openglut.h>
 #include "og_internal.h"
 
+/* -- PRIVATE FUNCTIONS ---------------------------------------------------- */
+
 #if TARGET_HOST_WINCE
 #include <aygshell.h>                  /*! \todo Move this to og_internal.h */
 /*!
@@ -66,40 +68,131 @@ wchar_t *oghStrToWstr( const char *str )
 #endif
 
 /*
- * XXX Do we want to keep this list? We can add \todo notes and use the
- * XXX SourceForge bug/RFE system to replace this kind of clutter, can't
- * XXX we?
+ * These special helper functions (and support macros) are used to
+ * cascade keyboard and mouse events to the parents of client menu windows.
  *
- * TODO BEFORE THE STABLE RELEASE:
+ * The code is located at the top to separate it from the API code, but they
+ * are {static} functions of interest solely for menu windows.
  *
- *  ogChooseVisual()        -- OK, but what about glutInitDisplayString()?
- *  ogSetupPixelFormat      -- ignores the display mode settings
- *  ogOpenWindow()          -- check the Win32 version, -iconic handling!
- *  ogCloseWindow()         -- check the Win32 version
- *  glutCreateWindow()      -- Check when default position and size is {-1,-1}
- *  glutCreateSubWindow()   -- Check when default position and size is {-1,-1}
- *  glutCreateMenuWindow()  -- New, experimental.  Fun.
- *  glutDestroyWindow()     -- check the Win32 version
- *  glutSetWindow()         -- check the Win32 version
- *  glutGetWindow()         -- OK
- *  glutSetWindowTitle()    -- check the Win32 version
- *  glutSetIconTitle()      -- check the Win32 version
- *  glutShowWindow()        -- check the Win32 version
- *  glutHideWindow()        -- check the Win32 version
- *  glutIconifyWindow()     -- check the Win32 version
- *  glutReshapeWindow()     -- check the Win32 version
- *  glutPositionWindow()    -- check the Win32 version
- *  glutPushWindow()        -- check the Win32 version
- *  glutPopWindow()         -- check the Win32 version
+ * oghX/oghY: These map a coordinates in a child window to coordinates
+ *            in the parent window.
+ * X/Y:       These recurred enough that it seemed simpler to use a macro.
+ *            Especially since, at one time, the oghX/oghY functions
+ *            were inline.  (^&  At one point the same definitions
+ *            were also used in glutCreateMenuWindow().
+ * oghClientMenu*(): A bunch of callback functions to be registered with
+ *                   the client menus.  They redirect all keyboard and mouse
+ *                   input to the parent window's handler, after translating
+ *                   mouse coords.
+ *
+ * NB: You cannot use the X and Y macros within the INVOKE_WCB() macro
+ *     invocations.  INVOKE_WCB(), being a macro, evaluates its
+ *     parameters when, and only when, they are used.  It sets the
+ *     current window before evaluating the translated coordinates,
+ *     and at that point it's a bit late to run around translating the
+ *     coords, since we no longer know the child window in order to
+ *     get its position.
+ *
+ * XXX oghX() and oghY() should probably reuse some common code to avoid
+ * XXX risk of getting out of sync if they are changed.
  */
+static int oghX( const int x )
+{
+    int ret = x;
+    SOG_Window *win = ogStructure.Window;
+    SOG_Window *parent;
 
-/* -- PRIVATE FUNCTIONS ---------------------------------------------------- */
+    assert( win );
+    assert( win->Parent );
+    parent = win->Parent;
+
+    ret += glutGet( GLUT_WINDOW_X );
+    ogSetWindow( parent );
+    ret -= glutGet( GLUT_WINDOW_X );
+    ogSetWindow( win );
+
+    return ret;
+}
+static int oghY( const int y )
+{
+    int ret = y;
+    SOG_Window *win = ogStructure.Window;
+    SOG_Window *parent;
+
+    assert( win );
+    assert( win->Parent );
+    parent = win->Parent;
+
+    ret += glutGet( GLUT_WINDOW_Y );
+    ogSetWindow( parent );
+    ret -= glutGet( GLUT_WINDOW_Y );
+    ogSetWindow( win );
+
+    return ret;
+}
+#define X oghX(x)
+#define Y oghY(y)
+static void oghClientMenuKeyboard( unsigned char key, int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Keyboard, ( key, _x, _y ) );
+}
+static void oghClientMenuKeyboardUp( unsigned char key, int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, KeyboardUp, ( key, _x, _y ) );
+}
+static void oghClientMenuSpecial( int key, int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Special, ( key, _x, _y ) );
+}
+static void oghClientMenuSpecialUp( int key, int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, SpecialUp, ( key, _x, _y ) );
+}
+
+static void oghClientMenuMotion( int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Motion, ( _x, _y ) );
+}
+static void oghClientMenuPassiveMotion( int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB( *ogStructure.Window->Parent, Passive, ( _x, _y ) );
+}
+static void oghClientMenuMouse( int button, int state, int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB(
+        *ogStructure.Window->Parent, Mouse, ( button, state, _x, _y )
+    );
+}
+static void oghClientMenuMouseWheel( int wheel, int dir, int x, int y )
+{
+    int _x = X;
+    int _y = Y;
+    INVOKE_WCB(
+        *ogStructure.Window->Parent, MouseWheel, ( wheel, dir, _x, _y )
+    );
+}
+#undef X
+#undef Y
+
 
 /*
- * Chooses a visual basing on the current display mode settings
+ * Chooses a visual based on the current display mode settings.
  */
 #if TARGET_HOST_UNIX_X11
-
 XVisualInfo *ogChooseVisual( void )
 {
 #define BUFFER_SIZES 6
@@ -108,9 +201,7 @@ XVisualInfo *ogChooseVisual( void )
     int attributes[ 32 ];
     int where = 0;
 
-    /*
-     * First we have to process the display mode settings...
-     */
+    /* First we have to process the display mode settings... */
 #define ATTRIB(a)       ( attributes[ where++ ] = ( a ) )
 #define ATTRIB_VAL(a,v) { ATTRIB( a ); ATTRIB( v ); }
 
@@ -150,9 +241,7 @@ XVisualInfo *ogChooseVisual( void )
             ATTRIB_VAL( GLX_ACCUM_ALPHA_SIZE, 1 );
     }
 
-    /*
-     * Push a null at the end of the list
-     */
+    /* Push a null at the end of the list */
     ATTRIB( None );
 
     if( ! wantIndexedMode )
@@ -182,7 +271,7 @@ XVisualInfo *ogChooseVisual( void )
 #endif
 
 /*
- * Setup the pixel format for a Win32 window
+ * Setup the pixel format for a Win32 window.
  */
 #if TARGET_HOST_WIN32
 GLboolean ogSetupPixelFormat( SOG_Window *window, GLboolean checkOnly,
@@ -205,9 +294,7 @@ GLboolean ogSetupPixelFormat( SOG_Window *window, GLboolean checkOnly,
 
     /*! \todo ogSetupPixelFormat(): there is still some work to do here! */
 
-    /*
-     * Specify which pixel format do we opt for...
-     */
+    /* Specify which pixel format do we opt for... */
     pfd.nSize           = sizeof( PIXELFORMATDESCRIPTOR );
     pfd.nVersion        = 1;
     pfd.dwFlags         = flags;
@@ -300,26 +387,33 @@ void ogOpenWindow( SOG_Window *window, const char *title,
     unsigned long mask;
 
     freeglut_assert_ready;
-
     /*!
       \todo ogChooseVisual() is a common part of all three.
        With a little thought, we should be able to greatly
        simplify this.
     */
+    /*
     if( !window->IsMenu )
         window->Window.VisualInfo = ogChooseVisual( );
     else if( ogStructure.MenuContext )
         window->Window.VisualInfo = ogChooseVisual( );
     else
+    */
     {
-        /*! \todo Why are menus double- and depth-buffered? */
         unsigned int current_DisplayMode = ogState.DisplayMode;
-        ogState.DisplayMode = GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH;
+        /*! \todo Why are menus double- and depth-buffered? */
+        if( window->IsMenu && !ogStructure.MenuContext )
+            ogState.DisplayMode = GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH;
         window->Window.VisualInfo = ogChooseVisual( );
-        ogState.DisplayMode = current_DisplayMode;
+        if( window->IsMenu && !ogStructure.MenuContext )
+            ogState.DisplayMode = current_DisplayMode;
     }
 
-    if( ! window->Window.VisualInfo )
+    /*! \todo Do we need the MenuContext check? */
+    if(
+        !window->Window.VisualInfo &&
+        ( !window->IsMenu /* || ogStructure.MenuContext */ )
+    )
         /*
          * The ogChooseVisual() returned a null meaning that the visual
          * context is not available.
@@ -341,7 +435,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
       \bug This seems to be abusing an assert() for error-checking.
        It is possible that the visual simply can't be found,
        in which case we should print an error and return a 0
-       for the window id, I think.
+       for the window id, I think.  Failing that, call ogError().
     */
     assert( window->Window.VisualInfo != NULL );
 
@@ -429,7 +523,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
         if( !ogStructure.MenuContext )
         {
             ogStructure.MenuContext =
-                (SOG_MenuContext *)malloc( sizeof(SOG_MenuContext) );
+                ( SOG_MenuContext * )malloc( sizeof( SOG_MenuContext ) );
             ogStructure.MenuContext->VisualInfo = window->Window.VisualInfo;
             ogStructure.MenuContext->Context = glXCreateContext(
                 ogDisplay.Display, ogStructure.MenuContext->VisualInfo,
@@ -485,7 +579,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
 
     /*
      * Fill in the size hints values now (the x, y, width and height
-     * settings are obsolote, are there any more WMs that support them?)
+     * settings are obsolete, are there any more WMs that support them?)
      * Unless the X servers actually stop supporting these, we should
      * continue to fill them in.  It is *not* our place to tell the user
      * that they should replace a window manager that they like, and which
@@ -511,7 +605,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
     {
         /* Prepare the window and iconified window names. */
         /*
-         * XXX Should strdup() the title, since XStringListToTextProperty()
+         * XXX Should ogStrDup() the title, since XStringListToTextProperty()
          * XXX apparently allows the right to edit {title}.
          */
         XStringListToTextProperty( ( char ** )&title, 1, &textProperty );
@@ -540,9 +634,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
 
     freeglut_assert_ready;
 
-    /*
-     * Grab the window class we have registered on glutInit():
-     */
+    /* Grab the window class we have registered on glutInit(): */
     atom = GetClassInfo( ogDisplay.Instance, _T( OPENGLUT_STRING ), &wc );
     assert( atom != 0 );
 
@@ -579,7 +671,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
             ogError( "Could not create Device Context for offscreen.\n" );
         window->Window.Bitmap = CreateDIBSection(
             window->Window.Device, &info, DIB_RGB_COLORS,
-            (void **) &( window->Window.Bits ), NULL, 0
+            ( void ** ) &( window->Window.Bits ), NULL, 0
         );
         if( !( window->Window.Bitmap ) )
             ogError( "Could not create bitmap for offscreen.\n" );
@@ -613,8 +705,8 @@ void ogOpenWindow( SOG_Window *window, const char *title,
                 decorations.  OpenGLUT is to create the window with the
                 outside of its border at (x,y) and with dimensions (w,h).
             */
-            w += (GetSystemMetrics( SM_CXSIZEFRAME ) )*2;
-            h += (GetSystemMetrics( SM_CYSIZEFRAME ) )*2 +
+            w += ( GetSystemMetrics( SM_CXSIZEFRAME ) )*2;
+            h += ( GetSystemMetrics( SM_CYSIZEFRAME ) )*2 +
                 GetSystemMetrics( SM_CYCAPTION );
         }
 #endif
@@ -653,7 +745,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
     if( !window->State.IsOffscreen )
     {
 #if TARGET_HOST_WINCE
-        wchar_t* wstr = oghStrToWstr( title );
+        wchar_t *wstr = oghStrToWstr( title );
         window->Window.Handle = CreateWindow(
             _T( OPENGLUT_STRING ),
             wstr,
@@ -679,12 +771,12 @@ void ogOpenWindow( SOG_Window *window, const char *title,
             title,
             flags,
             x, y, w, h,
-            (HWND)
-            ( window->Parent && !window->IsClientMenu ) ?
-            window->Parent->Window.Handle : NULL,
-            (HMENU) NULL,
+            ( HWND )
+                ( window->Parent && !window->IsClientMenu ) ?
+                window->Parent->Window.Handle : NULL,
+            ( HMENU )NULL,
             ogDisplay.Instance,
-            (LPVOID) window
+            ( LPVOID )window
         );
 #endif
         if( !( window->Window.Handle ) )
@@ -727,7 +819,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
 /*
  * Closes a window, destroying the frame and OpenGL context
  */
-void ogCloseWindow( SOG_Window* window )
+void ogCloseWindow( SOG_Window *window )
 {
     freeglut_assert_ready;
 
@@ -745,9 +837,7 @@ void ogCloseWindow( SOG_Window* window )
 
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    /*
-     * Make sure we don't close a window with current context active
-     */
+    /* Make sure we don't close a window with current context active */
     if( ogStructure.Window == window )
         wglMakeCurrent( NULL, NULL );
 
@@ -759,11 +849,15 @@ void ogCloseWindow( SOG_Window* window )
         int used = FALSE;
         SOG_Window *iter;
 
-        for( iter = (SOG_Window *)ogStructure.Windows.First;
-             iter;
-             iter = (SOG_Window *)iter->Node.Next )
-            if( ( iter->Window.Context == window->Window.Context ) &&
-                ( iter != window ) )
+        for(
+            iter = ( SOG_Window * )ogStructure.Windows.First;
+            iter;
+            iter = ( SOG_Window * )iter->Node.Next
+        )
+            if(
+                ( iter->Window.Context == window->Window.Context ) &&
+                ( iter != window )
+            )
                 used = TRUE;
 
         if( ! used )
@@ -881,8 +975,8 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
-        SOG_Window* window = NULL;
-        SOG_Window* parent = NULL;
+        SOG_Window *window = NULL;
+        SOG_Window *parent = NULL;
 
         freeglut_assert_ready; /*! \todo This looks like an abuse of assert */
         parent = ogWindowByID( parentID );
@@ -897,123 +991,13 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
 
 
 /*
- * These special helper functions (and support macros) are used to
- * cascade keyboard and mouse events to the parents of client menu windows.
+ * X/Y are macros provided to slightly simplify code.  At one time, they
+ * were common to macros used for the various callbacks, but that was
+ * logically not the right thing to do when I was thinking more clearly.
  *
- * I'll be cleaning this up shortly, but at the moment it addresses a
- * significant bug, so I'm committing something that's a bit
- * frightful.
- *
- * oghX/oghY: These map a coordinates in a child window to coordinates
- *            in the parent window.
- * X/Y:       These recurred enough that it seemed simpler to use a macro.
- *            Especially since, at one time, the oghX/oghY functions
- *            were inline.  (^&  At one point the same definitions
- *            were also used in glutCreateMenuWindow().
- * oghClientMenu*(): A bunch of callback functions to be registered with
- *                   the client menus.  They redirect all keyboard and mouse
- *                   input to the parent window's handler, after translating
- *                   mouse coords.
- *
- * NB: You cannot use the X and Y macros within the INVOKE_WCB() macro
- *     invocations.  INVOKE_WCB(), being a macro, evaluates its
- *     parameters when, and only when, they are used.  It sets the
- *     current window before evaluating the translated coordinates,
- *     and at that point it's a bit late to run around translating the
- *     coords, since we no longer know the child window in order to
- *     get its position.
+ * XXX As the X/Y macros are no longer shared with anything else, we should
+ * XXX probably remove them and replace with inline code.
  */
-static int oghX( const int x )
-{
-    int ret = x;
-    SOG_Window *win = ogStructure.Window;
-    SOG_Window *parent;
-
-    assert( win );
-    assert( win->Parent );
-    parent = win->Parent;
-
-    ret += glutGet( GLUT_WINDOW_X );
-    ogSetWindow( parent );
-    ret -= glutGet( GLUT_WINDOW_X );
-    ogSetWindow( win );
-
-    return ret;
-}
-static int oghY( const int y )
-{
-    int ret = y;
-    SOG_Window *win = ogStructure.Window;
-    SOG_Window *parent;
-
-    assert( win );
-    assert( win->Parent );
-    parent = win->Parent;
-
-    ret += glutGet( GLUT_WINDOW_Y );
-    ogSetWindow( parent );
-    ret -= glutGet( GLUT_WINDOW_Y );
-    ogSetWindow( win );
-
-    return ret;
-}
-#define X oghX(x)
-#define Y oghY(y)
-static void oghClientMenuKeyboard( unsigned char key, int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB( *ogStructure.Window->Parent, Keyboard, ( key, _x, _y ) );
-}
-static void oghClientMenuKeyboardUp( unsigned char key, int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB( *ogStructure.Window->Parent, KeyboardUp, ( key, _x, _y ) );
-}
-static void oghClientMenuSpecial( int key, int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB( *ogStructure.Window->Parent, Special, ( key, _x, _y ) );
-}
-static void oghClientMenuSpecialUp( int key, int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB( *ogStructure.Window->Parent, SpecialUp, ( key, _x, _y ) );
-}
-
-static void oghClientMenuMotion( int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB( *ogStructure.Window->Parent, Motion, ( _x, _y ) );
-}
-static void oghClientMenuPassiveMotion( int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB( *ogStructure.Window->Parent, Passive, ( _x, _y ) );
-}
-static void oghClientMenuMouse( int button, int state, int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB(
-        *ogStructure.Window->Parent, Mouse, ( button, state, _x, _y )
-    );
-}
-static void oghClientMenuMouseWheel( int wheel, int dir, int x, int y )
-{
-    int _x = X;
-    int _y = Y;
-    INVOKE_WCB(
-        *ogStructure.Window->Parent, MouseWheel, ( wheel, dir, _x, _y )
-    );
-}
-#undef X
-#undef Y
 #define X ( x + glutGet( GLUT_WINDOW_X ) )
 #define Y ( y + glutGet( GLUT_WINDOW_Y ) )
 /*!
@@ -1126,7 +1110,7 @@ int OGAPIENTRY glutCreateMenuWindow( int parentID, int x, int y, int w, int h )
 */
 void OGAPIENTRY glutDestroyWindow( int windowID )
 {
-    SOG_Window* window = ogWindowByID( windowID );
+    SOG_Window *window = ogWindowByID( windowID );
     if( !window )
         return;
     /*! \todo Clean this up. */
@@ -1139,9 +1123,11 @@ void OGAPIENTRY glutDestroyWindow( int windowID )
 
 /*!
     \fn
-    \brief    Select the current window
+    \brief    Select the <i>current window</i>
     \ingroup  window
     \param    ID       Window identifier
+
+    Sets the <i>current window</i> to \a ID.
 
     All OpenGL rendering goes to the <i>current window</i>.
     Many OpenGLUT functions also implicitly use the
@@ -1153,6 +1139,7 @@ void OGAPIENTRY glutDestroyWindow( int windowID )
     However, some callbacks---such as that registered via
     glutIdleFunc()---do not have associated windows.  If
     a callback is not associated to a particular window,
+    then when OpenGLUT invokes that callback
     you should <b>always</b> use glutSetWindow() to
     select the appropriate window before doing any
     OpenGL rendering or doing any OpenGLUT window-related
@@ -1163,22 +1150,25 @@ void OGAPIENTRY glutDestroyWindow( int windowID )
     prior time, but OpenGLUT has considerable liberaty with
     respect to when it invokes your functions.  Also, your
     program may add more windows or more operations on other
-    windows.
+    windows as you develop it.
 
     Lastly, this is a convenient way to select among
     multiple windows for drawing without actually waiting
-    for that window's display callback.
+    for that window's display callback.  Simply set the
+    <i>current window</i> and draw immediately.  This is
+    not always advisable, but may be practical.
 
     It is an error to set the <i>current window</i> to
     a non-existant window (e.g., one that you have closed).
-    A warning will be printed on \a stdout if you
-    try to do so.
+    A warning will be printed on \a stderr if you
+    try to do so, and the <i>current window</i> should be
+    unchanged.
 
     \see glutGetWindow()
 */
 void OGAPIENTRY glutSetWindow( int ID )
 {
-    SOG_Window* window = NULL;
+    SOG_Window *window = NULL;
 
     freeglut_assert_ready; /*! \todo Looks like an abuse of assert */
     if( ogStructure.Window )
@@ -1208,6 +1198,10 @@ void OGAPIENTRY glutSetWindow( int ID )
     pops.  Do not be confused by glutPushWindow() and glutPopWindow();
     those pushes and pops are <b>not</b> stack-related!)
 
+    One cause for the function to return 0 is if you have
+    called glutDestroyWindow() on the <i>current window</i> and have
+    done nothing to set a new window as current.
+
     \see glutSetWindow()
 */
 int OGAPIENTRY glutGetWindow( void )
@@ -1220,17 +1214,24 @@ int OGAPIENTRY glutGetWindow( void )
 
 /*!
     \fn
-    \brief    Make the current window visible
+    \brief    Request that the <i>current window</i> be visible
     \ingroup  window
 
+    glutShowWindow() requests that the window system make
+    the <i>current window</i> visible.
+
     This is generally not necessary.  When you create a
-    window, it will be visible.  Unless you specifically
-    hide it, it will remain visible.  Even though visible,
-    of course, it may be covered by other windows, but
+    window, it will normally become visible.  Unless you specifically
+    hide it, it will remain visible.  Though visible,
+    of course, it may be covered by other windows;
     that would be an issue for window stacking order not
     visibility.
 
-    \see      glutHideWindow(), glutPushWindow(), glutPopWindow()
+    When, and if, your window's visibility status changes,
+    you may find out via a glutWindowStatusFunc() callback.
+
+    \see      glutHideWindow(), glutPopWindow(), glutPushWindow(),
+              glutWindowStatusFunc()
 */
 void OGAPIENTRY glutShowWindow( void )
 {
@@ -1258,7 +1259,7 @@ void OGAPIENTRY glutShowWindow( void )
     \brief    Make the current window hidden
     \ingroup  window
 
-    Even though a window is ``open'', it is not necessarily visible.
+    Even if a window is ``open'', it need not be visible.
     It may be convenient to hide a window rather than to close it,
     if you want to re-display the window at the same location and
     size, later.  Redefining all of the OpenGLUT features of a
@@ -1302,9 +1303,8 @@ void OGAPIENTRY glutHideWindow( void )
     \note     Applies only to onscreen, top-level windows.
     \note     Not guaranteed to have any effect; effect may be
               arbitrarily delayed.
-    \todo     Which callback (I think we agreed on a sensible
-              behavior for iconification, but didn't handle it)?
-    \todo     Is there a function to <b>un</b>iconify?
+    \note     There is no callback that specifically tells you
+              when (or if) your window is iconified.
 
     Most window systems have some kind of ``minimized'' or ``iconified''
     state for windows.  All systems currently supported by OpenGLUT
@@ -1312,8 +1312,8 @@ void OGAPIENTRY glutHideWindow( void )
     system-dependant, but this makes a request of the window system
     to place the window into this state.
 
-    Graphic output is usually suspended in this form, as is
-    user input to your application.
+    Graphic output is usually suspended in this form.
+    User input may be partially or wholly suspended.
 
     If and when your window is iconified by the window system,
     it may be uniconified at any time by the system.  This usually
@@ -1350,22 +1350,24 @@ void OGAPIENTRY glutIconifyWindow( void )
 
 /*!
     \fn
-    \brief    Change the title of the current window
+    \brief    Request changing the title of the current window
     \ingroup  window
     \param    title    New window title
     \note     Only for managed, onscreen, top-level windows.
     \note     Not all window systems display titles.
     \note     May be ignored or delayed by window manager.
 
-    Normally a window system displays a title for every
-    top-level window in the system.  By means of this
-    function you can set the titles for your top-level
-    OpenGLUT windows.  The title is maintained by a
-    part of the system called (at least on X Windows)
-    the window manager.
+    glutSetWindowTitle() requests that the window system
+    change the title of the window.
 
-    Some window managers do not provide titles for
-    windows, in which case this function can have no
+    Normally a window system displays a title for every
+    top-level window in the system.  The initial title is
+    set when you call glutCreateWindow().  By means of this
+    function you can set the titles for your top-level
+    OpenGLUT windows.
+
+    Some window systems do not provide titles for
+    windows, in which case this function may have no
     useful effect.
 
     Because the effect may be delayed or lost, you
@@ -1374,8 +1376,9 @@ void OGAPIENTRY glutIconifyWindow( void )
     title bar for a one-line status bar in some cases.
     Use discretion.
 
-    If you just want one title for the window, you should
-    set it when you open the window with glutCreateWindow().
+    If you just want one title for the window over the window's
+    entire life, you should set it when you open the window
+    with glutCreateWindow().
 
     \see glutCreateWindow(), glutSetIconTitle()
 */
@@ -1390,7 +1393,7 @@ void OGAPIENTRY glutSetWindowTitle( const char* title )
 
         XTextProperty text;
 
-        text.value = ( unsigned char * )strdup( title );
+        text.value = ( unsigned char * )ogStrDup( title );
         text.encoding = XA_STRING;
         text.format = 8;
         text.nitems = strlen( title );
@@ -1411,7 +1414,7 @@ void OGAPIENTRY glutSetWindowTitle( const char* title )
 #elif TARGET_HOST_WINCE
 
         {
-            wchar_t* wstr = oghStrToWstr( title );
+            wchar_t *wstr = oghStrToWstr( title );
             SetWindowText( ogStructure.Window->Window.Handle, wstr );
             free( wstr );
         }
@@ -1422,10 +1425,14 @@ void OGAPIENTRY glutSetWindowTitle( const char* title )
 
 /*!
     \fn
-    \brief    Change the iconified title of the current window
+    \brief    Requests changing the iconified title of the current window
     \ingroup  window
     \param    title    New window title
     \note     Effect is system-dependant.
+
+    Requests that the window system change the title of the
+    icon (or whatever) that is displayed when the
+    <i>current window</i> is in iconified mode.
 
     As discussed under glutIconifyWindow(), most window systems allow
     a window to be placed in some kind of minimized, or iconified,
@@ -1433,7 +1440,11 @@ void OGAPIENTRY glutSetWindowTitle( const char* title )
     likely to be obscured, and the only clue about the window
     contents may be the window title.
 
-    \see glutSetWindowTitle(), glutIconifyWindow()
+    \note There Exactly what "iconified" means is system
+          dependant.  Iconification may not be supported, or
+          the title may not be available---or legible.  Avoid
+          putting essential information into the icon title.
+    \see  glutSetWindowTitle(), glutIconifyWindow()
 
 */
 void OGAPIENTRY glutSetIconTitle( const char* title )
@@ -1448,7 +1459,7 @@ void OGAPIENTRY glutSetIconTitle( const char* title )
 
         XTextProperty text;
 
-        text.value = ( unsigned char * )strdup( title );
+        text.value = ( unsigned char * )ogStrDup( title );
         text.encoding = XA_STRING;
         text.format = 8;
         text.nitems = strlen( title );
@@ -1468,7 +1479,7 @@ void OGAPIENTRY glutSetIconTitle( const char* title )
 
 #elif TARGET_HOST_WINCE
         {
-            wchar_t* wstr = oghStrToWstr( title );
+            wchar_t *wstr = oghStrToWstr( title );
             SetWindowText( ogStructure.Window->Window.Handle, wstr );
             free( wstr );
         }
@@ -1479,23 +1490,24 @@ void OGAPIENTRY glutSetIconTitle( const char* title )
 
 /*!
     \fn
-    \brief    Change the size of the current window
+    \brief    Request changing the size of the current window
     \ingroup  window
     \param    width    Requested width of the current window
     \param    height   Requested height of the current window
 
-    The glutReshapeWindow() function adjusts the width and height of a
-    top-level, offscreen or subwindow.  Subwindows are typically
+    The glutReshapeWindow() function adjusts the width and height of
+    the <i>current window</i>, if it is an onscreen
+    top-level or subwindow.  Subwindows are typically
     resized and repositioned in response to window resize events.
 
-    \note     The size of top-level windows is ultimately determined
-              by the windowing system.  Therefore, a reshape request
-              by an OpenGLUT application may not necessarily succeed
-              or take immediate effect.
-    \note     The size of subwindows is constrained by the size of
-              the top-level window
-    \note     The size of offscreen windows may be constrained,
-              according to platform limitations.
+    The window system may delay or even alter your request.
+    Use the glutReshapeFunc() callback registration for the window
+    if you want
+
+    If you try to make a subwindow smaller than its parent, the
+    parent will not grow to accomodate the child.
+
+    \todo     Add support for offscreen windows.
     \see      glutInit(), glutInitWindowSize(), glutReshapeFunc() and
               glutCreateSubWindow()
 */
@@ -1516,21 +1528,23 @@ void OGAPIENTRY glutReshapeWindow( int width, int height )
 
 /*!
     \fn
-    \brief    Change the position of the current window
+    \brief    Request to change the position of the current window
     \ingroup  window
     \param    x       Requested horizontal position of the current window
     \param    y       Requested vertical position of the current window
 
-    The glutPositionWindow() function positions a top-level or subwindow
+    The glutPositionWindow() function requests that the window system
+    position a top-level or subwindow
     relative to the top-left corner.  Subwindows are typically
     resized and repositioned in response to window resize events.
 
     \note     The position of top-level windows is ultimately determined
               by the windowing system.  Therefore, a position request
-              by an OpenGLUT application may not necessarily succeed
-              or take immediate effect.
+              by an OpenGLUT application may not necessarily succeed.
+    \note     May not take immediate effect; wait for the callback.
     \note     Not applicable to offscreen windows.
-    \see      glutInit(), glutInitWindowPosition() and glutCreateSubWindow()
+    \see      glutInit(), glutInitWindowPosition(), glutReshapeFunc(), and
+              glutCreateSubWindow()
 */
 void OGAPIENTRY glutPositionWindow( int x, int y )
 {
@@ -1657,8 +1671,11 @@ void OGAPIENTRY glutFullScreen( void )
 
 /*!
     \fn
-    \brief    Lower the current window to the bottom of the z-order
+    \brief    Request to lower the current window to the bottom.
     \ingroup  window
+
+    This function requests that the <i>current window</i> be ``pushed''
+    to the back.
 
     A window can be in front of or behind other windows, as determined
     by the z-order from front to back.  Top-level OpenGLUT windows
@@ -1670,12 +1687,16 @@ void OGAPIENTRY glutFullScreen( void )
     adjusted by the user, subwindow z-order is controlled entirely
     by the application.
 
+    There may not be an immediate effect to this function.  Wait for
+    the glutWindowStatusFunc() callback to tell you about whatever
+    obscured/visible status your window achieves.
+
     \note    The z-order of top-level windows is ultimately managed by
              the windowing system.  Therefore, a push or pop request
              by an OpenGLUT application may not necessarily succeed
              or take immediate effect.
     \note    Not applicable to offscreen windows.
-    \see     glutPopWindow()
+    \see     glutPopWindow(), glutWindowStatusFunc()
 */
 void OGAPIENTRY glutPushWindow( void )
 {
@@ -1703,8 +1724,11 @@ void OGAPIENTRY glutPushWindow( void )
 
 /*!
     \fn
-    \brief    Raise the current window to the top of the Z-order
+    \brief    Request to raise the current window to the top
     \ingroup  window
+
+    This function requests that the <i>current window</i> be ``popped''
+    to the fore.
 
     A window can be in front of or behind other windows, as determined
     by the z-order from front to back.  Top-level OpenGLUT windows
@@ -1716,12 +1740,17 @@ void OGAPIENTRY glutPushWindow( void )
     adjusted by the user, subwindow z-order is controlled entired
     by the application.
 
+    If this has any effect on your window's visibility, you should
+    receive a glutWindowStatusFunc() callback and a
+    glutDisplayFunc() callback.
+
     \note    The z-order of top-level windows is ultimately managed by
              the windowing system.  Therefore, a push or pop request
              by an OpenGLUT application may not necessarily succeed
              or take immediate effect.
     \note    Not applicable to offscreen windows.
-    \see     glutCreateWindow() and glutPushWindow()
+    \see     glutCreateWindow(), glutDisplayFunc(), glutPushWindow(),
+             glutWindowStatusFunc()
 */
 void OGAPIENTRY glutPopWindow( void )
 {
@@ -1752,16 +1781,15 @@ void OGAPIENTRY glutPopWindow( void )
     \brief    Get the user data for the current window
     \ingroup  window
 
-    This function will return whatever \a void* value you
-    associated with this window previously via glutSetWindowData(),
-    or \a NULL if you did not associate a pointer with your window.
+    This function will return whatever \a void* value is
+    associated with the <i>current window</i> via glutSetWindowData().
+    This is \a NULL if you did not associate a pointer with your window.
     This can be useful in a situation where you have a single
     callback function performing services for many windows.
     You <b>could</b> keep track of the <i>window id</i>s in a
     global list and search for the <i>current window</i> in
     that list.  But this is quicker than searching a data
-    structure, and allows you to avoid using one more global
-    variable.
+    structure, and allows you to avoid the use of globals for this.
 
     \see      glutSetWindowData()
 
@@ -1777,14 +1805,11 @@ void* OGAPIENTRY glutGetWindowData( void )
     \ingroup  window
     \param    data    Arbitrary client-supplied pointer.
 
-    This allows you to store an arbitrary \a void* into a
-    GLUT window.  Often, you may have some special data
-    structure or object to associate with a window, and
-    also want to use a single OpenGLUT callback handler
-    for multiple windows.  The GLUT-based event model
-    of OpenGLUT would otherwise force you to use global
-    variables and GLUT <i>window id</i>s to determine
-    which window you had.
+    This associates an arbitrary \a void* value with the
+    <i>current window</i>.  This is especially useful
+    in client-side callbacks that service many windows, if
+    the client needs to know more about the window than
+    OpenGLUT normally will provide.
 
     \see      glutGetWindowData()
 */

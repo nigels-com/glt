@@ -40,7 +40,7 @@
  * This function is used by glutVisibilityFunc() as a callback for
  * another function.
  */
-static void oghVisibility( int status )
+static void oghVisibility( const int status )
 {
     int glut_status = GLUT_VISIBLE;
 
@@ -92,9 +92,11 @@ do                                                       \
 void OGAPIENTRY glutDisplayFunc( void( *callback )( void ) )
 {
     if( !callback )
-        ogError( "Fatal error in program.  NULL display callback not "
-                 "permitted in GLUT 3.0+, freeglut 2.0.1+, "
-                 "or any version of OpenGLUT.\n" );
+        ogError(
+            "Fatal error in program.  NULL display callback not "
+            "permitted in GLUT 3.0+, freeglut 2.0.1+, "
+            "or any version of OpenGLUT.\n"
+        );
     SET_CALLBACK( Display );
 }
 
@@ -117,14 +119,15 @@ void OGAPIENTRY glutDisplayFunc( void( *callback )( void ) )
 
               This callback is bound to the <i>current window</i>.
 
+              To ask OpenGLUT about the present dimensions of the
+              <i>current window</i>, you can use glutGet().
+
     \note     Unlike other callbacks, GLUT has an <b>active</b>
               default behavior if you do not set this.   (Most
               event types passively do nothing if you do not
               specify a callback to handle them.)
-    \note     If you ask OpenGLUT to change the size of a window,
-              that does not necessarily have an immediate effect.
-    \note     To ask OpenGLUT about the present dimensions of the
-              <i>current window</i>, you can use glutGet().
+    \note     The reshape callback should always be called, if
+              registered, when your window is first created.
     \see      glutGet(), glutReshapeWindow()
 */
 void OGAPIENTRY glutReshapeFunc( void( *callback )( int w, int h ) )
@@ -139,20 +142,20 @@ void OGAPIENTRY glutReshapeFunc( void( *callback )( int w, int h ) )
     \param    callback    Client function for keyboard event.
 
               This callback registration allows you to handle
-              traditional ASCII key values.  A general rule of
-              thumb is that if a key has a common binding in a
-              plain ASCII terminal, then OpenGLUT assigns that
-              binding and tells your application about the key
-              via that code.  For other keys, you must use
-              glutSpecialFunc().  ASCII key codes are passed in
-              by ASCII value via the \a key parameter to \a callback .
+              traditional ASCII keyboard input.  A general rule of
+              thumb is that if a key has a common ASCII code,
+              then OpenGLUT assigns that code to the key
+              and calls the Keyboard \a callback with the ASCII code in
+              the \a key parameter.
+              For other keys, you must use glutSpecialFunc().
+              Not all keys can be reported by OpenGLUT.
 
               As a convenience, the mouse coordinates, relative
               to your window, are also returned.
 
               This callback is bound to the <i>current window</i>.
 
-    \note     Not very international-friendly.
+    \note     This function is not very international-friendly.
     \note     Windows created via glutCreateMenuWindow() always cascade
               keyboard and mouse events to their parent.
     \see      glutKeyboardUpFunc(), glutSpecialFunc()
@@ -171,10 +174,14 @@ void OGAPIENTRY glutKeyboardFunc(
     \ingroup  input
     \param    callback    Client function for keyboard event.
 
+              Registers a \a callback for OpenGLUT to call
+              when the user presses "special" keys on the keyboard.
+
               The special callback handles some additional keys that
               are not covered under plain "keyboard" events.
-              The \a key that is passed is one of an enumerated
-              set.  The association to keys on your keyboard should
+              The \a key that is passed to the \a callback is one of an
+              enumerated set.
+              The association to keys on your keyboard should
               be obvious.  Their GLUT symbol names are:
 
                - \a GLUT_KEY_F1
@@ -223,8 +230,8 @@ void OGAPIENTRY glutSpecialFunc( void( *callback )( int key, int x, int y ) )
     \param    callback    Client function for idle event.
 
               When OpenGLUT's glutMainLoop() is doing nothing else,
-              it checks to see if an ``idle'' function is defined.
-              If so, OpenGLUT invokes the idle function.
+              it checks to see if an ``idle'' callback set.
+              If so, OpenGLUT invokes that callback.
 
               This callback is <b>not</b> bound to any window.
 
@@ -234,7 +241,7 @@ void OGAPIENTRY glutSpecialFunc( void( *callback )( int key, int x, int y ) )
 */
 void OGAPIENTRY glutIdleFunc( void( *callback )( void ) )
 {
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY ("glutIdleFunc");
     ogState.IdleCallback = callback;
 }
 
@@ -266,7 +273,7 @@ void OGAPIENTRY glutTimerFunc(
 {
     SOG_Timer *timer, *node;
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY ("glutTimerFunc");
 
     if( ( timer = ogState.FreeTimers.Last ) )
         ogListRemove( &ogState.FreeTimers, &timer->Node );
@@ -307,7 +314,6 @@ void OGAPIENTRY glutTimerFunc(
     \note     This function appears to be superceded by
               glutWindowStatusFunc().
     \note     This callback is mutually exclusive of glutWindowStatusFunc().
-    \todo     Deprecate this function?
     \see      glutWindowStatusFunc()
 */
 void OGAPIENTRY glutVisibilityFunc( void( *callback )( int status ) )
@@ -326,10 +332,11 @@ void OGAPIENTRY glutVisibilityFunc( void( *callback )( int status ) )
     \ingroup  input
     \param    callback    Client hook for ASCII key releases.
 
-              When OpenGLUT detects the release of one of the keys
-              with an associated ASCII code (as in glutKeyboardFunc()),
-              it calls \a callback with the ASCII key and the mouse
-              coordinates, if you have provided a KeyboardUp handler.
+              This function provides a way to detect the release of
+              a keyboard key.
+              The keys are reported exactly as with
+              glutKeyboardFunc(), save that the \a callback registered
+              via this function is used to report the event.
 
               This callback is bound to the <i>current window</i>.
 
@@ -351,10 +358,11 @@ void OGAPIENTRY glutKeyboardUpFunc(
     \ingroup  input
     \param    callback    Client hook for special key releases.
 
-              When OpenGLUT detects the release of one of the special
-              keys (as in glutSpecialFunc()), it calls \a callback with
-              the enumerated \a key  value and the mouse
-              coordinates, if you have provided a KeyboardUp handler.
+              This function provides a way to detect the release of
+              a keyboard \a key.
+              The keys are reported exactly as with
+              glutSpecialFunc(), save that the \a callback registered
+              via this function is used to report the event.
 
               This callback is bound to the <i>current window</i>.
 
@@ -378,14 +386,15 @@ void OGAPIENTRY glutSpecialUpFunc(
     \param    pollInterval  Approx. (minimum) millisecond interval
 
               Each window can have a single joystick callback registered.
-              If registere, then roughly every \a pollinterval milliseconds
+              If registered, then roughly every \a pollinterval milliseconds
               OpenGLUT will tell you the joystick status.
 
               This callback is bound to the <i>current window</i>.
 
-    \note     We are planning to remove the joystick API and replace
-              it with a better one.  This function may soon be deprecated,
-              and eventually removed.
+    \note     There is a proposal afoot to replace the joystick API with
+              a more general, better designed mechanism.  That has not
+              been sorted out in principle, much less implemented.
+              However, joystick usage may eventually change.
 */
 void OGAPIENTRY glutJoystickFunc(
     void( *callback )( unsigned int, int, int, int ),
@@ -415,7 +424,7 @@ void OGAPIENTRY glutJoystickFunc(
     \ingroup  input
     \param    callback    Client hook for mouse-buttons.
 
-              Whenever a mouse button is pressed in an OpenGLUT
+              Whenever a mouse button is pressed or released in an OpenGLUT
               window, OpenGLUT checks if that window has a mouse-button
               (Mouse) callback registered.  If so, OpenGLUT gives the
               event to the handler.  \a button is the button number,
@@ -430,7 +439,8 @@ void OGAPIENTRY glutJoystickFunc(
               will act like a different button clicking.  Mouse wheel
               pseudo-buttons are added after all real buttons.
 
-              While the button is held, you receive mouse-motion events,
+              While the button is held and the mouse is dragged,
+              you receive mouse-motion events (glutMotionFunc()),
               even if the mouse is dragged out of the window.
 
               This callback is bound to the <i>current window</i>.
@@ -494,11 +504,11 @@ void OGAPIENTRY glutMouseWheelFunc(
     \ingroup  input
     \param    callback    Client hook for dragging mouse.
 
-              Reports the mouse position when the mouse is dragged.
-              (Dragging occurs when you press one or more mouse
+              This function reports the mouse position when the mouse
+              is dragged starting from within your window.
+              (``Dragging'' occurs when you press one or more mouse
                buttons in one of your OpenGLUT windows, and then
-               move the mouse around---even moving outside of
-               the window.)
+               move the mouse around.)
 
               This callback is bound to the <i>current window</i>.
 
@@ -608,6 +618,10 @@ void OGAPIENTRY glutCloseFunc( void( *callback )( void ) )
               perhaps we should have the \a callback return
               zero or non-zero to indicate whether to continue
               functioning?  That would be a little cleaner, perhaps.
+    \todo     This function is absolutely redundant of glutCloseFunc(),
+              but is less well-named.  This function should probably
+              be deprecated, whether or not we make other changes to
+              the OpenGLUT window-close API.
     \note     This function is <b>exactly</b> the same as
               glutCloseFunc().  In fact, this function
               is just a call to the other function, with the same
@@ -671,12 +685,13 @@ void OGAPIENTRY glutMenuDestroyFunc( void( *callback )( void ) )
               <i>current window</i> and
               the <i>current menu</i>.
 
-    \note     Obsolete.  Depcreated.  Remove before verion 1.0?
+    \note     Obsolete.  Depcreated.
+    \bug      Your callback is not actually called presently.
     \see      glutMenuStatusFunc()
 */
 void OGAPIENTRY glutMenuStateFunc( void( *callback )( int status ) )
 {
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY ("glutMenuStatusFunc");
     ogState.MenuStateCallback = callback;
 }
 
@@ -707,13 +722,14 @@ void OGAPIENTRY glutMenuStateFunc( void( *callback )( int status ) )
               <i>current window</i> and
               the <i>current menu</i>.
 
+    \bug      Your callback is not actually called presently.
     \see      glutMenuStateFunc()
 */
 void OGAPIENTRY glutMenuStatusFunc(
     void( *callback )( int status, int x, int y )
 )
 {
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY ("glutMenuStatusFunc");
     ogState.MenuStatusCallback = callback;
 }
 
@@ -753,8 +769,9 @@ void OGAPIENTRY glutOverlayDisplayFunc( void( *callback )( void ) )
     \param    callback    Client window status hook.
 
               When the visibility status of your window changes,
-              OpenGLUT either invokes this callback or the
-              Visibility callback---or neither, if you have
+              OpenGLUT either invokes the \a callback registered
+              by this function or the
+              Visibility \a callback---or neither, if you have
               not registered either callback.
 
               This differs from glutVisbilityFunc() in that the callback
@@ -781,6 +798,9 @@ void OGAPIENTRY glutWindowStatusFunc( void( *callback )( int state ) )
     \ingroup  input
     \param    callback    Client spaceball motion hook.
 
+              This function registers a callback for a spaceball
+              to report position.  A spaceball has six axes of freedom
+              (three of motion and three of orientation), plus buttons.
               The spaceball allows you to move a control point
               in 3D space with a resolution of +/- 1000 units
               along each of 3 axes.
@@ -803,6 +823,9 @@ void OGAPIENTRY glutSpaceballMotionFunc(
     \ingroup  input
     \param    callback    Client spaceball rotation hook.
 
+              This function registers a callback for a spaceball
+              to report rotation.  A spaceball has six axes of freedom
+              (three of motion and three of orientation), plus buttons.
               The spaceball allows you to rotate a control orientation
               +/- 1800 units about each of 3 axes.
 
@@ -824,6 +847,9 @@ void OGAPIENTRY glutSpaceballRotateFunc(
     \ingroup  input
     \param    callback    Client spaceball button hook.
 
+              This function registers a callback for a spaceball
+              to report buttons.  A spaceball has six axes of freedom
+              (three of motion and three of orientation), plus buttons.
               The spaceball has glutDeviceGet(\a GLUT_NUM_SPACEBALL_BUTTONS)
               and numbers them from 1.  Button state is either
               \a GLUT_UP or \a GLUT_DOWN.
@@ -893,7 +919,8 @@ void OGAPIENTRY glutDialsFunc( void( *callback )( int dial, int value ) )
     \ingroup  input
     \param    callback    Client tablet motion hook.
 
-              Reports a puck or stylus position in the range
+              This function registers a \a callback by which OpenGLUT
+              reports a puck or stylus position in the range
               of [0, 2000] along the \a x and \a y axes.
 
               The callback is bound to the <i>current window</i>.
@@ -903,7 +930,7 @@ void OGAPIENTRY glutDialsFunc( void( *callback )( int dial, int value ) )
               Although a tablet could also be generalized as a mouse.
               There are relatively cheap AipTek HyperPen tablets, and
               slightly less cheap Wacom tablets on many store shelves.
-    \note     Does not include tilt information.
+    \note     This API does not include tilt information.
     \see      glutTabletButtonFunc(), glutMouseFunc()
 */
 void OGAPIENTRY glutTabletMotionFunc( void (* callback)( int x, int y ) )
@@ -917,11 +944,13 @@ void OGAPIENTRY glutTabletMotionFunc( void (* callback)( int x, int y ) )
     \ingroup  input
     \param    callback    Client tablet button hook.
 
-              Reports a tablet button status feature.  Buttons are
+              This function registers a \a callback by which you receive
+              reports a tablet button status feature.  Buttons are
               reported with \a button in the range 1 to
               glutDeviceGet(\a GLUT_NUM_TABLET_BUTTONS).  \a state is either
               \a GLUT_UP or \a GLUT_DOWN and \a x and \a y are the
-              tablet coordinate range.
+              tablet coordinate (see glutTabletMotionFunc() for the bounds
+              of \a x and \a y).
 
               The callback is bound to the <i>current window</i>.
 

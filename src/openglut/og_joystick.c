@@ -170,7 +170,7 @@
              int              axes_usage [ _JS_MAX_AXES ];
 #        endif
         /*
-         * We keep button and axes state ourselves, as they might not be updated
+         * We keep button, axis state ourselves, as they might not be updated
          * on every read of a USB device
          */
          int              cache_buttons;
@@ -241,8 +241,7 @@
                  else if( errno == EACCES )
                      if( !protection_warned )
                      {
-                         fprintf( stderr, "Can't open %s for read!\n",
-                                  buf );
+                         ogWarning( "Can't open %s for read!\n", buf );
                          protection_warned = 1;
                      }
              }
@@ -263,8 +262,9 @@
 
              if( ( rd = hid_get_report_desc( os->fd ) ) == 0 )
              {
-                 fprintf( stderr, "error: %s: %s", os->fname,
-                          strerror( errno ) );
+                 ogWarning(
+                     " (joystick) %s: %s", os->fname, strerror( errno )
+                 );
                  return FALSE;
              }
 
@@ -274,8 +274,10 @@
                  if( ioctl( os->fd, USB_GET_REPORT_ID, &report_id ) < 0)
                  {
                      /* XXX {report_id} may not be the right variable? */
-                     fprintf( stderr, "error: %s%d: %s",
-                              UHIDDEV, report_id, strerror( errno ) );
+                     ogWarning(
+                         " (joystick) %s%d: %s",
+                         UHIDDEV, report_id, strerror( errno )
+                     );
                      return FALSE;
                  }
 
@@ -434,31 +436,31 @@ struct tagSOG_Joystick
      int numDevices;
      io_object_t ioDevices[K_NUM_DEVICES];
 
-     static void oghJoystickFindDevices( SOG_Joystick* joy, mach_port_t );
+     static void oghJoystickFindDevices( SOG_Joystick *joy, mach_port_t );
      static CFDictionaryRef oghJoystickGetCFProperties(
-         SOG_Joystick* joy, io_object_t
+         SOG_Joystick *joy, io_object_t
      );
 
      static void oghJoystickEnumerateElements(
-         SOG_Joystick* joy, CFTypeRef element
+         SOG_Joystick *joy, CFTypeRef element
      );
      /* callback for CFArrayApply */
      static void oghJoystickElementEnumerator(
-         SOG_Joystick* joy, void *element, void* vjs
+         SOG_Joystick *joy, void *element, void* vjs
      );
      /* XXX oghJoystickParseElement() seems to be unused. */
      static void oghJoystickParseElement(
-         SOG_Joystick* joy, CFDictionaryRef element
+         SOG_Joystick *joy, CFDictionaryRef element
      );
 
      static void oghJoystickAddAxisElement(
-         SOG_Joystick* joy, CFDictionaryRef axis
+         SOG_Joystick *joy, CFDictionaryRef axis
      );
      static void oghJoystickAddButtonElement(
-         SOG_Joystick* joy, CFDictionaryRef button
+         SOG_Joystick *joy, CFDictionaryRef button
      );
      static void oghJoystickAddHatElement(
-         SOG_Joystick* joy, CFDictionaryRef hat
+         SOG_Joystick *joy, CFDictionaryRef hat
      );
 #endif
 
@@ -477,7 +479,7 @@ static SOG_Joystick *ogJoystick[ MAX_NUM_JOYSTICKS ];
 /*
  * Read the raw joystick data
  */
-static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
+static void oghJoystickRawRead( SOG_Joystick *joy, int *buttons, float *axes )
 {
 #if TARGET_HOST_WIN32
     MMRESULT status;
@@ -571,13 +573,12 @@ static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
 
     if( axes )
     {
-        /*
-         * WARNING - Fall through case clauses!!
-         */
+        /* WARNING - Fall through case clauses!! */
         switch( joy->num_axes )
         {
         case 8:
-            /* Generate two POV axes from the POV hat angle.
+            /*
+             * Generate two POV axes from the POV hat angle.
              * Low 16 bits of js.dwPOV gives heading (clockwise from ahead) in
              *   hundredths of a degree, or 0xFFFF when idle.
              */
@@ -588,10 +589,15 @@ static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
             }
             else
             {
-              float s = ( float )sin( ( joy->js.dwPOV & 0xFFFF ) * ( 0.01 * M_PI / 180.0f ) );
-              float c = ( float )cos( ( joy->js.dwPOV & 0xFFFF ) * ( 0.01 * M_PI / 180.0f ) );
+              float s = ( float )sin(
+                  ( joy->js.dwPOV & 0xFFFF ) * ( 0.01 * M_PI / 180.0f )
+              );
+              float c = ( float )cos(
+                  ( joy->js.dwPOV & 0xFFFF ) * ( 0.01 * M_PI / 180.0f )
+              );
 
-              /* Convert to coordinates on a square so that North-East
+              /*
+               * Convert to coordinates on a square so that North-East
                * is (1,1) not (.7,.7), etc.
                * s and c cannot both be zero so we won't divide by zero.
                */
@@ -629,7 +635,8 @@ static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
             return;
         }
         if( buttons != NULL )
-            *buttons = ( joy->os->ajs.b1 ? 1 : 0 ) | ( joy->os->ajs.b2 ? 2 : 0 );
+            *buttons =
+                ( joy->os->ajs.b1 ? 1 : 0 ) | ( joy->os->ajs.b2 ? 2 : 0 );
 
         if( axes != NULL )
         {
@@ -641,7 +648,11 @@ static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
     }
 
 #        ifdef HAVE_USB_JS
-    while( ( len = read( joy->os->fd, joy->os->hid_data_buf, joy->os->hid_dlen ) ) == joy->os->hid_dlen )
+    while(
+        ( len = read(
+            joy->os->fd, joy->os->hid_data_buf, joy->os->hid_dlen )
+        ) == joy->os->hid_dlen
+    )
     {
         struct hid_item *h;
 
@@ -762,7 +773,8 @@ static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
 
     if( buttons )
 #        if defined( __FreeBSD__ ) || defined( __NetBSD__ )
-        *buttons = ( joy->js.b1 ? 1 : 0 ) | ( joy->js.b2 ? 2 : 0 );  /* XXX Should not be here -- BSD is handled earlier */
+        *buttons = ( joy->js.b1 ? 1 : 0 ) | ( joy->js.b2 ? 2 : 0 );
+        /* XXX Should not be here -- BSD is handled earlier */
 #        else
         *buttons = joy->js.buttons;
 #        endif
@@ -779,7 +791,7 @@ static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
 /*
  * Correct the joystick axis data
  */
-static float oghJoystickFudgeAxis( SOG_Joystick* joy, float value, int axis )
+static float oghJoystickFudgeAxis( SOG_Joystick *joy, float value, int axis )
 {
     if( value < joy->center[ axis ] )
     {
@@ -882,7 +894,8 @@ static int oghJoystickFindDevices( SOG_Joystick *joy, mach_port_t masterPort )
                             (usage == kHIDUsage_GD_Joystick)
                          || (usage == kHIDUsage_GD_GamePad)
                          || (usage == kHIDUsage_GD_MultiAxisController)
-                         || (usage == kHIDUsage_GD_Hatswitch) /* last two necessary ? */
+                         || (usage == kHIDUsage_GD_Hatswitch)
+                            /* last two necessary ? */
             /* add it to the array */
             ioDevices[numDevices++] = ioDev;
     }
@@ -890,15 +903,20 @@ static int oghJoystickFindDevices( SOG_Joystick *joy, mach_port_t masterPort )
     IOObjectRelease(hidIterator);
 }
 
-static CFDictionaryRef oghJoystickGetCFProperties( SOG_Joystick *joy, io_object_t ioDev )
+static CFDictionaryRef oghJoystickGetCFProperties(
+    SOG_Joystick *joy, io_object_t ioDev
+)
 {
     IOReturn rv;
     CFMutableDictionaryRef cfProperties;
 
 #if 0
     /* comment copied from darwin/SDL_sysjoystick.c */
-    /* Mac OS X currently is not mirroring all USB properties to HID page so need to look at USB device page also
-     * get dictionary for usb properties: step up two levels and get CF dictionary for USB properties
+    /*
+     * Mac OS X currently is not mirroring all USB properties to
+     * HID page so need to look at USB device page also
+     * get dictionary for usb properties: step up two levels and
+     * get CF dictionary for USB properties
      */
 
     io_registry_entry_t parent1, parent2;
@@ -970,8 +988,11 @@ static void oghJoystickParseElement(
     long type, page, usage;
 
     CFNumberGetValue((CFNumberRef)
-        CFDictionaryGetValue((CFDictionaryRef) element, CFSTR(kIOHIDElementTypeKey)),
-        kCFNumberLongType, &type);
+        CFDictionaryGetValue(
+            ( CFDictionaryRef )element, CFSTR( kIOHIDElementTypeKey )
+        ),
+        kCFNumberLongType, &type
+    );
 
     switch( type )
     {
@@ -1024,7 +1045,9 @@ static void oghJoystickParseElement(
     }
 }
 
-static void oghJoystickAddAxisElement( SOG_Joystick *joy, CFDictionaryRef axis )
+static void oghJoystickAddAxisElement(
+    SOG_Joystick *joy, CFDictionaryRef axis
+)
 {
     long cookie, lmin, lmax;
     int index = joy->num_axes++;
@@ -1081,7 +1104,7 @@ static void oghJoystickAddHatElement(
  * http://msdn.microsoft.com/archive/en-us/dnargame/html/msdn_sidewind3d.asp
  */
 static int oghJoystickGetOEMProductName(
-    SOG_Joystick* joy, char *buf, int buf_sz
+    SOG_Joystick *joy, char *buf, int buf_sz
 )
 {
     char buffer [ 256 ];
@@ -1142,7 +1165,10 @@ static int oghJoystickGetOEMProductName(
 
 static void oghJoystickOpen( SOG_Joystick *joy )
 {
+#   if !defined( __CYGWIN__ )
     int i;
+#   endif
+
 #   if TARGET_HOST_MACINTOSH
         OSStatus err;
 #   endif
@@ -1237,7 +1263,8 @@ static void oghJoystickOpen( SOG_Joystick *joy )
             memcpy( joy->isp_needs, temp_isp_needs, sizeof (temp_isp_needs ) );
 
 
-            /* next two calls allow keyboard and mouse to emulate other input
+            /*
+             * next two calls allow keyboard and mouse to emulate other input
              * devices (gamepads, joysticks, etc)
              */
             /*
@@ -1354,7 +1381,8 @@ static void oghJoystickOpen( SOG_Joystick *joy )
         }
         else
         {
-            /* Device name from jsCaps is often "Microsoft PC-joystick driver",
+            /*
+             * Device name from jsCaps is often "Microsoft PC-joystick driver",
              * at least for USB.  Try to get the real name from the registry.
              */
             if( !oghJoystickGetOEMProductName( joy, joy->name,
@@ -1364,7 +1392,8 @@ static void oghJoystickOpen( SOG_Joystick *joy )
                 strncpy( joy->name, joy->jsCaps.szPname, sizeof( joy->name ) );
             }
 
-            /* Windows joystick drivers may provide any combination of
+            /*
+             * Windows joystick drivers may provide any combination of
              * X,Y,Z,R,U,V,POV - not necessarily the first n of these.
              */
             if( joy->jsCaps.wCaps & JOYCAPS_HASPOV )
@@ -1390,9 +1419,7 @@ static void oghJoystickOpen( SOG_Joystick *joy )
             joy->max[ 0 ] = ( float )joy->jsCaps.wXmax;
         }
 
-        /*
-         * Guess all the rest judging on the axes extremals
-         */
+        /* Guess all the rest judging on the axes extremals */
         for( i = 0; i < joy->num_axes; i++ )
         {
             joy->center   [ i ] = ( joy->max[ i ] + joy->min[ i ] ) * 0.5f;
@@ -1486,7 +1513,8 @@ static void oghJoystickOpen( SOG_Joystick *joy )
 
                 for( i = 0; i < _JS_MAX_AXES; i++ )
                 {
-                    /* We really should get this from the HID, but that data
+                    /*
+                     * We really should get this from the HID, but that data
                      * seems to be quite unreliable for analog-to-USB
                      * converters. Punt for now.
                      */
@@ -1510,9 +1538,7 @@ static void oghJoystickOpen( SOG_Joystick *joy )
 #       endif
 
 #       if defined( __linux__ )
-            /*
-             * Default for older Linux systems.
-             */
+            /* Default for older Linux systems. */
             joy->num_axes    =  2;
             joy->num_buttons = 32;
 
@@ -1530,7 +1556,8 @@ static void oghJoystickOpen( SOG_Joystick *joy )
 
             /* Set the correct number of axes for the linux driver */
 #           ifdef JS_NEW
-                /* Melchior Franz's fixes for big-endian Linuxes since writing
+                /*
+                 * Melchior Franz's fixes for big-endian Linuxes since writing
                  *  to the upper byte of an uninitialized word doesn't work.
                  *  9 April 2003
                  */
@@ -1775,6 +1802,8 @@ void ogJoystickPollWindow( SOG_Window *window )
 /*
  * PWO: These jsJoystick class methods have not been implemented.
  *      We might consider adding such functions later.
+ *
+ * XXX They obviously HAVE been implemented.  Keep them?
  */
 int  glutJoystickGetNumAxes( int ident )
 {

@@ -73,13 +73,18 @@ void OGAPIENTRY glutPostRedisplay( void )
               double-buffered (\a GLUT_DOUBLE param to glutInitDisplayMode()),
               then OpenGLUT will swap the front buffer with the back buffer.
 
-              Also computes your current frame-rate and prints the result
+              This also computes your current frame-rate and prints the result
               on \a stderr if indicated by the \a GLUT_FPS environment
-              variable.
+              variable.  The computed value is not necessarily the
+              total frame rate, if you have multiple windows, as the
+              statistic is the total number of buffer-swaps for the
+              entire program.
 
     \note     This function has no effect if your window is \a GLUT_SINGLE .
     \note     Frame rate is only calculated for double-buffered windows.
     \todo     How does this interact with overlays?
+    \todo     Consider making \a GLUT_FPS keep per-window stats in a
+              multi-window program.
     \see      glutPostRedisplay(), glutPostOverlayRedisplay(),
               glutPostWindowRedisplay(), glutPostWindowOverlayRedisplay(),
               glutInitDisplaymode()
@@ -137,7 +142,7 @@ void OGAPIENTRY glutSwapBuffers( void )
 */
 void OGAPIENTRY glutPostWindowRedisplay( int windowID )
 {
-    SOG_Window* window;
+    SOG_Window *window;
 
     freeglut_assert_ready;
     window = ogWindowByID( windowID );

@@ -36,6 +36,22 @@
 #include <GL/openglut.h>
 #include "og_internal.h"
 
+/* -- INTERNAL FUNCTIONS --------------------------------------------------- */
+
+/*
+ * Similar to the de facto strdup(), but since strdup() is not
+ * actually a standard C function, we provide our own.
+ */
+char *ogStrDup( const char *str )
+{
+    char *ret = malloc( strlen( str ) + 1 );
+    char *dst = ret;
+    if( ret )
+        while( *dst++ = *str++ )
+            ;
+    return ret;
+}
+
 /* -- INTERFACE FUNCTIONS -------------------------------------------------- */
 
 /*!
@@ -94,14 +110,15 @@ int OGAPIENTRY glutExtensionSupported( const char *extension )
     \brief    Reports all available OpenGL errors.
     \ingroup  opengl
 
-              Uses ogWarning() to print every OpenGL error
+              Displays as an OpenGLUT warning every OpenGL error
               that OpenGL remembers giving to us and which
               we have not processed.  Uses gluErrorString().
 
-    \todo     There are old GLUT options to force this to
-              be called periodically.  We should honor those
-              options.
-    \see      ogWarning(), gluErrorString()
+              This is forcibly done by OpenGLUT periodically if
+              "-gldebug" is one of the strings passed into
+              glutInit() via \argv.
+
+    \see      gluErrorString(), glutInit()
 */
 void OGAPIENTRY glutReportErrors( void )
 {
@@ -136,9 +153,10 @@ void OGAPIENTRY glutIgnoreKeyRepeat( int ignore )
     \ingroup  input
     \param    repeatMode    On, Off, or Default.
 
-              Similar to glutIgnoreKeyRepeat() but sets the behavior
+              glutSetKeyRepeat() is similar to glutIgnoreKeyRepeat()
+              but sets the behavior
               for OpenGLUT in general, rather than for a particular
-              window.  The options are:
+              window.  The options for \a repeatMode are:
 
                - \a GLUT_KEY_REPEAT_OFF: Turn off repeat for all windows.
                - \a GLUT_KEY_REPEAT_ON: Turn on repeat for all windows.
@@ -199,9 +217,9 @@ void OGAPIENTRY glutForceJoystickFunc( void )
     \param    green     New green value for palette entry.
     \param    blue      New blue value for palette entry.
 
-              Allows you to set individual color-map entries
+              glutSetCursor() allows you to set individual color-map entries
               in a \a GLUT_INDEX type of display.  Respects the
-              current layer setting.
+              current overlay setting.
 
     \bug      Unimplemented.
     \see      glutGetColor(), glutCopyColorMap()

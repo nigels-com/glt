@@ -45,7 +45,7 @@
 
 #if TARGET_HOST_UNIX_X11
 
-static int ogGetCursorError( Cursor cursor )
+static int ogGetCursorError( const Cursor cursor )
 {
     int ret = 0;
     char buf[ 256 ];
@@ -118,10 +118,11 @@ static int ogGetCursorError( Cursor cursor )
               window provides.
 
 
-    \note     X branch does not do thorough error checking.
-    \note     X branch always converts \a FULL_CROSSHAIR to \a CROSSHAIR.
-              This is permitted, but if a host system supports a fullscreen
-              crosshair, we do not presently support it.
+    \note     The X branch of OpenGLUT does not do thorough error checking.
+    \note     The X branch of OpenGLUT always converts \a FULL_CROSSHAIR
+              to \a CROSSHAIR.
+              This is acceptable, but if a host system supports a fullscreen
+              crosshair, it would be nice to support that.
     \note     Out of range \a cursorID values generate warnings.
     \note     Has no visible effect if the <i>current window</i> is
               of type \a GLUT_OFFSCREEN .
@@ -129,6 +130,7 @@ static int ogGetCursorError( Cursor cursor )
 */
 void OGAPIENTRY glutSetCursor( int cursorID )
 {
+    int error = 0;
     freeglut_assert_ready;
     freeglut_assert_window;
 
@@ -137,7 +139,6 @@ void OGAPIENTRY glutSetCursor( int cursorID )
 #if TARGET_HOST_UNIX_X11
         Cursor cursor = None;
         Pixmap no_cursor = None ;  /* Used for GLUT_CURSOR_NONE */
-        int error = 0;
 
 #define MAP_CURSOR(a,b)                                     \
     case a:                                                 \
@@ -223,9 +224,7 @@ void OGAPIENTRY glutSetCursor( int cursorID )
 
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    /*
-     * This is a temporary solution only...
-     */
+    /* This is a temporary solution only... */
     /* Set the cursor AND change it for this window class. */
 #       define MAP_CURSOR(a,b)                                   \
         case a:                                                  \
@@ -263,7 +262,8 @@ void OGAPIENTRY glutSetCursor( int cursorID )
         }
 #endif
     }
-    ogStructure.Window->State.Cursor = cursorID;
+    if( !error )
+        ogStructure.Window->State.Cursor = cursorID;
 }
 
 /*!
@@ -273,10 +273,17 @@ void OGAPIENTRY glutSetCursor( int cursorID )
     \param    x        Window X coord for mouse.
     \param    y        Window Y coord for mouse.
 
-              Moves the mouse pointer to the specified coordinates.
+              glutWarpPointer() moves the mouse pointer to window-relative
+              coordinates given by \a x and \a y.
 
     \note     \a x and \a y are relative to current window.
     \note     Not applicable for \a GLUT_OFFSCREEN windows.
+    \note     Warping means moving, just as if the user had manually
+              moved the mouse.  This can generate mouse-motion callbacks.
+              If your callback then moves the pointer again, you may
+              end up in an endless loop.  There is some discussion about
+              changing this, but at present this is just a caveat for
+              you, the user, to be aware of.
 
 */
 void OGAPIENTRY glutWarpPointer( int x, int y )

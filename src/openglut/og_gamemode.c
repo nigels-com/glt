@@ -35,16 +35,6 @@
 #include <GL/openglut.h>
 #include "og_internal.h"
 
-/*
- * TODO BEFORE THE STABLE RELEASE:
- *
- *  glutGameModeString()    -- Exterminate.
- *  glutEnterGameMode()     -- Exterminate.
- *  glutLeaveGameMode()     -- Exterminate.
- *  glutGameModeGet()       -- Exterminate.
- */
-
-
 /* -- PRIVATE FUNCTIONS ---------------------------------------------------- */
 
 /*
@@ -282,7 +272,7 @@ static GLboolean oghChangeDisplayMode( GLboolean haveToTest )
                 if( haveToTest )
                     return GL_TRUE;
                 /*
-                 * OKi, this is the display mode we have been looking for...
+                 * OK, this is the display mode we have been looking for...
                  */
                 XF86VidModeSwitchToMode(
                     ogDisplay.Display,
@@ -400,7 +390,7 @@ static GLboolean oghChangeDisplayMode( GLboolean haveToTest )
 
 /*!
     \fn
-    \brief    Sets the game mode display string
+    \brief    Set the game mode display string
     \ingroup  gamemode
     \param    string    A configuration parameter as a string.
 
@@ -426,7 +416,7 @@ static GLboolean oghChangeDisplayMode( GLboolean haveToTest )
                - \a depth 16
                - \a refresh 72
 
-    \todo     Undocumented; no standard implementation.
+    \todo     Documentation
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
               glutGameModeGet()
 */
@@ -464,11 +454,10 @@ void OGAPIENTRY glutGameModeString( const char *string )
 
 /*!
     \fn
-    \brief    Sets the game mode display string
+    \brief    Enter game mode
     \ingroup  gamemode
 
-              Attempts to enter into gamemode.  Any combination of
-              the following may apply---or none at all:
+              Any combination of the following may apply:
 
                - Resolution change, possibly to the requested
                  resolution, possibly to a "nearest match".
@@ -477,24 +466,13 @@ void OGAPIENTRY glutGameModeString( const char *string )
                  screen resolution will be opened.
                - The mouse may be restricted to operate within
                  your window.
-               - The display may become more or less unusable during or
-                 after gamemode.
-
-              Also note that OpenGLUT may be unable to restore
-              the original settings (this has been observed on
-              WIN32).
 
     \note     Varies in behavior; X users can disable the resolution
               change by an OpenGLUT compile-time option.
-    \note     The resolution change only has a prayer of working
-              on WIN32 and XFree86.
-    \todo     Undocumented; no standard implementation.
-    \todo     On some XFree86 servers, may signficantly degrade
-              display quality (ghosting, poor video syncing); this
-              is an XFree86 bug, but we can neither detect it nor
-              apparently work around it.
-    \todo     On some systems, including WIN32, can leave the
-              display in game-mode resolution after you exit.
+    \todo     Documentation
+    \todo     OpenGLUT may be unable to restore the original settings 
+              (this has been observed on WIN32).
+
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
               glutGameModeGet()
 */
@@ -616,25 +594,21 @@ int OGAPIENTRY glutEnterGameMode( void )
 
 /*!
     \fn
-    \brief    Sets the game mode display string
+    \brief    Leave game mode, returning to normal desktop mode
     \ingroup  gamemode
 
-              Attempts to restore the system to "before gamemode"
-              state.
-
-              May or may no succeed.  On one XFree86 system, it
-              was observed to consistantly scramble the display.
-
-    \bug      Undocumented; no standard implementation.
+    \todo     Documentation
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
               glutGameModeGet()
 */
+
 void OGAPIENTRY glutLeaveGameMode( void )
 {
     if( ogStructure.GameMode )
     {
         ogStructure.GameMode->State.IsGameMode = GL_FALSE;
         ogAddToWindowDestroyList( ogStructure.GameMode );
+        ogStructure.GameMode = NULL;
 #if TARGET_HOST_UNIX_X11
         XUngrabPointer( ogDisplay.Display, CurrentTime );
         XUngrabKeyboard( ogDisplay.Display, CurrentTime );
@@ -645,43 +619,47 @@ void OGAPIENTRY glutLeaveGameMode( void )
 
 /*!
     \fn
-    \brief    Sets the game mode display string
+    \brief    Return the value of a game mode parameter
     \ingroup  gamemode
-    \param    eWhat    An enumerated value.
+    \param    pname     The parameter value to be returned
 
-              Retrieves some gamemode related state information.
-              The supported queries are:
+              \a pname is one of:
 
-               - \a GLUT_GAME_MODE_ACTIVE: Returns non-zero if
-                 we are presently in gamemode.
-               - \a GLUT_GAME_MODE_POSSIBLE: Returns whether the
-                 requested gamemode settings are viable.  (May
-                 also actually change the mode?)  Does not necessarily
-                 tell you whether entering gamemode will have any
-                 effect.
-               - \a GLUT_GAME_MODE_WIDTH: Returns the width of gamemode
-                 if you were to enter it right now.
-               - \a GLUT_GAME_MODE_HEIGHT: Returns the height of gamemode
-                 if you were to enter it right now.
-               - \a GLUT_GAME_MODE_PIXEL_DEPTH: Returns the depth of gammode
-                 if you were to enter it right now.
-               - \a GLUT_GAME_MODE_REFRESH_RATE: Returns the vertical
-                 retrace frequency of gamemode if you were to enter it
-                 right now.
-               - \a GLUT_GAME_MODE_DISPLAY_CHANGED: Tells you if you are
-                 in gamemode.  OpenGLUT does not seem to treat this query
-                 any different than \a GLUT_GAME_MODE_ACTIVE.  This
-                 is probably a bug.
+              - \a GLUT_GAME_MODE_ACTIVE \n
+                   Return non-zero if we are presently in gamemode.
 
-    \todo     Undocumented; no standard implementation.
+              - \a GLUT_GAME_MODE_POSSIBLE \n
+                   Return whether the requested gamemode settings are viable.  
+                   (May also actually change the mode?)  Does not necessarily
+                   tell you whether entering gamemode will have any effect.
+
+              - \a GLUT_GAME_MODE_WIDTH \n
+                   Return the game mode width. (in pixels)
+
+              - \a GLUT_GAME_MODE_HEIGHT \n
+                   Return the game mode height. (in pixels)
+
+              - \a GLUT_GAME_MODE_PIXEL_DEPTH \n
+                   Return the game mode pixel depth. (in bits)
+
+              - \a GLUT_GAME_MODE_REFRESH_RATE \n
+                   Return the game mode vertical refresh frequency. (in Hz)
+
+              - \a GLUT_GAME_MODE_DISPLAY_CHANGED \n
+                   Return non-zero if we are presently in gamemode.
+                   (Same as \a GLUT_GAME_MODE_ACTIVE.)  
+
+    \todo     Documentation
+    \todo     OpenGLUT intrepretation of GLUT_GAME_MODE_DISPLAY_CHANGED
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
               glutGameModeGet()
 */
-int OGAPIENTRY glutGameModeGet( GLenum eWhat )
+
+int OGAPIENTRY glutGameModeGet( GLenum pname )
 {
     int ret = 0;
 
-    switch( eWhat )
+    switch( pname )
     {
     case GLUT_GAME_MODE_ACTIVE:
         ret = !!ogStructure.GameMode;
@@ -713,7 +691,7 @@ int OGAPIENTRY glutGameModeGet( GLenum eWhat )
         break;
 
     default:
-        ogError( "Unknown gamemode get: %d\n", eWhat );
+        ogError( "Unknown gamemode get: %d\n", pname );
         break;
     }
 

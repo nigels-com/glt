@@ -82,9 +82,7 @@ SOG_Window *ogCreateWindow(
     EOG_winType winType
 )
 {
-    /*
-     * Have the window object created
-     */
+    /* Have the window object created */
     SOG_Window *window = (SOG_Window *)calloc( sizeof( SOG_Window ), 1 );
     int fakeArgc = 0;
     GLboolean gameMode = GL_FALSE;
@@ -103,9 +101,7 @@ SOG_Window *ogCreateWindow(
     if( !ogState.Initialised )
         glutInit( &fakeArgc, NULL );
 
-    /*
-     * Initialize the object properties
-     */
+    /* Initialize the object properties */
     window->ID = ++ogStructure.WindowID;
     window->State.OldHeight = window->State.OldWidth = -1;
 
@@ -118,9 +114,7 @@ SOG_Window *ogCreateWindow(
     else
         ogListAppend( &ogStructure.Windows, &window->Node );
 
-    /*
-     * Set the default mouse cursor and reset the modifiers value
-     */
+    /* Set the default mouse cursor and reset the modifiers value */
     window->State.Cursor    = GLUT_CURSOR_INHERIT;
 
     window->IsMenu = ( OG_CW_MENU == winType );
@@ -161,9 +155,7 @@ SOG_Menu *ogCreateMenu( OGCBMenu menuCallback )
     int x = 100, y = 100, w = 100, h = 100;
     SOG_Window *current_window = ogStructure.Window;
 
-    /*
-     * Have the menu object created
-     */
+    /* Have the menu object created */
     SOG_Menu *menu = (SOG_Menu *)calloc( sizeof( SOG_Menu ), 1 );
     int fakeArgc = 0;
 
@@ -176,9 +168,7 @@ SOG_Menu *ogCreateMenu( OGCBMenu menuCallback )
 
     menu->ParentWindow = ogStructure.Window;
 
-    /*
-     * Create a window for the menu to reside in.
-     */
+    /* Create a window for the menu to reside in. */
     ogCreateWindow( NULL, "OpenGLUT menu", x, y, w, h, OG_CW_MENU );
     menu->Window = ogStructure.Window;
     glutDisplayFunc( ogDisplayMenu );
@@ -186,9 +176,7 @@ SOG_Menu *ogCreateMenu( OGCBMenu menuCallback )
     glutHideWindow( );  /* Hide the window for now */
     ogSetWindow( current_window );
 
-    /*
-     * Initialize the object properties:
-     */
+    /* Initialize the object properties: */
     menu->ID       = ++ogStructure.MenuID;
     menu->Callback = menuCallback;
     menu->ActiveEntry = NULL;
@@ -196,9 +184,7 @@ SOG_Menu *ogCreateMenu( OGCBMenu menuCallback )
     ogListInit( &menu->Entries );
     ogListAppend( &ogStructure.Menus, &menu->Node );
 
-    /*
-     * Newly created menus implicitly become current ones
-     */
+    /* Newly created menus implicitly become current ones */
     ogStructure.Menu = menu;
 
     return menu;
@@ -216,9 +202,7 @@ void ogAddToWindowDestroyList( SOG_Window* window )
     new_list_entry->window = window;
     ogListAppend( &ogStructure.WindowsToDestroy, &new_list_entry->node );
 
-    /*
-     * Check if the window is the current one...
-     */
+    /* Check if the window is the current one... */
     if( ogStructure.Window == window )
         ogStructure.Window = NULL;
 
@@ -344,17 +328,13 @@ void ogDestroyMenu( SOG_Menu* menu )
     assert( menu );
     freeglut_assert_ready;
 
-    /*
-     * First of all, have all references to this menu removed from all windows:
-     */
+    /* First, have all references to this menu removed from all windows: */
     for( window = (SOG_Window *)ogStructure.Windows.First;
          window;
          window = (SOG_Window *)window->Node.Next )
         oghRemoveMenuFromWindow( window, menu );
 
-    /*
-     * Now proceed with removing menu entries that lead to this menu
-     */
+    /* Now proceed with removing menu entries that lead to this menu */
     for( from = ( SOG_Menu * )ogStructure.Menus.First;
          from;
          from = ( SOG_Menu * )from->Node.Next )
@@ -441,7 +421,7 @@ void ogDestroyStructure( void )
 /*
  * Helper function to enumerate through all registered top-level windows
  */
-void ogEnumWindows( OGCBenumerator enumCallback, SOG_Enumerator* enumerator )
+void ogEnumWindows( OGCBenumerator enumCallback, SOG_Enumerator *enumerator )
 {
     SOG_Window *window;
 
@@ -463,8 +443,9 @@ void ogEnumWindows( OGCBenumerator enumCallback, SOG_Enumerator* enumerator )
  * Helper function to enumerate through all a window's subwindows
  * (single level descent)
  */
-void ogEnumSubWindows( SOG_Window* window, OGCBenumerator enumCallback,
-                       SOG_Enumerator* enumerator )
+void ogEnumSubWindows(
+    SOG_Window *window, OGCBenumerator enumCallback, SOG_Enumerator *enumerator
+)
 {
     SOG_Window *child;
 
@@ -484,8 +465,9 @@ void ogEnumSubWindows( SOG_Window* window, OGCBenumerator enumCallback,
 /*
  * A static helper function to look for a window given its handle
  */
-static void oghcbWindowByHandle( SOG_Window *window,
-                                 SOG_Enumerator *enumerator )
+static void oghcbWindowByHandle(
+    SOG_Window *window, SOG_Enumerator *enumerator
+)
 {
     if( enumerator->found )
         return;

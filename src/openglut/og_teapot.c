@@ -261,8 +261,11 @@ static void teapot( GLint grid, GLdouble scale, GLenum type )
     \ingroup  geometry
     \param    size        Scale factor.
 
-              Draws the standard Teapot in wireframe using OpenGL evaluators.
+              This function draws the standard Teapot in wireframe
+              using OpenGL evaluators.
               This is the classic "Utah Teapot" of computer graphics.
+              The base should lie in the xy-plane with "up" being
+              along the positive z axis.
 
               This is derived from SGI code.  It should also
               be the same as the teapot modeled by Martin Newell
@@ -283,6 +286,8 @@ void OGAPIENTRY glutWireTeapot( GLdouble size )
 
               Draws the standard Teapot, solid shaded, using OpenGL evaluators.
               This is the classic "Utah Teapot" of computer graphics.
+              The base should lie in the xy-plane with "up" being
+              along the positive z axis.
 
               This is derived from SGI code.  It should also
               be the same as the teapot modeled by Martin Newell

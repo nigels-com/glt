@@ -107,7 +107,7 @@ SOG_State ogState =
 /*
  * A call to this function should initialize all the display stuff...
  */
-void ogInitialize( const char* displayName )
+static void ogInitializeDisplay( const char *displayName )
 {
 #if TARGET_HOST_UNIX_X11
     ogDisplay.Display = XOpenDisplay( displayName );
@@ -145,9 +145,7 @@ void ogInitialize( const char* displayName )
 
     ogDisplay.Connection = ConnectionNumber( ogDisplay.Display );
 
-    /*
-     * Create the window deletion atom
-     */
+    /* Create the window deletion atom */
     ogDisplay.DeleteWindow = XInternAtom(
         ogDisplay.Display,
         "WM_DELETE_WINDOW",
@@ -159,9 +157,7 @@ void ogInitialize( const char* displayName )
     WNDCLASS wc;
     ATOM atom;
 
-    /*
-     * What we need to do is to initialize the ogDisplay global structure here.
-     */
+    /* We need to initialize the ogDisplay global structure here. */
     ogDisplay.Instance = GetModuleHandle( NULL );
 
     atom = GetClassInfo( ogDisplay.Instance, _T( OPENGLUT_STRING ), &wc );
@@ -194,16 +190,12 @@ void ogInitialize( const char* displayName )
         wc.lpszMenuName   = NULL;
         wc.lpszClassName  = _T( OPENGLUT_STRING );
 
-        /*
-         * Register the window class
-         */
+        /* Register the window class */
         atom = RegisterClass( &wc );
         assert( atom );
     }
 
-    /*
-     * The screen dimensions can be obtained via GetSystemMetrics() calls
-     */
+    /* The screen dimensions can be obtained via GetSystemMetrics() calls */
     ogDisplay.ScreenWidth  = GetSystemMetrics( SM_CXSCREEN );
     ogDisplay.ScreenHeight = GetSystemMetrics( SM_CYSCREEN );
 
@@ -236,9 +228,7 @@ void ogDeinitialize( void )
         return;
     }
 
-    /*
-     * If there was a menu created, destroy the rendering context
-     */
+    /* If there was a menu created, destroy the rendering context */
     if( ogStructure.MenuContext )
     {
         free( ogStructure.MenuContext );
@@ -489,9 +479,10 @@ static int XParseGeometry(
         }
     }
 
-    /* If strind isn't at the end of the string the it's an invalid
-       geometry specification. */
-
+    /*
+     * If strind isn't at the end of the string the it's an invalid
+     * geometry specification.
+     */
     if( *strind != '\0' )
         return 0;
 
@@ -520,8 +511,8 @@ static int XParseGeometry(
               any GLUT, freeglut, or OpenGLUT program.  It serves two
               vital roles:
 
-               - Allowing OpenGLUT to initialize internal structures.
-               - Allowing OpenGLUT to process command-line arguments
+               - It allows OpenGLUT to initialize internal structures.
+               - It allows OpenGLUT to process command-line arguments
                  to control the initial window position, etc.
 
               You should take note of the interaction between
@@ -532,13 +523,15 @@ static int XParseGeometry(
               you prevent the user from controlling the initial
               window position via a command-line parameter.
 
-              glutInit() will remove any parameters that it
+              glutInit() will remove from \a pargc, \a argv
+              any parameters that it
               recognizes in the command line.  The following
               command-line parameters are suported:
 
-               - \a -display This allows connection to an alternate
-                 X server.
-               - \a -geometry This takes width, height, and
+               - \a -display <i>display-id</i>
+                 This allows connection to an alternate X server.
+               - \a -geometry <i>geometry-spec</i>
+                 This takes width, height, and
                  window position.  The position is given as
                  a signed value (negative values being distance
                  from the far boundary of the screen).  For example,
@@ -547,11 +540,15 @@ static int XParseGeometry(
                  and 17 pixels from the bottom edge of the screen.
                - \a -direct Insist on only OpenGL direct rendering.
                  Direct rendering is normally requested but indirect
-                 is normally accepted.  See \a -indirect.
+                 is normally accepted.
+                 \a -direct is not always available.
+                 See \a -indirect.
                - \a -indirect Attempt only indirect OpenGL rendering.
+                 \a -indirect is always available.
                  See \a -direct.
                - \a -iconic Open the window in iconized form.
-               - \a -gldebug Print any detected OpenGL errors.  Presently
+               - \a -gldebug Print any detected OpenGL errors via
+                 glutReportErrors().  Presently
                  done at the bottom of glutMainLoopEvent().
                - \a -sync Synchronize the window system communications
                  heavily.
@@ -559,8 +556,8 @@ static int XParseGeometry(
               Additionally, this function checks whether the
               environment variable \a GLUT_FPS is defined (only on
               UNIX_X11); if so, OpenGLUT will periodically print
-              the average number of frames per second, as counted
-              by your display callback invocations.
+              the average number of times per second that your program calls
+              glutSwapBuffers().
 
     \note     You really should always call this, even if you are
               a WIN32 user.  It provides a way for the user to
@@ -569,9 +566,10 @@ static int XParseGeometry(
               those issues.  This is also where OpenGLUT retrieves
               your program's name to help disambiguate error and
               warning messages it may be forced to emit.
-    \note     Option -sync sets a flag, but is not actually used at this time.
+    \note     Option \a -sync sets a flag,
+              but is not actually used at this time.
     \note     Lots of code does XFlush() on the X server, regardless
-              of whether -sync is specified.  Much of that appears to
+              of whether \a -sync is specified.  Much of that appears to
               be required in order to support direct client invocation
               of  glutMainLoopEvent(), regrettably.
               However, if one calls glutMainLoop(), instead, we might
@@ -583,7 +581,8 @@ static int XParseGeometry(
     \see      glutInitWindowPosition(), glutInitWindowSize(),
               glutInitDisplayMode(), glutInitDisplayString(),
               glutCreateWindow(), glutDisplayFunc(),
-              glutMainLoop(), glutMainLoopEvent()
+              glutMainLoop(), glutMainLoopEvent(), glutReportErrors(),
+              glutSwapBuffers()
 */
 void OGAPIENTRY glutInit( int *pargc, char **argv )
 {
@@ -596,7 +595,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
 
     if( pargc && *pargc && argv && *argv && **argv )
     {
-        ogState.ProgramName = strdup( *argv );
+        ogState.ProgramName = ogStrDup( *argv );
 
         if( !ogState.ProgramName )
             ogError( "Could not allocate space for the program's name." );
@@ -629,7 +628,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         if( strcmp( argv[ i ], "-display" ) == 0 )
         {
             if( ++i >= argc )
-                ogError( "-display parameter must be followed by display name" );
+                ogError( "-display option must be followed by display name" );
 
             displayName = argv[ i ];
 
@@ -640,8 +639,10 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         else if( strcmp( argv[ i ], "-geometry" ) == 0 )
         {
             if( ++i >= argc )
-                ogError( "-geometry parameter must be followed by window "
-                         "geometry settings" );
+                ogError(
+                    "-geometry option must be followed by window "
+                    "geometry settings"
+                );
 
             geometry = argv[ i ];
 
@@ -652,8 +653,10 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         else if( strcmp( argv[ i ], "-direct" ) == 0)
         {
             if( ! ogState.TryDirectContext )
-                ogError( "parameters ambiguity, -direct and -indirect "
-                    "cannot be both specified" );
+                ogError(
+                    "option ambiguity, -direct and -indirect "
+                    "cannot be both specified"
+                );
 
             ogState.ForceDirectContext = GL_TRUE;
             argv[ i ] = NULL;
@@ -662,8 +665,10 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         else if( strcmp( argv[ i ], "-indirect" ) == 0 )
         {
             if( ogState.ForceDirectContext )
-                ogError( "parameters ambiguity, -direct and -indirect "
-                    "cannot be both specified" );
+                ogError(
+                    "option ambiguity, -direct and -indirect "
+                    "cannot be both specified"
+                );
 
             ogState.TryDirectContext = GL_FALSE;
             argv[ i ] = NULL;
@@ -689,9 +694,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         }
     }
 
-    /*
-     * Compact {argv}.
-     */
+    /* Compact {argv}. */
     j = 2;
     for( i = 1; i < *pargc; i++, j++ )
         if( argv[ i ] == NULL )
@@ -708,7 +711,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
      * in the program arguments, we will use the DISPLAY environment
      * variable for opening the X display (see code above):
      */
-    ogInitialize( displayName );
+    ogInitializeDisplay( displayName );
 
     /*
      * Geometry parsing deffered until here because we may need the screen
@@ -767,10 +770,10 @@ void OGAPIENTRY glutInitWindowPosition( int x, int y )
     \param    width    Width of future windows.
     \param    height   Height of future windows.
 
-              This function allows you to request an initial shape
+              This function allows you to request initial dimensions
               for future windows.
 
-    \note     There is a callback function to inform you of the new
+              There is a callback function to inform you of the new
               window shape (whether initially opened, changed by
               your glutReshapeWindow() request, or changed directly
               by the user).
@@ -797,7 +800,7 @@ void OGAPIENTRY glutInitWindowSize( int width, int height )
 
               When opening a new window, OpenGLUT permits you to set
               several options which will affect the window's behavior
-              throughout the program's life.  For minimal compatibility,
+              throughout the program's life.  For partial compatibility,
               freeglut defined some unsupported features and ignored
               applications' requests for them; OpenGLUT presently inherits
               those.  However, as OpenGLUT's goal is to rationalize and
@@ -810,14 +813,14 @@ void OGAPIENTRY glutInitWindowSize( int width, int height )
               The various requestable display modes are packed into a
               bitmask.  The symbolic names for the bits are as follows:
 
-               - \a GLUT_RGB (default); render to an RGB display.
-                 \a GLUT_RGBA is a synonym for \a GLUT_RGB.
+               - \a GLUT_RGB selects a Red-Green-Blue window type.
+               - \a GLUT_RGBA is a synonym for \a GLUT_RGB.
                - \a GLUT_INDEX Use an indexed color mode rather than
                  RGB.  \a GLUT_INDEX takes precedence over both
                  \a GLUT_RGB and \a GLUT_RGBA.
                - \a GLUT_SINGLE Use a single-buffered display.  If specified,
                  graphics appears directly on the window and it is not
-                 necessary to call glutSwapBuffers().  (default)
+                 necessary to call glutSwapBuffers().
                - \a GLUT_DOUBLE Double-buffered rather than single-buffered.
                  glutSwapBuffers() is required to see the resulting
                  graphics.  Overrides \a GLUT_SINGLE if both are requested.
@@ -845,15 +848,24 @@ void OGAPIENTRY glutInitWindowSize( int width, int height )
                  window onscreen for user interaction.
                - \a GLUT_BORDERLESS Borderless windows are very experimental,
                  and their precise behavior is not set in stone.
+                 See also glutCreateMenuWindow().
 
-    \bug      \a GLUT_OFFSCREEN windows do not work very well.
+              The following are <i>defaults</i>:
+
+               - \a GLUT_RGB
+               - \a GLUT_SINGLE
+
+    \bug      \a GLUT_OFFSCREEN windows do not work on some nVidia
+              cards/drivers.  (No other known cases at this time, but
+              seems to apply to both WIN32 and UNIX_X11 systems.)
     \bug      \a GLUT_BORDERLESS seems to vary by the window manager on X11,
               though twm (for example) performs very similarly to WIN32.
               But KDE's window manager (for example) does not let you send
               keystrokes to borderless windows without OpenGLUT hacks.
-    \todo     \a RGBA doesn't have an alpha channel?  I'm in documentation
-              mode at the moment...  If \a RGBA doesn't have alpha, we should
-              probably drop the RGBA synonym for RGB, yes?
+    \todo     The \a GLUT_RGBA symbol should probably not be used.
+              The flag's name is misleading (there is no Alpha component),
+              and it is a duplicate of \a GLUT_RGB.  If you want a window
+              with an Alpha channel, include the \a GLUT_ALPHA flag.
     \note     Arguably, offscreen and borderless support have less to
               do with the display mode than with the window system.  Perhaps
               they should not be bundled into the \a displayMode mask?
@@ -865,7 +877,8 @@ void OGAPIENTRY glutInitWindowSize( int width, int height )
     \note     There is no way to change the display mode of an open window.
     \note     If a window opened, you may (and must) assume that it is
               in the requested display mode.
-    \see      glutInit(), glutInitWindowSize(),
+    \see      glutCreateMenuWindow(),
+              glutInit(), glutInitWindowSize(),
               glutInitWindowPosition(), glutInitDisplayString(),
               glutSwapBuffers()
 */
@@ -877,24 +890,15 @@ void OGAPIENTRY glutInitDisplayMode( unsigned int displayMode )
 
 /* -- INIT DISPLAY STRING PARSING ------------------------------------------ */
 
-#define NUM_TOKENS             28
-static char *Tokens[] =
+static const char *Tokens[ ] =
 {
     "alpha", "acca", "acc", "blue", "buffer", "conformant", "depth", "double",
     "green", "index", "num", "red", "rgba", "rgb", "luminance", "stencil",
-    "single", "stereo", "samples", "slow", "win32pdf", "xvisual",
+    "single", "stereo", "samples", "slow", "win32pdf", "win32pfd", "xvisual",
     "xstaticgray", "xgrayscale", "xstaticcolor", "xpseudocolor",
     "xtruecolor", "xdirectcolor"
 };
-
-static int TokenLengths[] =
-{
-    5,       4,      3,     4,      6,        10,           5,       6,
-    5,       5,       3,     3,     4,      3,     9,           7,
-    6,        6,        7,         4,      8,          7,
-    11,            10,           12,             12,
-    10,           12
-};
+#define NUM_TOKENS             (sizeof(Tokens)/sizeof(*Tokens))
 
 /*!
     \fn
@@ -945,7 +949,9 @@ static int TokenLengths[] =
                - \a slow         Indicates if a frame-buffer is slow.
                - \a win32pdf     Requests a WIN32 Pixel Format Descriptor
                                  by number (compare \a num).  Non-portable.
-                                 Probably should be called \a win32pfd.
+               - \a win32pfd     The original GLUT term; freeglut typoed
+                                 this as \a win32pdf and so we support
+                                 both for now.
                - \a xvisual      Requests an X configuration by number.
                                  See \a win32pdf.
                - \a xstaticgray  Selects X-specific "staticgray" mode.
@@ -985,12 +991,10 @@ void OGAPIENTRY glutInitDisplayString( const char *displayMode )
     token = strtok( buffer, " \t" );
     while( token )
     {
-        /*
-         * Process this token
-         */
-        int i;
+        /* Process this token */
+        unsigned i;
         for( i = 0; i < NUM_TOKENS; i++ )
-            if( strncmp( token, Tokens[ i ], TokenLengths[ i ] ) == 0 )
+            if( strcmp( token, Tokens[ i ] ) == 0 )
                 break;
 
         switch( i )
@@ -1086,54 +1090,57 @@ void OGAPIENTRY glutInitDisplayString( const char *displayMode )
 
         case 20:  /* "win32pdf":  matches the Win32 Pixel Format Descriptor by
                       number */
+        case 21: /* "win32pfd" is the proper name; alias for freeglut typo */
 #if TARGET_HOST_WIN32
 #endif
             break;
 
-        case 21:  /* "xvisual":  matches the X visual ID by number */
+        case 22:  /* "xvisual":  matches the X visual ID by number */
 #if TARGET_HOST_UNIX_X11
 #endif
             break;
 
-        case 22:  /* "xstaticgray":  boolean indicating if the frame buffer
+        case 23:  /* "xstaticgray":  boolean indicating if the frame buffer
                       configuration's X visual is of type StaticGray */
 #if TARGET_HOST_UNIX_X11
 #endif
             break;
 
-        case 23:  /* "xgrayscale":  boolean indicating if the frame buffer
+        case 24:  /* "xgrayscale":  boolean indicating if the frame buffer
                       configuration's X visual is of type GrayScale */
 #if TARGET_HOST_UNIX_X11
 #endif
             break;
 
-        case 24:  /* "xstaticcolor":  boolean indicating if the frame buffer
+        case 25:  /* "xstaticcolor":  boolean indicating if the frame buffer
                       configuration's X visual is of type StaticColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break;
 
-        case 25:  /* "xpseudocolor":  boolean indicating if the frame buffer
+        case 26:  /* "xpseudocolor":  boolean indicating if the frame buffer
                       configuration's X visual is of type PseudoColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break;
 
-        case 26:  /* "xtruecolor":  boolean indicating if the frame buffer
+        case 27:  /* "xtruecolor":  boolean indicating if the frame buffer
                       configuration's X visual is of type TrueColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break;
 
-        case 27:  /* "xdirectcolor":  boolean indicating if the frame buffer
+        case 28:  /* "xdirectcolor":  boolean indicating if the frame buffer
                       configuration's X visual is of type DirectColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break;
 
-        case 28:  /* Unrecognized */
-            printf( "WARNING - Display string token not recognized:  %s\n",
-                    token );
+        case 29:  /* Unrecognized */
+            ogWarning(
+                "Display string token not recognized:  %s\n",
+                token
+            );
             break;
         }
 
@@ -1142,8 +1149,6 @@ void OGAPIENTRY glutInitDisplayString( const char *displayMode )
 
     free( buffer );
 
-    /*
-     * We will make use of this value when creating a new OpenGL context...
-     */
+    /* We will make use of this value when creating a new OpenGL context... */
     ogState.DisplayMode = glut_state_flag;
 }

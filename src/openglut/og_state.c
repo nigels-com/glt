@@ -80,24 +80,38 @@ static int oghGetConfig( int attribute )
 
               Allowable \a eWhat IDs are:
 
-               - \a GLUT_ACTION_ON_WINDOW_CLOSE Controls what OpenGLUT
-                 will do if the user (or system) closes an OpenGLUT window that
-                 you did not ask to have closed.
-               - \a GLUT_INIT_DISPLAY_MODE An alternate way to set
-                 the display mode for a new window.
-               - \a GLUT_INIT_WINDOW_HEIGHT An alternate way to set the
-                 height of new windows.
-               - \a GLUT_INIT_WINDOW_WIDTH An alternate way to set the
-                 width of new windows.
-               - \a GLUT_INIT_WINDOW_X An alternate way to set the
-                 initial horizontal position of new windows.
-               - \a GLUT_INIT_WINDOW_Y An alternate way to set the
-                 initial vertical position of new windows.
-               - \a GLUT_RENDERING_CONTEXT Set to either \a GL_TRUE
-                 or \a GL_FALSE to indicate whether to share the
-                 current OpenGL rendering context with new windows.
-               - \a GLUT_WINDOW_CURSOR Get the <i>current window</i>'s
-                 current cursor setting, as used by glutSetCursor().
+              - \a GLUT_ACTION_ON_WINDOW_CLOSE \n
+                   Controls what OpenGLUT will do if the user (or system) 
+                   closes an OpenGLUT window that you did not ask to have 
+                   closed.
+
+              - \a GLUT_INIT_DISPLAY_MODE \n
+                   An alternate way to set the display mode for a 
+                   new window.
+
+              - \a GLUT_INIT_WINDOW_HEIGHT \n
+                   An alternate way to set the height of new windows.
+
+              - \a GLUT_INIT_WINDOW_WIDTH \n
+                   An alternate way to set the width of new windows.
+
+              - \a GLUT_INIT_WINDOW_X \n
+                   An alternate way to set the initial horizontal position 
+                   of new windows.
+
+              - \a GLUT_INIT_WINDOW_Y \n
+                   An alternate way to set the initial vertical position 
+                   of new windows.
+
+              - \a GLUT_RENDERING_CONTEXT \n
+                   Set to either \a GLUT_CREATE_NEW_CONTEXT or
+                   \a GUT_USE_CURRENT_CONTEXT to indicate 
+                   whether to share the current OpenGL rendering context
+                   with new windows.
+
+              - \a GLUT_WINDOW_CURSOR \n
+                   Attempt to set the <i>current window</i>'s current cursor
+                   as if by glutSetCursor().
 
     \see      glutGet(), glutDeviceGet(), glutGetModifiers(),
               glutLayerGet(), glutDestroyWindow(), glutMainLoop(),
@@ -135,13 +149,22 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
         break;
 
     case GLUT_RENDERING_CONTEXT:
-        ogState.UseCurrentContext = ( GLboolean )
-            ( ( value == GLUT_USE_CURRENT_CONTEXT ) ? GL_TRUE : GL_FALSE );
+        if( GLUT_USE_CURRENT_CONTEXT == value )
+            ogState.UseCurrentContext = GL_TRUE;
+        else if( GLUT_CREATE_NEW_CONTEXT == value )
+            ogState.UseCurrentContext = GL_FALSE;
+        else
+            ogWarning(
+                "glutSetOption(): "
+                "Unknown GLUT_RENDERING_CONTEXT parameter: %d\n",
+                value
+            );
         break;
 
     case GLUT_WINDOW_CURSOR:
+        /* This check should be done by glutSetCursor()...*/
         if( ogStructure.Window )
-            ogStructure.Window->State.Cursor = value;
+            glutSetCursor( value );
         break;
 
     default:
@@ -160,55 +183,97 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
               of many different OpenGLUT state variables.  The current
               list is:
 
-               - \a GLUT_ACTION_ON_WINDOW_CLOSE
-                 Allows you to do something other than die if the
-                 user closes one of your windows.
-               - \a GLUT_DISPLAY_MODE_POSSIBLE
-               - \a GLUT_ELAPSED_TIME
-               - \a GLUT_INIT_DISPLAY_MODE
-               - \a GLUT_INIT_STATE
-               - \a GLUT_INIT_WINDOW_HEIGHT
-               - \a GLUT_INIT_WINDOW_WIDTH
-               - \a GLUT_INIT_WINDOW_X
-               - \a GLUT_INIT_WINDOW_Y
-               - \a GLUT_MENU_NUM_ITEMS
-               - \a GLUT_RENDERING_CONTEXT
-                 Allows you to specify context-sharing when you open
-                 new windows.
-               - \a GLUT_SCREEN_HEIGHT
-               - \a GLUT_SCREEN_HEIGHT_MM
-                 Height in millimeters.
-               - \a GLUT_SCREEN_WIDTH
-               - \a GLUT_SCREEN_WIDTH_MM
-                 Width in millimeters.
-               - \a GLUT_VERSION
-               - \a GLUT_WINDOW_ACCUM_ALPHA_SIZE
-               - \a GLUT_WINDOW_ACCUM_BLUE_SIZE
-               - \a GLUT_WINDOW_ACCUM_GREEN_SIZE
-               - \a GLUT_WINDOW_ACCUM_RED_SIZE
-               - \a GLUT_WINDOW_ALPHA_SIZE
-               - \a GLUT_WINDOW_BLUE_SIZE
-               - \a GLUT_WINDOW_BORDER_WIDTH
-               - \a GLUT_WINDOW_BUFFER_SIZE
-               - \a GLUT_WINDOW_COLORMAP_SIZE
-               - \a GLUT_WINDOW_CURSOR
-               - \a GLUT_WINDOW_DEPTH_SIZE
-               - \a GLUT_WINDOW_DOUBLEBUFFER
-               - \a GLUT_WINDOW_FORAMT_ID
-                 System dependant.
-               - \a GLUT_WINDOW_GREEN_SIZE
-               - \a GLUT_WINDOW_HEADER_HEIGHT
-               - \a GLUT_WINDOW_HEIGHT
-               - \a GLUT_WINDOW_NUM_CHILDREN
-               - \a GLUT_WINDOW_NUM_SAMPLES
-               - \a GLUT_WINDOW_PARENT
-               - \a GLUT_WINDOW_RED_SIZE
-               - \a GLUT_WINDOW_RGBA
-               - \a GLUT_WINDOW_STENCIL_SIZE
-               - \a GLUT_WINDOW_STEREO
-               - \a GLUT_WINDOW_WIDTH
-               - \a GLUT_WINDOW_X
-               - \a GLUT_WINDOW_Y
+              - \a GLUT_ACTION_ON_WINDOW_CLOSE \n
+                   Allows you to do something other than die if the
+                   user closes one of your windows.
+
+              - \a GLUT_DISPLAY_MODE_POSSIBLE \n
+
+              - \a GLUT_ELAPSED_TIME \n
+
+              - \a GLUT_INIT_DISPLAY_MODE \n
+
+              - \a GLUT_INIT_STATE \n
+
+              - \a GLUT_INIT_WINDOW_HEIGHT \n
+
+              - \a GLUT_INIT_WINDOW_WIDTH \n
+
+              - \a GLUT_INIT_WINDOW_X \n
+
+              - \a GLUT_INIT_WINDOW_Y \n
+
+              - \a GLUT_MENU_NUM_ITEMS \n
+
+              - \a GLUT_RENDERING_CONTEXT \n
+                   Allows you to specify context-sharing when you 
+                   open new windows.
+
+              - \a GLUT_SCREEN_HEIGHT \n
+
+              - \a GLUT_SCREEN_HEIGHT_MM \n
+                   Height in millimeters.
+
+              - \a GLUT_SCREEN_WIDTH \n
+
+              - \a GLUT_SCREEN_WIDTH_MM \n
+                   Width in millimeters.
+
+              - \a GLUT_VERSION \n
+                    
+              - \a GLUT_WINDOW_ACCUM_ALPHA_SIZE \n
+
+              - \a GLUT_WINDOW_ACCUM_BLUE_SIZE \n
+
+              - \a GLUT_WINDOW_ACCUM_GREEN_SIZE \n
+
+              - \a GLUT_WINDOW_ACCUM_RED_SIZE \n
+
+              - \a GLUT_WINDOW_ALPHA_SIZE \n
+
+              - \a GLUT_WINDOW_BLUE_SIZE \n
+
+              - \a GLUT_WINDOW_BORDER_WIDTH \n
+
+              - \a GLUT_WINDOW_BUFFER_SIZE \n
+
+              - \a GLUT_WINDOW_COLORMAP_SIZE \n
+
+              - \a GLUT_WINDOW_CURSOR \n
+
+              - \a GLUT_WINDOW_DEPTH_SIZE \n
+
+              - \a GLUT_WINDOW_DOUBLEBUFFER \n
+
+              - \a GLUT_WINDOW_FORMAT_ID \n
+                   System dependant.
+
+              - \a GLUT_WINDOW_GREEN_SIZE \n
+
+              - \a GLUT_WINDOW_HEADER_HEIGHT \n
+
+              - \a GLUT_WINDOW_HEIGHT \n
+
+              - \a GLUT_WINDOW_NUM_CHILDREN \n
+
+              - \a GLUT_WINDOW_NUM_SAMPLES \n
+
+              - \a GLUT_WINDOW_PARENT \n
+
+              - \a GLUT_WINDOW_RED_SIZE \n
+
+              - \a GLUT_WINDOW_RGBA \n
+
+              - \a GLUT_WINDOW_STENCIL_SIZE \n
+
+              - \a GLUT_WINDOW_STEREO \n
+
+              - \a GLUT_WINDOW_WIDTH \n
+
+              - \a GLUT_WINDOW_X \n
+
+              - \a GLUT_WINDOW_Y \n
+
 
               Most of the above are very obvious, and so full documentation
               is postponed for now.
@@ -220,6 +285,13 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
               be 100% sure if there's anything important at the end of
               the function, or if it is safe to just "drop out" of
               the current case and head for the bottom.
+    \todo     Causes crashes (assertion failure) if you call this
+              before having called glutInit()---other than GLUT_INIT_STATE
+              and GLUT_ELAPSED_TIME.  Because various things can cause
+              OpenGLUT to become deinitialized, we should probably either
+              return default values of some kind or do minimal initialization
+              if we are called without proper initialization.
+
     \see      glutSetOption(), glutDeviceGet(), glutGetModifiers(),
               glutLayerGet()
 */
@@ -237,8 +309,8 @@ int OGAPIENTRY glutGet( GLenum eWhat )
 
     case GLUT_ELAPSED_TIME:
         /*!
-            \bug  This returns a {long}, but the function only is
-                  defined to return an {int}.
+            \bug  ogElapsedTime() returns a \a long, but glutGet() only is
+                  defined to return an \a int.
         */
         return ogElapsedTime( );
     }
@@ -384,9 +456,7 @@ int OGAPIENTRY glutGet( GLenum eWhat )
 
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    /*
-     * Handle the OpenGL inquiries
-     */
+    /* Handle the OpenGL inquiries */
     case GLUT_WINDOW_RGBA:
         glGetBooleanv( GL_RGBA_MODE, &boolValue );
         ret = boolValue ? 1 : 0;
@@ -488,7 +558,7 @@ int OGAPIENTRY glutGet( GLenum eWhat )
     case GLUT_WINDOW_BORDER_WIDTH:
 #if TARGET_HOST_WINCE
         return 0;
-else
+#else
         return GetSystemMetrics( SM_CXSIZEFRAME );
 #endif
 
@@ -560,51 +630,67 @@ else
 /*!
     \fn
     \brief    Allows you to get some device state/option variables.
-    \ingroup  state
+    \ingroup  inputstate
     \param    eWhat    Enumerated parameter ID.
 
               Retrieves some system-specific information about
               attached devices.  Supported device queries are:
 
-               - \a GLUT_HAS_JOYSTICK
-                 Returns non-zero if there is a joystick.
-               - \a GLUT_HAS_KEYBOARD 
-                 Returns non-zero if there is a keyboard.
-               - \a GLUT_HAS_MOUSE
-                 Returns non-zero if there is a mouse.
-               - \a GLUT_HAS_SPACEBALL
-                 Returns non-zero if there is a spaceball.
-               - \a GLUT_JOYSTICK_AXES
-                 Returns the number of axes for the joystick.
-               - \a GLUT_JOYSTICK_POLL_RATE
-                 Returns the rate (in GLUT timer ticks?) at which
-                 the joystick is polled.
-               - \a GLUT_NUM_MOUSE_BUTTONS
-                 Return the number of buttons that the user's mouse
-                 has.
-               - \a GLUT_OWNS_JOYSTICK
-                 Return non-zero if OpenGLUT believes that it has
-                 successfully acquired access to the joystick.
-               - \a GLUT_DEVICE_IGNORE_KEY_REPEAT
-                 Returns non-zero if the <i>current window</i> is
-                 set to disable key repeating.
-               - \a GLUT_DEVICE_KEY_REPEAT
-                 Described as returning the key repeat rate in one place,
-                 but actually returns a key repeat mode.
-               - \a GLUT_HAS_DIAL_AND_BUTTON_BOX
-                 Returns non-zero if a dials-and-buttons box is present.
-               - \a GLUT_HAS_TABLET
-                 Returns non-zero if a tablet is present.
-               - \a GLUT_NUM_BUTTON_BOX_BUTTONS
-                 Returns the number of buttons on a dials-and-buttons box,
-                 if any.
-               - \a GLUT_NUM_DIALS
-                 Returns the number of dials on a dials-and-buttons box,
-                 if any.
-               - \a GLUT_NUM_SPACEBALL_BUTTONS
-                 Returns the number of buttons on a spaceball, if any.
-               - \a GLUT_NUM_TABLET_BUTTONS
-                 Returns the number of buttons on a tablet, if any.
+              - \a GLUT_HAS_JOYSTICK \n
+                   Return non-zero if there is a joystick.
+
+              - \a GLUT_HAS_KEYBOARD \n
+                   Return non-zero if there is a keyboard.
+
+              - \a GLUT_HAS_MOUSE \n
+                   Return non-zero if there is a mouse.
+
+              - \a GLUT_HAS_SPACEBALL \n
+                   Return non-zero if there is a spaceball.
+
+              - \a GLUT_JOYSTICK_AXES \n
+                   Return the number of axes for the joystick.
+
+              - \a GLUT_JOYSTICK_POLL_RATE \n
+                   Return the rate (in GLUT timer ticks?) at 
+                   which the joystick is polled.
+
+              - \a GLUT_NUM_MOUSE_BUTTONS \n
+                   Return the number of buttons that the user's 
+                   mouse has.
+
+              - \a GLUT_OWNS_JOYSTICK \n
+                   Return non-zero if OpenGLUT believes that it has
+                   successfully acquired access to the joystick.
+
+              - \a GLUT_DEVICE_IGNORE_KEY_REPEAT \n
+                   Return non-zero if the <i>current window</i> is
+                   set to disable key repeating.
+
+              - \a GLUT_DEVICE_KEY_REPEAT \n
+                   Described as returning the key repeat rate in 
+                   one place, but actually returns a key repeat mode.
+
+              - \a GLUT_HAS_DIAL_AND_BUTTON_BOX \n
+                   Return non-zero if a dials-and-buttons box is 
+                   present.
+
+              - \a GLUT_HAS_TABLET \n
+                   Return non-zero if a tablet is present.
+
+              - \a GLUT_NUM_BUTTON_BOX_BUTTONS \n
+                   Return the number of buttons on a dials-and-buttons
+                   box, if any.
+
+              - \a GLUT_NUM_DIALS \n
+                   Return the number of dials on a dials-and-buttons
+                   box, if any.
+
+              - \a GLUT_NUM_SPACEBALL_BUTTONS \n
+                   Return the number of buttons on a spaceball, if any.
+
+              - \a GLUT_NUM_TABLET_BUTTONS \n
+                   Return the number of buttons on a tablet, if any.
 
     \bug      Keyboards are optional, but OpenGLUT doesn't detect
               their absence.
@@ -724,18 +810,21 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
 /*!
     \fn
     \brief    Returns the status of Alt, Shift, and Ctrl keys.
-    \ingroup  state
+    \ingroup  inputstate
 
               According to which, if any, modifier keys are held,
-              the return value is the logical OR combination
+              the return value is the logical \a OR combination
               of any of the following symbolic bitmasks:
 
                - \a GLUT_ACTIVE_SHIFT
                - \a GLUT_ACTIVE_CTRL
                - \a GLUT_ACTIVE_ALT
 
+              E.g., if the shift key is held, and no other modifier
+              keys are held, this function will return \a GLUT_ACTIVE_SHIFT.
+
     \bug      Complains if not invoked by a client callback.
-    \bug      Does not differentiate between left- and right forms
+    \bug      Does not differentiate between the left and right forms
               of the modifiers.
     \see      glutSetOption(), glutGet(), glutDeviceGet(),
               glutLayerGet()
@@ -754,23 +843,28 @@ int OGAPIENTRY glutGetModifiers( void )
 /*!
     \fn
     \brief    Allows you to get some overlay state/option variables.
-    \ingroup  state
+    \ingroup  overlays
     \param    eWhat    Enumerated parameter ID.
 
               Returns some useful information about layers.
               Or, it would be useful if layers were implemented...
               \a eWhat may be given any of the following values:
 
-               - \a GLUT_HAS_OVERLAY
-               - \a GLUT_LAYER_IN_USE
-               - \a GLUT_NORMAL_DAMAGED
+              - \a GLUT_HAS_OVERLAY \n
+
+              - \a GLUT_LAYER_IN_USE \n
+
+              - \a GLUT_NORMAL_DAMAGED \n
                  0 unless the window system has told us that
                  the normal layer is damaged (glutPostRedisplay()
                  does not affect this).
-               - \a GLUT_OVERLAY_DAMAGED
-                 -1 if no layer in use.
-               - \a GLUT_OVERLAY_POSSIBLE
-               - \a GLUT_TRANSPARENT_INDEX
+
+              - \a GLUT_OVERLAY_DAMAGED \n
+                -1 if no layer in use.
+
+              - \a GLUT_OVERLAY_POSSIBLE \n
+
+              - \a GLUT_TRANSPARENT_INDEX \n
                  -1 if no layer in use.
 
               All information relates to the <i>current window</i>
@@ -809,8 +903,12 @@ int OGAPIENTRY glutLayerGet( GLenum eWhat )
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
     case GLUT_OVERLAY_POSSIBLE:
-/*      return ogSetupPixelFormat( ogStructure.Window, GL_TRUE,
-                                   PFD_OVERLAY_PLANE ); */
+        /*
+          return ogSetupPixelFormat(
+              ogStructure.Window, GL_TRUE,
+              PFD_OVERLAY_PLANE
+          );
+        */
       return FALSE;
 
     case GLUT_LAYER_IN_USE:

@@ -66,10 +66,13 @@
  *
  * There are some issues concerning window redrawing under X11, and maybe
  * some events are not handled. The Win32 version lacks some more features,
- * but seems acceptable for not demanding purposes.
+ * but seems acceptable for not demanding purposes.  (FIXED???)
  *
  * Need to investigate why the X11 version breaks out with an error when
  * closing a window (using the window manager, not glutDestroyWindow)...
+ * (If you "Kill" the window, you get "X connection to ... broken
+ *  (explicit kill or server shutdown)".  If you "Delete" the window,
+ *  you get no message.  Does this qualify now as "FIXED"???)
  */
 
 /* -- PRIVATE VARIABLES ---------------------------------------------------- */
@@ -80,13 +83,16 @@
  * Handle a window configuration change. When no reshape
  * callback is hooked, the viewport size is updated to
  * match the new window size.
+ *
+ * XXX Change to take {SOG_Window *window} instead, and get the {handle}
+ * XXX from the {window}?  Would need to rename the function then...
  */
-static void oghReshapeWindowByHandle ( SOG_WindowHandleType handle,
-                                       int width, int height )
+static void oghReshapeWindowByHandle( SOG_WindowHandleType handle,
+                                      int width, int height )
 {
     SOG_Window *current_window = ogStructure.Window;
 
-    SOG_Window* window = ogWindowByHandle( handle );
+    SOG_Window *window = ogWindowByHandle( handle );
     if( !window )
         return;
     assert( !( window->State.IsOffscreen ) );
@@ -103,6 +109,7 @@ static void oghReshapeWindowByHandle ( SOG_WindowHandleType handle,
 #if !TARGET_HOST_WINCE
     {
         RECT rect;
+        int x, y, w, h;
 
         /*
          * For windowed mode, get the current position of the
@@ -111,25 +118,27 @@ static void oghReshapeWindowByHandle ( SOG_WindowHandleType handle,
          */
 
         GetWindowRect( window->Window.Handle, &rect );
-        rect.right  = rect.left + width;
-        rect.bottom = rect.top  + height;
+        x = rect.left;
+        y = rect.top;
+        w = width;
+        h = height;
 
         if( !window->Parent || window->IsClientMenu)
         {
             if( ! window->IsUnmanaged && !window->State.IsGameMode )
             {
-                rect.right  += GetSystemMetrics( SM_CXSIZEFRAME ) * 2;
-                rect.bottom += GetSystemMetrics( SM_CYSIZEFRAME ) * 2 +
-                               GetSystemMetrics( SM_CYCAPTION );
+                w += GetSystemMetrics( SM_CXSIZEFRAME ) * 2;
+                h += GetSystemMetrics( SM_CYSIZEFRAME ) * 2 +
+                    GetSystemMetrics( SM_CYCAPTION );
             }
         }
         else
         {
             GetWindowRect( window->Parent->Window.Handle, &rect );
-            AdjustWindowRect ( &rect, WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS |
-                                      WS_CLIPCHILDREN, FALSE );
+            x -= rect.left + GetSystemMetrics( SM_CXSIZEFRAME ) * 2;
+            y -= rect.top  + GetSystemMetrics( SM_CYSIZEFRAME ) * 2 +
+                GetSystemMetrics( SM_CYCAPTION );
         }
-
         /*
          * SWP_NOACTIVATE      Do not activate the window
          * SWP_NOOWNERZORDER   Do not change position in z-order
@@ -137,14 +146,11 @@ static void oghReshapeWindowByHandle ( SOG_WindowHandleType handle,
          * SWP_NOZORDER        Retains the current Z order (ignore 2nd param)
          */
 
-        SetWindowPos( window->Window.Handle,
-                      HWND_TOP,
-                      rect.left,
-                      rect.top,
-                      rect.right  - rect.left,
-                      rect.bottom - rect.top,
-                      SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING |
-                      SWP_NOZORDER
+        SetWindowPos(
+            window->Window.Handle,
+            HWND_TOP, x, y, w, h,
+            SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING |
+            SWP_NOZORDER
         );
     }
 #endif
@@ -193,14 +199,14 @@ static void oghReshapeWindowByHandle ( SOG_WindowHandleType handle,
  * make this the "baseline" redisplay invoker that is always
  * used, or to completely eliminate it from OpenGLUT.
  */
-static void oghRedrawWindowByHandle ( SOG_WindowHandleType handle )
+static void oghRedrawWindowByHandle( SOG_WindowHandleType handle )
 {
-    SOG_Window* window = ogWindowByHandle( handle );
+    SOG_Window *window = ogWindowByHandle( handle );
     if( !window )   /* XXX should assert() on this, and/or {handle} */
         return;
 
     /* XXX When can the below ever fail? When can it possibly matter? */
-    if( !( FETCH_WCB ( *window, Display ) ) )
+    if( !( FETCH_WCB( *window, Display ) ) )
         return;
 
     window->State.Redisplay = GL_FALSE;
@@ -242,7 +248,7 @@ static void oghcbDisplayWindow( SOG_Window *window,
             window->State.Height
         );
 
-        ogSetWindow ( current_window );
+        ogSetWindow( current_window );
     }
 
     if( window->State.Redisplay &&
@@ -379,18 +385,18 @@ void ogError( const char *fmt, ... )
 
     va_start( ap, fmt );
 
-    fprintf( stderr, "OpenGLUT ");
+    fprintf( stderr, "OpenGLUT " );
     if( ogState.ProgramName )
-        fprintf (stderr, "(%s): ", ogState.ProgramName);
+        fprintf( stderr, "(%s): ", ogState.ProgramName );
     vfprintf( stderr, fmt, ap );
     fprintf( stderr, "\n" );
 
     va_end( ap );
 
-    if ( ogState.Initialised )
+    if( ogState.Initialised )
         ogDeinitialize( );
 
-    exit( 1 );
+    exit( EXIT_FAILURE );
 }
 
 void ogWarning( const char *fmt, ... )
@@ -399,7 +405,7 @@ void ogWarning( const char *fmt, ... )
 
     va_start( ap, fmt );
 
-    fprintf( stderr, "OpenGLUT ");
+    fprintf( stderr, "OpenGLUT " );
     if( ogState.ProgramName )
         fprintf( stderr, "(%s): ", ogState.ProgramName );
     vfprintf( stderr, fmt, ap );
@@ -420,7 +426,7 @@ void ogWarning( const char *fmt, ... )
  * and all other "joystick timer" code can be yanked.
  *
  */
-static void ogCheckJoystickCallback( SOG_Window* w, SOG_Enumerator* e)
+static void ogCheckJoystickCallback( SOG_Window *w, SOG_Enumerator *e)
 {
     if( FETCH_WCB( *w, Joystick ) )
     {
@@ -437,7 +443,7 @@ static int ogHaveJoystick( void )
     ogEnumWindows( ogCheckJoystickCallback, &enumerator );
     return !!enumerator.data;
 }
-static void ogHavePendingRedisplaysCallback( SOG_Window* w, SOG_Enumerator* e)
+static void ogHavePendingRedisplaysCallback( SOG_Window *w, SOG_Enumerator *e)
 {
     if( w->State.Redisplay )
     {
@@ -446,7 +452,7 @@ static void ogHavePendingRedisplaysCallback( SOG_Window* w, SOG_Enumerator* e)
     }
     ogEnumSubWindows( w, ogHavePendingRedisplaysCallback, e );
 }
-static int ogHavePendingRedisplays (void)
+static int ogHavePendingRedisplays(void)
 {
     SOG_Enumerator enumerator;
     enumerator.found = GL_FALSE;
@@ -545,7 +551,7 @@ static void oghTakeActionOnWindowClose( void )
     {
     case GLUT_ACTION_EXIT:
         ogDeinitialize( );
-        exit( 0 );
+        exit( EXIT_SUCCESS );
         break;
 
     case GLUT_ACTION_GLUTMAINLOOP_RETURNS:
@@ -646,7 +652,7 @@ void oghDispatchEvent( SOG_Event *ev )
         if( ( Atom )event->xclient.data.l[ 0 ] == ogDisplay.DeleteWindow )
         {
             GETWINDOW( xclient );
-            ogDestroyWindow ( window );
+            ogDestroyWindow( window );
             oghTakeActionOnWindowClose( );
         }
         break;
@@ -660,19 +666,55 @@ void oghDispatchEvent( SOG_Event *ev )
          * GLUT presumably does this because it generally tries to treat
          * sub-windows the same as windows.
          *
-         * XXX Technically, GETWINDOW( xconfigure ) and
-         * XXX {event.xconfigure} may not be legit ways to get at
-         * XXX data for CreateNotify events.  In practice, the data
-         * XXX is in a union which is laid out much the same either
-         * XXX way.  But if you want to split hairs, this isn't legit,
-         * XXX and we should instead duplicate some code.
+         * CreateNotify only happens if there is a window manager present.
+         * We always get a MapNotify, I think, and we can't really do
+         * much with the window until it has been mapped, so we could
+         * just about as well remove the CreateNotify.
+         *
          */
     case CreateNotify:
     case ConfigureNotify:
+    case MapNotify:
         GETWINDOW( xconfigure );
         {
-            int width = event->xconfigure.width;
-            int height = event->xconfigure.height;
+            int width = 0;
+            int height = 0;
+
+            switch( event->type )
+            {
+            case CreateNotify:
+                width = event->xcreatewindow.width;
+                height = event->xcreatewindow.height;
+                break;
+            case ConfigureNotify:
+                width = event->xconfigure.width;
+                height = event->xconfigure.height;
+                break;
+            case MapNotify:
+                {
+                    int dummy;
+                    unsigned udummy;
+                    unsigned uwidth, uheight;
+                    Window root;
+                    
+                    Status status;
+                    
+                    status = XGetGeometry(
+                        ogDisplay.Display, window->Window.Handle,
+                        &root,
+                        &dummy, &dummy,  /* x, y, */
+                        &uwidth, &uheight,
+                        &udummy, &udummy /* border, depth */
+                    );
+                    width = ( int )uwidth;
+                    height = ( int )uheight;
+                }
+                        
+                break;
+            default:
+                ogError( "Impossible code has been reached.\n");
+                break;
+            }
 
             if( ( width != window->State.OldWidth ) ||
                 ( height != window->State.OldHeight ) )
@@ -718,57 +760,12 @@ void oghDispatchEvent( SOG_Event *ev )
         }
         break;
 
-    case MapNotify:
-    case UnmapNotify:
-        /*
-         * If we never do anything with this, can we just not ask to
-         * get these messages?
-         */
-        break;
     case MappingNotify:
         /*
          * Have the client's keyboard knowledge updated (xlib.ps,
          * page 206, says that's a good thing to do)
          */
         XRefreshKeyboardMapping( ( XMappingEvent * )event );
-        break;
-
-    case VisibilityNotify:
-        GETWINDOW( xvisibility );
-        /* XXX INVOKE_WCB() does this check for us. */
-        if( !FETCH_WCB( *window, WindowStatus ) )
-            break;
-        ogSetWindow( window );
-
-        /*
-         * Sending this event, the X server can notify us that the window
-         * has just acquired one of the three possible visibility states:
-         * VisibilityUnobscured, VisibilityPartiallyObscured or
-         * VisibilityFullyObscured
-         */
-        switch( event->xvisibility.state )
-        {
-        case VisibilityUnobscured:
-            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_RETAINED ) );
-            window->State.Visible = GL_TRUE;
-            break;
-
-        case VisibilityPartiallyObscured:
-            INVOKE_WCB( *window, WindowStatus,
-                        ( GLUT_PARTIALLY_RETAINED ) );
-            window->State.Visible = GL_TRUE;
-            break;
-
-        case VisibilityFullyObscured:
-            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_COVERED ) );
-            window->State.Visible = GL_FALSE;
-            break;
-
-        default:
-            ogWarning( "Uknown X visibility state: %d",
-                       event->xvisibility.state );
-            break;
-        }
         break;
 
     case EnterNotify:
@@ -845,7 +842,7 @@ void oghDispatchEvent( SOG_Event *ev )
          */
 #define BUTTON_MASK \
   ( Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask )
-        if ( event->xmotion.state & BUTTON_MASK )
+        if( event->xmotion.state & BUTTON_MASK )
             INVOKE_WCB( *window, Motion, ( event->xmotion.x,
                                            event->xmotion.y ) );
         else
@@ -1059,9 +1056,7 @@ void oghDispatchEvent( SOG_Event *ev )
                 special_cb  = FETCH_WCB( *window, SpecialUp  );
             }
 
-            /*
-             * Is there a keyboard/special callback hooked for this window?
-             */
+            /* Is there a keyboard/special callback hooked for this window? */
             if( keyboard_cb || special_cb )
             {
                 XComposeStatus composeStatus;
@@ -1069,22 +1064,16 @@ void oghDispatchEvent( SOG_Event *ev )
                 KeySym keySym;
                 int len;
 
-                /*
-                 * Check for the ASCII/KeySym codes associated with the event:
-                 */
+                /* Check for the key codes associated with the event: */
                 len = XLookupString( &( event->xkey ), asciiCode,
                                      sizeof( asciiCode ), &keySym,
                                      &composeStatus
                 );
 
-                /*
-                 * GLUT API tells us to have two separate callbacks...
-                 */
+                /* GLUT API tells us to have two separate callbacks... */
                 if( len > 0 )
                 {
-                    /*
-                     * ...one for the ASCII translateable keypresses...
-                     */
+                    /* ...one for the ASCII translateable keypresses... */
                     if( keyboard_cb )
                     {
                         ogSetWindow( window );
@@ -1154,6 +1143,48 @@ void oghDispatchEvent( SOG_Event *ev )
     case ReparentNotify:
         break; /* XXX Should disable this event */
 
+    case UnmapNotify:
+        /* NOP */
+        break;
+
+    case VisibilityNotify:
+        GETWINDOW( xvisibility );
+        /* XXX INVOKE_WCB() does this check for us. */
+        if( !FETCH_WCB( *window, WindowStatus ) )
+            break;
+        ogSetWindow( window );
+
+        /*
+         * Sending this event, the X server can notify us that the window
+         * has just acquired one of the three possible visibility states:
+         * VisibilityUnobscured, VisibilityPartiallyObscured or
+         * VisibilityFullyObscured
+         */
+        switch( event->xvisibility.state )
+        {
+        case VisibilityUnobscured:
+            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_RETAINED ) );
+            window->State.Visible = GL_TRUE;
+            break;
+
+        case VisibilityPartiallyObscured:
+            INVOKE_WCB( *window, WindowStatus,
+                        ( GLUT_PARTIALLY_RETAINED ) );
+            window->State.Visible = GL_TRUE;
+            break;
+
+        case VisibilityFullyObscured:
+            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_COVERED ) );
+            window->State.Visible = GL_FALSE;
+            break;
+
+        default:
+            ogWarning( "Unknown X visibility state: %d",
+                       event->xvisibility.state );
+            break;
+        }
+        break;
+
     default:
         ogWarning( "Unknown X event type: %d", event->type );
         break;
@@ -1180,14 +1211,14 @@ void oghDispatchEvent( SOG_Event *ev )
 
     \note     Does not necessarily dispatch events that are received
               <i>after</i> this function starts processing.
-    \note     This function does not seem to afford you any more
-              capability than you get with glutMainLoop() plus
-              glutIdleFunc().  You do, however, gain some convenience
-              in accessing your data structures (which may be local
-              variables in the place from which you called
-              glutMainLoopEvent()).  This function is probably worthwhile
-              for convenience, but is not strictly required.
-    \see      glutMainLoop(), glutIdleFunc()
+    \note     At first glance, this function may not seem to afford any
+              new capability that you couldn't get with an idle callback
+              or glutLeaveMainLoop().  However there are other GLUT-like
+              libraries that may have their own window event processing
+              loops.  Having glutMainLoopEvent() allows you to ask
+              OpenGLUT to do its work in a batch, then return to whatever
+              processing the other library (or libraries) require.
+    \see      glutIdleFunc(), glutLeaveMainLoop(), glutMainLoop()
 */
 void OGAPIENTRY glutMainLoopEvent( void )
 {
@@ -1231,18 +1262,17 @@ void OGAPIENTRY glutMainLoopEvent( void )
               callback, but the list would be tediously long and
               prone to omissions.
 
-    \bug      Talking to a network can be a bit bothersome under the
-              GLUT event model.
+    \bug      Talking to other message systems (e.g., network layers)
+              can be a bit bothersome under the GLUT event model.
+    \internal
     \note     For OpenGLUT developers' internal documentation:
               Runs until the \a ExecState changes to \a GLUT_EXEC_STATE_STOP.
     \see      glutMainLoopEvent(), glutLeaveMainLoop(), glutIdleFunc()
 */
 void OGAPIENTRY glutMainLoop( void )
 {
-    int action;
-
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-    SOG_Window *window = (SOG_Window *)ogStructure.Windows.First;
+    SOG_Window *window = ( SOG_Window * )ogStructure.Windows.First;
 #endif
 
     freeglut_assert_ready;
@@ -1305,7 +1335,6 @@ void OGAPIENTRY glutMainLoop( void )
      * When this loop terminates, destroy the display, state and structure
      * of a OpenGLUT session, so that another glutInit() call can happen
      */
-    action = ogState.ActionOnWindowClose;
     ogDeinitialize( );
 
     ogState.InMainLoop = 0;
@@ -1321,6 +1350,7 @@ void OGAPIENTRY glutMainLoop( void )
               you have also told OpenGLUT to return to you rather than
               to call exit() directly.
 
+    \internal
     \todo     Could use longjmp(); see oghTakeActionOnWindowClose().
               This would let us terminate the entire loop immediately.
     \see      glutMainLoop(), exit()
@@ -1335,7 +1365,7 @@ void OGAPIENTRY glutLeaveMainLoop( void )
 /*
  * Determine a GLUT modifer mask based on MS-WINDOWS system info.
  */
-int ogGetWin32Modifiers (void)
+int ogGetWin32Modifiers( void )
 {
     return
         ( ( ( GetKeyState( VK_LSHIFT   ) < 0 ) ||
@@ -1383,10 +1413,9 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
     switch( uMsg )
     {
     case WM_CREATE:
-        /*
-         * The window structure is passed as the creation structure paramter.
-         */
-        window = (SOG_Window *) (((LPCREATESTRUCT) lParam)->lpCreateParams);
+        /* The window struct is passed as the creation structure paramter. */
+        window = ( SOG_Window * )
+            ( ( ( LPCREATESTRUCT )lParam )->lpCreateParams );
         assert( window != NULL );
 
         window->Window.Handle = hWnd;
@@ -1486,16 +1515,16 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         break;
 #if 0
     case WM_SETFOCUS:
-        printf("WM_SETFOCUS: %p\n", window );
+        /* printf("WM_SETFOCUS: %p\n", window ); */
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
         break;
 
     case WM_ACTIVATE:
-        if (LOWORD(wParam) != WA_INACTIVE)
+        if( LOWORD( wParam ) != WA_INACTIVE )
         {
             /* glutSetCursor( ogStructure.Window->State.Cursor ); */
-            printf("WM_ACTIVATE: glutSetCursor( %p, %d)\n", window,
-                   window->State.Cursor );
+            /* printf("WM_ACTIVATE: glutSetCursor( %p, %d)\n", window,
+                      window->State.Cursor ); */
             glutSetCursor( window->State.Cursor );
         }
 
@@ -1508,7 +1537,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          * XXX function (or perhaps invoke glutSetCursor())?
          * XXX That is, why are we duplicating code, here, from
          * XXX glutSetCursor()?  The WIN32 code should be able to just
-         * XXX call glutSetCurdsor() instead of defining two macros
+         * XXX call glutSetCursor() instead of defining two macros
          * XXX and implementing a nested case in-line.
          */
     case WM_SETCURSOR:
@@ -1561,16 +1590,14 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         break;
 
     case WM_CLOSE:
-        ogDestroyWindow ( window );
+        ogDestroyWindow( window );
         if( ogState.ActionOnWindowClose != GLUT_ACTION_CONTINUE_EXECUTION )
             PostQuitMessage( 0 );
         oghTakeActionOnWindowClose( );
         break;
 
     case WM_DESTROY:
-        /*
-         * The window already got destroyed, so don't bother with it.
-         */
+        /* The window already got destroyed, so don't bother with it. */
         return 0;
 
     case WM_MOUSEMOVE:
@@ -1583,10 +1610,10 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         window->State.MouseY = HIWORD( lParam );
 #endif
 
-        if ( window->ActiveMenu )
+        if( window->ActiveMenu )
         {
             window->State.Redisplay = GL_TRUE;
-            ogSetWindow ( window->ActiveMenu->ParentWindow );
+            ogSetWindow( window->ActiveMenu->ParentWindow );
             break;
         }
 
@@ -1657,13 +1684,11 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
 #if !TARGET_HOST_WINCE
         if( GetSystemMetrics( SM_SWAPBUTTON ) )
-        {
             if( button == GLUT_LEFT_BUTTON )
                 button = GLUT_RIGHT_BUTTON;
             else 
                 if( button == GLUT_RIGHT_BUTTON )
                     button = GLUT_LEFT_BUTTON;
-        }
 #endif
 
         if( button == -1 )
@@ -1829,9 +1854,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         window->State.MouseX = mouse_pos.x;
         window->State.MouseY = mouse_pos.y;
 
-        /*
-         * Convert the Win32 keystroke codes to GLUTtish way
-         */
+        /* Convert the Win32 keystroke codes to GLUTtish way */
 #       define KEY(a,b) case a: keypress = b; break;
 
         switch( wParam )
@@ -1859,9 +1882,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             KEY( VK_INSERT, GLUT_KEY_INSERT    );
 
         case VK_DELETE:
-            /*
-             * The delete key should be treated as an ASCII keypress:
-             */
+            /* The delete key is ASCII DEL */
             INVOKE_WCB( *window, Keyboard,
                         ( 127, window->State.MouseX, window->State.MouseY )
             );
@@ -1947,9 +1968,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             KEY( VK_INSERT, GLUT_KEY_INSERT    );
 
           case VK_DELETE:
-              /*
-               * The delete key should be treated as an ASCII keypress:
-               */
+              /* The delete key is ASCII DEL. */
               INVOKE_WCB( *window, KeyboardUp,
                           ( 127, window->State.MouseX, window->State.MouseY )
               );
@@ -1967,7 +1986,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
                 wParam=code[ 0 ];
 
             INVOKE_WCB( *window, KeyboardUp,
-                        ( (char)wParam,
+                        ( ( char )wParam,
                           window->State.MouseX, window->State.MouseY )
             );
 #endif
@@ -2002,7 +2021,8 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
     break;
 
     case WM_CAPTURECHANGED:
-        /* User has finished resizing the window, force a redraw */
+        /*
+         * User has finished resizing the window, force a redraw */
         /*
          * XXX Probably should instead post a "window resized" event.
          * XXX Let the cliet call glutPostRedisplay() if needed.
@@ -2012,9 +2032,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         /*lRet = DefWindowProc( hWnd, uMsg, wParam, lParam ); */
         break;
 
-        /*
-         * Other messages that I have seen and which are not handled already
-         */
+        /* Other messages that I have seen and which are not handled already */
     case WM_SETTEXT:  /* 0x000c */
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
         /* Pass it on to "DefWindowProc" to set the window text */
@@ -2122,9 +2140,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         break;
 
     default:
-        /*
-         * Handle unhandled messages
-         */
+        /* Handle unhandled messages */
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
         break;
     }

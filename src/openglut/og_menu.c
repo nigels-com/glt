@@ -387,9 +387,7 @@ void ogDisplayMenu( void )
 
     freeglut_assert_window;
 
-    /*
-     * Check if there is an active menu attached to this window...
-     */
+    /* Check if there is an active menu attached to this window... */
     menu = window->ActiveMenu;
     if( menu )
     {
@@ -439,21 +437,15 @@ void ogDisplayMenu( void )
  */
 void ogActivateMenu( SOG_Window *window, int button )
 {
-    /*
-     * We'll be referencing this menu a lot, so remember its address:
-     */
-    SOG_Menu* menu = window->Menu[ button ];
+    /* We'll be referencing this menu a lot, so remember its address: */
+    SOG_Menu *menu = window->Menu[ button ];
 
-    /*
-     * Mark the menu as active, so that it gets displayed:
-     */
+    /* Mark the menu as active, so that it gets displayed: */
     window->ActiveMenu = menu;
     menu->IsActive = GL_TRUE;
     ogState.ActiveMenus++;
 
-    /*
-     * Set up the initial menu position now:
-     */
+    /* Set up the initial menu position now: */
     menu->X = window->State.MouseX + glutGet( GLUT_WINDOW_X );
     menu->Y = window->State.MouseY + glutGet( GLUT_WINDOW_Y );
 
@@ -476,13 +468,8 @@ void ogActivateMenu( SOG_Window *window, int button )
  */
 GLboolean ogCheckActiveMenu ( SOG_Window *window, SOG_Menu *menu )
 {
-    /*
-     * XXX See the Menu module discussion for the button
-     * XXX policy re. menus.
-     */
-    /*
-     * Since menus can have submenus, we need to check this recursively.
-     */
+    /* XXX See the Menu module discussion for the button policy re. menus. */
+    /* Since menus can have submenus, we need to check this recursively. */
     return oghCheckMenuStatus( window, menu );
 }
 
@@ -493,9 +480,7 @@ void ogExecuteMenuCallback( SOG_Menu *menu )
 {
     SOG_MenuEntry *menuEntry;
 
-    /*
-     * First of all check any of the active sub menus...
-     */
+    /* First of all check any of the active sub menus... */
     for( menuEntry = (SOG_MenuEntry *)menu->Entries.First;
          menuEntry;
          menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next)
@@ -518,7 +503,7 @@ void ogDeactivateMenu( SOG_Window *window )
     SOG_Window *current_window = ogStructure.Window;
 
     /* Check if there is an active menu attached to this window... */
-    SOG_Menu* menu = window->ActiveMenu;
+    SOG_Menu *menu = window->ActiveMenu;
     SOG_MenuEntry *menuEntry;
 
     /* Did we find an active window? */
@@ -664,7 +649,7 @@ int OGAPIENTRY glutCreateMenu( void( *callback )( int value ) )
 */
 void OGAPIENTRY glutDestroyMenu( int menuID )
 {
-    SOG_Menu* menu = ogMenuByID( menuID );
+    SOG_Menu *menu = ogMenuByID( menuID );
 
     freeglut_assert_ready;
     if( menu )
@@ -701,8 +686,8 @@ int OGAPIENTRY glutGetMenu( void )
     \ingroup  menus
     \param    menuID    Selected menu.
 
-              Tells OpenGLUT to select the menu given by the
-              \a menuID.
+              Tells OpenGLUT to set the <i>current menu</i>
+              to the menu given by the \a menuID.
 
     \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
               glutAddMenuEntry(), glutAddSubMenu(),
@@ -712,7 +697,7 @@ int OGAPIENTRY glutGetMenu( void )
 */
 void OGAPIENTRY glutSetMenu( int menuID )
 {
-    SOG_Menu* menu = ogMenuByID( menuID );
+    SOG_Menu *menu = ogMenuByID( menuID );
 
     freeglut_assert_ready;
     if( menu )
@@ -748,7 +733,7 @@ void OGAPIENTRY glutAddMenuEntry( const char *label, int value )
     freeglut_assert_ready;
     if( ogStructure.Menu )
     {
-        menuEntry->Text = strdup( label );
+        menuEntry->Text = ogStrDup( label );
         menuEntry->ID   = value;
 
         /* Have the new menu entry attached to the current menu */
@@ -789,7 +774,7 @@ void OGAPIENTRY glutAddSubMenu( const char *label, int subMenuID )
     freeglut_assert_ready;
     if( ogStructure.Menu && subMenu )
     {
-        menuEntry->Text    = strdup( label );
+        menuEntry->Text    = ogStrDup( label );
         menuEntry->SubMenu = subMenu;
         menuEntry->ID      = -1;
 
@@ -837,7 +822,7 @@ void OGAPIENTRY glutChangeToMenuEntry( int item, const char *label, int value )
             if( menuEntry->Text )
                 free( menuEntry->Text );
 
-            menuEntry->Text    = strdup( label );
+            menuEntry->Text    = ogStrDup( label );
             menuEntry->ID      = value;
             menuEntry->SubMenu = NULL;
             oghCalculateMenuBoxSize( );
@@ -880,7 +865,7 @@ void OGAPIENTRY glutChangeToSubMenu( int item, const char *label,
             if( menuEntry->Text )
                 free( menuEntry->Text );
 
-            menuEntry->Text    = strdup( label );
+            menuEntry->Text    = ogStrDup( label );
             menuEntry->SubMenu = subMenu;
             menuEntry->ID      = -1;
             oghCalculateMenuBoxSize( );
@@ -1006,7 +991,7 @@ void OGAPIENTRY glutDetachMenu( int button )
 
     \see      glutSetMenuData()
 */
-void* OGAPIENTRY glutGetMenuData( void )
+void *OGAPIENTRY glutGetMenuData( void )
 {
     return ogStructure.Menu->UserData;
 }
@@ -1017,7 +1002,9 @@ void* OGAPIENTRY glutGetMenuData( void )
     \ingroup  menus
     \param    data    An arbitrary client pointer.
 
-              Stores an arbitrary user data pointer.  OpenGLUT
+              glutSetMenuData() associates an arbitrary user
+              data pointer, \a data, with the <i>current menu</i>.
+              OpenGLUT
               does not interpret this pointer in any way, but
               merely stores it for you in the menu structure.
 

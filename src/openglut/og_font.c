@@ -121,7 +121,7 @@ static SOG_StrokeFont *oghStrokeByID( void *font )
               strings of characters.
 
     \see      glRasterPos(), glutBitmapString(), glutBitmapWidth(), 
-              glutBitmapHeight()
+              glutBitmapHeight(), glutStrokeCharacter()
 */
 void OGAPIENTRY glutBitmapCharacter( void *font, int character )
 {
@@ -207,8 +207,6 @@ void OGAPIENTRY glutBitmapString( void *font, const unsigned char *string )
     while( c = *string++ )
         if( c == '\n' )
         {
-            /* glBitmap can be used to reposition the raster position */
-
             glBitmap( 0, 0, 0, 0, - ( float ) x, - ( float ) f->Height, NULL );
             x = 0;
         }
@@ -348,11 +346,12 @@ int OGAPIENTRY glutBitmapHeight( void *font )
     \param    fontID    A GLUT stroked font identifier.
     \param    character An ASCII character other than NUL.
 
-              Draws one \a character from one stroked font
+              This function draws one \a character from one stroked font
+              (selected by \a fontID)
               using OpenGL \a GL_LINE_STRIP.  These characters
               are drawn at the origin in model space.
-              Advances the the model space origin according to the
-              font width.
+              The the model space origin is translated at the end,
+              according to the \a character width in \a fontID.
 
               Does nothing if:
                - The \a fontID is invalid.
@@ -396,8 +395,10 @@ void OGAPIENTRY glutStrokeCharacter( void *fontID, int character )
     \param    fontID    A GLUT stroked font identifier.
     \param    string    A NUL-terminated ASCII string.
 
-              <i>Almost</i> equivalent to calling glutStrokeCharacter()
-              on each character in the string, successively.
+              This function draws a \a string in the font indicated
+              by \a fontID.
+              It is <i>almost</i> equivalent to calling glutStrokeCharacter()
+              on each character in the \a string, successively.
               Mostly, it is a convenience function to hide the loop,
               and to treat \\n as a special symbol rather than a normal
               glyph.
@@ -413,6 +414,11 @@ void OGAPIENTRY glutStrokeCharacter( void *fontID, int character )
                - \a fontID is out of range.
                - \a string is \a NULL
                - \a string is empty
+
+              Unlike glutBitmapString(), there is little performance
+              advantage to using glutStrokeString() as compared with
+              calling glutStrokeCharacter() yourself for every
+              character.
 
     \see      glutStrokeLength(), glutStrokeCharacter(),
               glutStrokeHeight(), glutBitmapString()
@@ -432,7 +438,6 @@ void OGAPIENTRY glutStrokeString( void *fontID, const unsigned char *string )
          */
         while( c = *string++ )
             if( c < font->Quantity )
-            {
                 if( c == '\n' )
                 {
                     glTranslatef ( -length, -( float )( font->Height ), 0.0 );
@@ -460,7 +465,6 @@ void OGAPIENTRY glutStrokeString( void *fontID, const unsigned char *string )
                         glTranslatef( schar->Right, 0.0, 0.0 );
                     }
                 }
-            }
 }
 
 /*!
@@ -470,33 +474,34 @@ void OGAPIENTRY glutStrokeString( void *fontID, const unsigned char *string )
     \param    fontID    A GLUT stroked font identifier.
     \param    character A character code.
 
-              This function reports how far the model space originwill advance
-              if you putput this \a character in this \a font.
-              It is also an upper bound
-              on the width of the stroked glyph for \a character, though
-              not all letters will use their full width, especially in
+              This function reports how far the model space origin will advance
+              if you putput this \a character in the font named by \a fontID.
+              Not all letters will use their full width, especially in
               fixed-width fonts.
 
               Returns 0 if \a character is out of range or if the
               \a fontID is invalid.
 
-    \note     The character widths are stored in floating point, but
-              this function rounds to an integer, so the result may
-              be rather inaccurate.
-    \note     freeglut, and at least some original GLUT documentation,
-              claim that this function returns the width of the glyph
-              in <b>pixels</b>.  But that is not what the freeglut
-              code does.  It is presumed that freeglut's code is
-              correct, and other documentation is in error.
-    \todo     Change this to report a float instead?  Quite possibly, the
-              integer return-type is part of the same documentation error
-              that led to claiming that this returns a width in pixels.
+    \todo     Determine if any glyphs are either wider than this
+              function or if they render outside of the bounding
+              box given by
+              <i>(0,-descent)</i> by <i>(width,height-descent)</i>.
+    \note     Historically, this function has been described as
+              returning a pixel-width, but was implemented to
+              return the width in model-space units, rounded to integers.
+              GLUT never resolved this, and freeglut duplicated the
+              confusion.
+              OpenGLUT has decided to stay in model-space and to
+              return the unrounded floating point value.
+              An unreleased GLUT 3.8 was supposed to include
+              glutStrokeWidthf() and glutStrokeLengthf() (note
+              the *f suffixes), but that is not in wide use.
     \see      glutStrokeCharacter(), glutStrokeLength(), glutStrokeHeight()
               glutBitmapWidth()
 */
-int OGAPIENTRY glutStrokeWidth( void *fontID, int character )
+float OGAPIENTRY glutStrokeWidth( void *fontID, int character )
 {
-    int ret = 0;
+    float ret = 0;
     SOG_StrokeFont *font = oghStrokeByID( fontID );
 
     if( font &&
@@ -505,7 +510,7 @@ int OGAPIENTRY glutStrokeWidth( void *fontID, int character )
     {
         const SOG_StrokeChar *schar = font->Characters[ character ];
         if( schar )
-            ret = ( int )( schar->Right + 0.5 );
+            ret = schar->Right;
     }
 
     return ret;
@@ -530,8 +535,9 @@ int OGAPIENTRY glutStrokeWidth( void *fontID, int character )
                - The \a string is \a NULL.
                - All characters in the \a string are zero-width.
 
-    \note     Truncates the width to an integer; the rationale for
-              truncation is unknown.
+    \note     Refer to glutStrokeWidth() for notes on the
+              nature of this function's return value, and for
+              comparisons to old GLUT and freeglut.
     \see      glutStrokeString(), glutStrokeWidth(), glutStrokeHeight(),
               glutBitmapLength()
 */
@@ -572,13 +578,12 @@ float OGAPIENTRY glutStrokeLength( void *fontID, const unsigned char *string )
     \ingroup  fonts
     \param    fontID    A GLUT stroked font identifier.
 
-              Reports the height of a \a font as a global
-              characteristic of that font.
+              This function reports the height of a font,
+              given by \a fontID,
+              as a global characteristic of that font.
 
               Returns 0 if \a fontID is invalid.
 
-    \note     Unlike <i>all</i> other font metrics, this returns
-              a floating point value.
     \note     Does <i>not</i> report the height used by individual
               characters.  This may limit its usefulness; perhaps we
               should change it?  (And/or add a new function.)

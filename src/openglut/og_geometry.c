@@ -47,7 +47,10 @@
     \param    width       The width, height and depth of the cube.
 
               The glutWireCube() function draws an axis-aligned wireframe cube
-              with a specified width, height and depth.
+              with a specified width, height and depth. The vertices of
+              the cube are at
+              (+/- \a width/2, +/- \a width/2, +/- \a width/2),
+              so that the cube is centered at the origin.
 
     \see      glutSolidCube()
 */
@@ -80,8 +83,11 @@ void OGAPIENTRY glutWireCube( GLdouble width )
     \ingroup  geometry
     \param    width       The width, height and depth of the cube.
 
-              The glutSolidCube() function draws an axis-aligned shaded
-              cube with a specified width, height and depth.
+              The glutSolidCube() function draws a solid-shaded cube
+              with side-length given by \a width.  The vertices of
+              the cube are at
+              (+/- \a width/2, +/- \a width/2, +/- \a width/2),
+              so that the cube is centered at the origin.
 
     \author   Code contributed by Andreas Umbach <marvin@dataway.ch>
     \see      glutWireCube()
@@ -154,7 +160,10 @@ static void ogCircleTable( double **sint, double **cost, const int n )
                             (longitudal)
 
               The glutSolidSphere() function draws a shaded sphere centered at
-              the origin.
+              the origin.  The surface is created from quadrangles
+              (except for triangles as degenerate quads at the poles) in a
+              longitude/latitude pattern.  The equatorial great circle lies
+              in the xy-plane and is centered on the origin.
 
     \note     The number of polygons representing the spherical surface is
               proportional to (slices*stacks).
@@ -163,25 +172,28 @@ static void ogCircleTable( double **sint, double **cost, const int n )
 */
 void OGAPIENTRY glutSolidSphere( GLdouble radius, GLint slices, GLint stacks )
 {
-    int i,j;
+    int i, j;
 
     /* Adjust z and radius as stacks are drawn. */
     double z0, z1;
     double r0, r1;
 
     /* Pre-computed circle */
-    double *sint1, *cost1;
-    double *sint2, *cost2;
-    ogCircleTable( &sint1, &cost1, -slices );
-    ogCircleTable( &sint2, &cost2, stacks * 2 );
+    double *sint1 = NULL, *cost1 = NULL;
+    double *sint2 = NULL, *cost2 = NULL;
+    if( 0 < slices )
+        ogCircleTable( &sint1, &cost1, -slices );
+    if( 0 < stacks )
+        ogCircleTable( &sint2, &cost2, stacks * 2 );
+    if( sint1 && cost1 && sint2 && cost2 )
+    {
+        /* The top stack is covered with a triangle fan */
+        z0 = 1.0;
+        z1 = cost2[ 1 ];
+        r0 = 0.0;
+        r1 = sint2[ 1 ];
 
-    /* The top stack is covered with a triangle fan */
-    z0 = 1.0;
-    z1 = cost2[ 1 ];
-    r0 = 0.0;
-    r1 = sint2[ 1 ];
-
-    glBegin( GL_TRIANGLE_FAN );
+        glBegin( GL_TRIANGLE_FAN );
         glNormal3d( 0, 0, 1 );
         glVertex3d( 0, 0, radius );
 
@@ -192,17 +204,17 @@ void OGAPIENTRY glutSolidSphere( GLdouble radius, GLint slices, GLint stacks )
                 cost1[ j ] * r1 * radius, sint1[ j ] * r1 * radius, z1 * radius
             );
         }
-    glEnd( );
+        glEnd( );
 
-    /* Cover each stack with a quad strip, except the top and bottom stacks */
-    for( i = 1; i < stacks - 1; i++ )
-    {
-        z0 = z1;
-        z1 = cost2[ i + 1 ];
-        r0 = r1;
-        r1 = sint2[ i + 1];
+        /* Cover each stack with a quad strip except the top/bottom stacks */
+        for( i = 1; i < stacks - 1; i++ )
+        {
+            z0 = z1;
+            z1 = cost2[ i + 1 ];
+            r0 = r1;
+            r1 = sint2[ i + 1];
 
-        glBegin( GL_QUAD_STRIP );
+            glBegin( GL_QUAD_STRIP );
             for( j = 0; j <= slices; j++ )
             {
                 glNormal3d( cost1[ j ] * r1, sint1[ j ] * r1, z1 );
@@ -218,14 +230,14 @@ void OGAPIENTRY glutSolidSphere( GLdouble radius, GLint slices, GLint stacks )
                     z0 * radius
                 );
             }
-        glEnd( );
-    }
+            glEnd( );
+        }
 
-    /* The bottom stack is covered with a triangle fan */
-    z0 = z1;
-    r0 = r1;
+        /* The bottom stack is covered with a triangle fan */
+        z0 = z1;
+        r0 = r1;
 
-    glBegin( GL_TRIANGLE_FAN );
+        glBegin( GL_TRIANGLE_FAN );
         glNormal3d( 0, 0, -1 );
         glVertex3d( 0, 0, -radius );
 
@@ -236,8 +248,8 @@ void OGAPIENTRY glutSolidSphere( GLdouble radius, GLint slices, GLint stacks )
                 cost1[ j ] * r0 * radius, sint1[ j ] * r0 * radius, z0 * radius
             );
         }
-    glEnd( );
-
+        glEnd( );
+    }
     free( sint1 );
     free( cost1 );
     free( sint2 );
@@ -256,6 +268,7 @@ void OGAPIENTRY glutSolidSphere( GLdouble radius, GLint slices, GLint stacks )
 
               The glutWireSphere() function draws a wireframe sphere centered
               at the origin.
+              The "equatorial" great circle lies in the xy-plane.
 
     \note     The number of line segments representing the spherical surface is
               proportional to (slices*stacks).
@@ -271,18 +284,21 @@ void OGAPIENTRY glutWireSphere( GLdouble radius, GLint slices, GLint stacks )
     double x, y, z;
 
     /* Pre-computed circle */
-    double *sint1, *cost1;
-    double *sint2, *cost2;
-    ogCircleTable( &sint1, &cost1, -slices );
-    ogCircleTable( &sint2, &cost2,  stacks * 2 );
-
-    /* Draw a line loop for each stack */
-    for( i = 1; i < stacks; i++ )
+    double *sint1 = NULL, *cost1 = NULL;
+    double *sint2 = NULL, *cost2 = NULL;
+    if( 0 < slices )
+        ogCircleTable( &sint1, &cost1, -slices );
+    if( 0 < stacks )
+        ogCircleTable( &sint2, &cost2,  stacks * 2 );
+    if( sint1 && cost1 && sint2 && cost2 )
     {
-        z = cost2[ i ];
-        r = sint2[ i ];
+        /* Draw a line loop for each stack */
+        for( i = 1; i < stacks; i++ )
+        {
+            z = cost2[ i ];
+            r = sint2[ i ];
 
-        glBegin( GL_LINE_LOOP );
+            glBegin( GL_LINE_LOOP );
             for( j = 0; j <= slices; j++ )
             {
                 x = cost1[ j ];
@@ -291,13 +307,13 @@ void OGAPIENTRY glutWireSphere( GLdouble radius, GLint slices, GLint stacks )
                 glNormal3d( x, y, z );
                 glVertex3d( x * r * radius, y * r * radius, z * radius );
             }
-        glEnd( );
-    }
+            glEnd( );
+        }
 
-    /* Draw a line loop for each slice */
-    for( i = 0; i < slices; i++ )
-    {
-        glBegin( GL_LINE_STRIP );
+        /* Draw a line loop for each slice */
+        for( i = 0; i < slices; i++ )
+        {
+            glBegin( GL_LINE_STRIP );
             for( j = 0; j <= stacks; j++ )
             {
                 x = cost1[ i ] * sint2[ j ];
@@ -307,9 +323,10 @@ void OGAPIENTRY glutWireSphere( GLdouble radius, GLint slices, GLint stacks )
                 glNormal3d( x, y, z );
                 glVertex3d( x * radius, y * radius, z * radius );
             }
-        glEnd( );
+            glEnd( );
+        }
     }
-
+    
     free( sint1 );
     free( cost1 );
     free( sint2 );
@@ -326,7 +343,8 @@ void OGAPIENTRY glutWireSphere( GLdouble radius, GLint slices, GLint stacks )
     \param    stacks     The number of divisions along the z axis. (longitudal)
 
               The glutSolidCone() function draws a shaded cone
-              with a base in the xy plane oriented in positive z.
+              with a base in the xy-plane, oriented in the positive z
+              direction.
 
     \note     The number of polygons representing the conical surface is
               proportional to (slices*stacks).
@@ -336,42 +354,48 @@ void OGAPIENTRY glutWireSphere( GLdouble radius, GLint slices, GLint stacks )
 void OGAPIENTRY glutSolidCone( GLdouble base, GLdouble height,
                                GLint slices, GLint stacks )
 {
-    int i,j;
+    int i, j;
 
     /* Step in z and radius as stacks are drawn. */
-    double z0,z1;
-    double r0,r1;
+    double z0, z1;
+    double r0, r1;
 
-    const double zStep = height/stacks;
-    const double rStep = base/stacks;
-
-    /* Scaling factors for vertex normals */
-    const double cosn = ( height / sqrt ( height * height + base * base ) );
-    const double sinn = ( base   / sqrt ( height * height + base * base ) );
+    /* Used for computing scaling factors for vertex normals */
+    const double side_length = sqrt( height*height + base*base );
 
     /* Pre-computed circle */
-    double *sint, *cost;
-    ogCircleTable( &sint, &cost, -slices );
+    double *sint = NULL, *cost = NULL;
 
-    /* Cover the circular base with a triangle fan... */
-    z0 = 0.0;
-    z1 = zStep;
+    if( 0 < slices )
+        ogCircleTable( &sint, &cost, -slices );
+    if( sint && cost && ( 0 < stacks ) && ( 0 < side_length ) )
+    {
+        const double zStep = height/stacks;
+        const double rStep = base/stacks;
 
-    r0 = base;
-    r1 = r0 - rStep;
+        /* Scaling factors for vertex normals */
+        const double cosn = height / side_length;
+        const double sinn = base   / side_length;
 
-    glBegin( GL_TRIANGLE_FAN );
+        /* Cover the circular base with a triangle fan... */
+        z0 = 0.0;
+        z1 = zStep;
+
+        r0 = base;
+        r1 = r0 - rStep;
+
+        glBegin( GL_TRIANGLE_FAN );
         glNormal3d( 0.0, 0.0, -1.0 );
         glVertex3d( 0.0, 0.0, z0 );
 
         for( j = 0; j <= slices; j++ )
             glVertex3d( cost[ j ] * r0, sint[ j ] * r0, z0 );
-    glEnd( );
+        glEnd( );
 
-    /* Cover each stack with a quad strip, except the top stack */
-    for( i = 0; i < stacks - 1; i++ )
-    {
-        glBegin( GL_QUAD_STRIP );
+        /* Cover each stack with a quad strip, except the top stack */
+        for( i = 0; i < stacks - 1; i++ )
+        {
+            glBegin( GL_QUAD_STRIP );
 
             for( j = 0; j <= slices; j++ )
             {
@@ -384,11 +408,11 @@ void OGAPIENTRY glutSolidCone( GLdouble base, GLdouble height,
             z1 += zStep;
             r0 = r1;
             r1 -= rStep;
-        glEnd( );
-    }
+            glEnd( );
+        }
 
-    /* The top stack is covered with individual triangles */
-    glBegin( GL_TRIANGLES );
+        /* The top stack is covered with individual triangles */
+        glBegin( GL_TRIANGLES );
         glNormal3d( cost[ 0 ] * sinn, sint[ 0 ] * sinn, cosn );
 
         for( j = 0; j < slices; j++ )
@@ -398,7 +422,8 @@ void OGAPIENTRY glutSolidCone( GLdouble base, GLdouble height,
             glNormal3d( cost[ j + 1 ] * sinn, sint[ j + 1 ] * sinn, cosn   );
             glVertex3d( cost[ j + 1 ] * r0,   sint[ j + 1 ] * r0,   z0     );
         }
-    glEnd( );
+        glEnd( );
+    }
 
     free( sint );
     free( cost );
@@ -430,43 +455,48 @@ void OGAPIENTRY glutWireCone( GLdouble base, GLdouble height,
     double z = 0.0;
     double r = base;
 
-    const double zStep = height/stacks;
-    const double rStep = base/stacks;
-
-    /* Scaling factors for vertex normals */
-    const double cosn = ( height / sqrt( height * height + base * base ) );
-    const double sinn = ( base   / sqrt( height * height + base * base ) );
+    double side_length = sqrt( height*height + base*base );
 
     /* Pre-computed circle */
-    double *sint, *cost;
-    ogCircleTable( &sint, &cost, -slices );
-
-    /* Draw the stacks... */
-    for( i = 0; i < stacks; i++ )
+    double *sint = NULL, *cost = NULL;
+    if( 0 < slices )
+        ogCircleTable( &sint, &cost, -slices );
+    if( sint && cost && ( 0 < stacks ) && ( 0 < side_length ) )
     {
-        glBegin( GL_LINE_LOOP );
+        const double zStep = height/stacks;
+        const double rStep = base/stacks;
+
+        /* Scaling factors for vertex normals */
+        const double cosn = height / side_length;
+        const double sinn = base   / side_length;
+
+        /* Draw the stacks... */
+        for( i = 0; i < stacks; i++ )
+        {
+            glBegin( GL_LINE_LOOP );
             for( j = 0; j < slices; j++ )
             {
                 glNormal3d( cost[ j ] * sinn, sint[ j ]* sinn, cosn );
                 glVertex3d( cost[ j ] * r,    sint[ j ] * r,   z    );
             }
-        glEnd( );
+            glEnd( );
 
-        z += zStep;
-        r -= rStep;
-    }
+            z += zStep;
+            r -= rStep;
+        }
 
-    /* Draw the slices */
-    r = base;
+        /* Draw the slices */
+        r = base;
 
-    glBegin( GL_LINES );
+        glBegin( GL_LINES );
         for( j = 0; j < slices; j++ )
         {
             glNormal3d( cost[ j ] * sinn, sint[ j ] * sinn, cosn   );
             glVertex3d( cost[ j ] * r,    sint[ j ] * r,    0.0    );
             glVertex3d( 0.0,              0.0,              height );
         }
-    glEnd( );
+        glEnd( );
+    }
 
     free( sint );
     free( cost );
@@ -484,9 +514,7 @@ void OGAPIENTRY glutWireCone( GLdouble base, GLdouble height,
 
               glutSolidCylinder() draws a shaded cylinder,
               the center of whose base is at the origin and
-              whose axis is along the z axis.
-
-    \note     Can cause division by 0 if \a stacks is 0.
+              whose axis is along the positive z axis.
 
     \see      glutWireCylinder()
 */
@@ -495,49 +523,52 @@ void OGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height,
 {
     int i, j;
 
-    /* Step in z and radius as stacks are drawn. */
-    double z0, z1;
-    const double zStep = height / stacks;
-
     /* Pre-computed circle */
-    double *sint, *cost;
-    ogCircleTable( &sint, &cost, -slices );
+    double *sint = NULL, *cost = NULL;
+    if( 0 < slices )
+        ogCircleTable( &sint, &cost, -slices );
+    if( sint && cost && ( 0 < stacks ) )
+    {
+        /* Step in z and radius as stacks are drawn. */
+        double z0, z1;
+        const double zStep = height / stacks;
 
-    /* Cover the base and top */
-    glBegin( GL_TRIANGLE_FAN );
+        /* Cover the base and top */
+        glBegin( GL_TRIANGLE_FAN );
         glNormal3d( 0.0, 0.0, -1.0 );
         glVertex3d( 0.0, 0.0,  0.0 );
         for (j = 0; j <= slices; j++ )
             glVertex3d( cost[ j ] * radius, sint[ j ] * radius, 0.0 );
-    glEnd();
+        glEnd();
 
-    glBegin( GL_TRIANGLE_FAN );
+        glBegin( GL_TRIANGLE_FAN );
         glNormal3d( 0.0, 0.0, 1.0    );
         glVertex3d( 0.0, 0.0, height );
         for ( j = slices; j >= 0; j-- )
             glVertex3d( cost[ j ] * radius, sint[ j ] * radius, height );
-    glEnd( );
+        glEnd( );
 
-    /* Do the stacks */
-    z0 = 0.0;
-    z1 = zStep;
+        /* Do the stacks */
+        z0 = 0.0;
+        z1 = zStep;
 
-    for( i = 1; i <= stacks; i++ )
-    {
-        if( i == stacks )
-            z1 = height;
+        for( i = 1; i <= stacks; i++ )
+        {
+            if( i == stacks )
+                z1 = height;
 
-        glBegin( GL_QUAD_STRIP );
+            glBegin( GL_QUAD_STRIP );
             for( j = 0; j <= slices; j++ )
             {
                 glNormal3d( cost[ j ],          sint[ j ],          0.0 );
                 glVertex3d( cost[ j ] * radius, sint[ j ] * radius, z0  );
                 glVertex3d( cost[ j ] * radius, sint[ j ] * radius, z1  );
             }
-        glEnd( );
+            glEnd( );
 
-        z0 = z1;
-        z1 += zStep;
+            z0 = z1;
+            z1 += zStep;
+        }
     }
 
     free( sint );
@@ -557,8 +588,6 @@ void OGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height,
               the center of whose base is at the origin, and
               whose axis parallels the z axis.
 
-    \note     May cause division by 0 if \a stacks is 0.
-
     \see      glutSolidCylinder()
 */
 void OGAPIENTRY glutWireCylinder(
@@ -567,40 +596,43 @@ void OGAPIENTRY glutWireCylinder(
 {
     int i, j;
 
-    /* Step in z and radius as stacks are drawn. */
-    double z = 0.0;
-    const double zStep = height / stacks;
-
     /* Pre-computed circle */
-    double *sint, *cost;
-    ogCircleTable( &sint, &cost, -slices );
-
-    /* Draw the stacks... */
-    for( i = 0; i <= stacks; i++ )
+    double *sint = NULL, *cost = NULL;
+    if( 0 < slices )
+        ogCircleTable( &sint, &cost, -slices );
+    if( sint && cost && ( 0 < stacks ) )
     {
-        if( i == stacks )
-            z = height;
+        /* Step in z and radius as stacks are drawn. */
+        double z = 0.0;
+        const double zStep = height / stacks;
 
-        glBegin( GL_LINE_LOOP );
+        /* Draw the stacks... */
+        for( i = 0; i <= stacks; i++ )
+        {
+            if( i == stacks )
+                z = height;
+
+            glBegin( GL_LINE_LOOP );
             for( j = 0; j < slices; j++ )
             {
                 glNormal3d( cost[ j ],          sint[ j ],          0.0 );
                 glVertex3d( cost[ j ] * radius, sint[ j ] * radius, z   );
             }
-        glEnd( );
+            glEnd( );
 
-        z += zStep;
-    }
+            z += zStep;
+        }
 
-    /* Draw the slices */
-    glBegin( GL_LINES );
+        /* Draw the slices */
+        glBegin( GL_LINES );
         for( j = 0; j < slices; j++ )
         {
             glNormal3d( cost[ j ],          sint[ j ],          0.0    );
             glVertex3d( cost[ j ] * radius, sint[ j ] * radius, 0.0    );
             glVertex3d( cost[ j ] * radius, sint[ j ] * radius, height );
         }
-    glEnd( );
+        glEnd( );
+    }
 
     free( sint );
     free( cost );
@@ -615,11 +647,17 @@ void OGAPIENTRY glutWireCylinder(
     \param    nSides          Facets around ``tube''
     \param    nRings          Joints along ``path''
 
-              Effectively wraps a cylinder with \a nSides slats
+              This function effectively wraps a cylinder with \a nSides slats
               and bends it at \a nRings facets around a circular
               path, forming a torus, or ``donut''.  The center is
               at the origin and the ``path'' rings around the
               z axis.
+
+              This function may be especially hard to intuitively
+              grasp from the prose description.  Run the OpenGLUT
+              "shapes" demo and adjust the parameters therein at
+              runtime to understand how the parameters affect the
+              resulting shape.
 
     \note     \a dInnerRadius and \a dOuterRadius are <b>not</b>
               analogous to similar measurements of an anulus.
@@ -633,66 +671,71 @@ void OGAPIENTRY glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
     double iradius = dInnerRadius;
     double oradius = dOuterRadius;
     double phi, psi, dpsi, dphi;
-    double *vertex, *normal;
+    double *vertex = NULL, *normal = NULL;
     double spsi, cpsi, sphi, cphi;
     int i, j;
 
-    vertex = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
-    normal = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
-
-    glPushMatrix( );
-
-    dpsi =  2.0 * M_PI / ( double )nRings;
-    dphi = -2.0 * M_PI / ( double )nSides;
-    psi  = 0.0;
-
-    for( j = 0; j < nRings; j++ )
+    if( ( 0 < nSides ) && ( 0 < nRings ) )
     {
-        cpsi = cos( psi );
-        spsi = sin( psi );
-        phi = 0.0;
-
-        for( i = 0; i < nSides; i++ )
-        {
-            int offset = 3 * ( j * nSides + i );
-            cphi = cos( phi );
-            sphi = sin( phi );
-            *( vertex + offset + 0 ) = cpsi * ( oradius + cphi * iradius );
-            *( vertex + offset + 1 ) = spsi * ( oradius + cphi * iradius );
-            *( vertex + offset + 2 ) =                    sphi * iradius;
-            *( normal + offset + 0 ) = cpsi * cphi;
-            *( normal + offset + 1 ) = spsi * cphi;
-            *( normal + offset + 2 ) =        sphi;
-            phi += dphi;
-        }
-
-        psi += dpsi;
+        vertex = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
+        normal = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
     }
-
-    for( i = 0; i < nSides; i++ )
+    if( vertex && normal )
     {
-        glBegin( GL_LINE_LOOP );
+        glPushMatrix( );
+
+        dpsi =  2.0 * M_PI / ( double )nRings;
+        dphi = -2.0 * M_PI / ( double )nSides;
+        psi  = 0.0;
+
         for( j = 0; j < nRings; j++ )
         {
-            int offset = 3 * ( j * nSides + i );
-            glNormal3dv( normal + offset );
-            glVertex3dv( vertex + offset );
-        }
-        glEnd( );
-    }
+            cpsi = cos( psi );
+            spsi = sin( psi );
+            phi = 0.0;
 
-    for( j = 0; j < nRings; j++ )
-    {
-        glBegin( GL_LINE_LOOP );
+            for( i = 0; i < nSides; i++ )
+            {
+                int offset = 3 * ( j * nSides + i );
+                cphi = cos( phi );
+                sphi = sin( phi );
+                *( vertex + offset + 0 ) = cpsi * ( oradius + cphi * iradius );
+                *( vertex + offset + 1 ) = spsi * ( oradius + cphi * iradius );
+                *( vertex + offset + 2 ) =                    sphi * iradius;
+                *( normal + offset + 0 ) = cpsi * cphi;
+                *( normal + offset + 1 ) = spsi * cphi;
+                *( normal + offset + 2 ) =        sphi;
+                phi += dphi;
+            }
+
+            psi += dpsi;
+        }
+
         for( i = 0; i < nSides; i++ )
         {
-            int offset = 3 * ( j * nSides + i );
-            glNormal3dv( normal + offset );
-            glVertex3dv( vertex + offset );
+            glBegin( GL_LINE_LOOP );
+            for( j = 0; j < nRings; j++ )
+            {
+                int offset = 3 * ( j * nSides + i );
+                glNormal3dv( normal + offset );
+                glVertex3dv( vertex + offset );
+            }
+            glEnd( );
         }
-        glEnd( );
-    }
 
+        for( j = 0; j < nRings; j++ )
+        {
+            glBegin( GL_LINE_LOOP );
+            for( i = 0; i < nSides; i++ )
+            {
+                int offset = 3 * ( j * nSides + i );
+                glNormal3dv( normal + offset );
+                glVertex3dv( vertex + offset );
+            }
+            glEnd( );
+        }
+    }
+    
     free( vertex );
     free( normal );
     glPopMatrix( );
@@ -707,11 +750,17 @@ void OGAPIENTRY glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
     \param    nSides          Facets around ``tube''
     \param    nRings          Joints along ``path''
 
-              Effectively wraps a cylinder with \a nSides slats
+              This function effectively wraps a cylinder with \a nSides slats
               and bends it at \a nRings facets around a circular
               path, forming a torus, or ``donut''.  The center is
               at the origin and the ``path'' rings around the
               z axis.
+
+              This function may be especially hard to intuitively
+              grasp from the prose description.  Run the OpenGLUT
+              "shapes" demo and adjust the parameters therein at
+              runtime to understand how the parameters affect the
+              resulting shape.
 
     \note     \a dInnerRadius and \a dOuterRadius are <b>not</b>
               analogous to similar measurements of an anulus.
@@ -725,65 +774,70 @@ void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
     double iradius = dInnerRadius;
     double oradius = dOuterRadius;
     double phi, psi, dpsi, dphi;
-    double *vertex, *normal;
+    double *vertex = NULL, *normal = NULL;
     double spsi, cpsi, sphi, cphi;
     int i, j;
 
-    /*
-     * Increment the number of sides and rings to allow for one more point
-     * than surface
-     */
-    nSides++;
-    nRings++;
-
-    vertex = ( double * )calloc( sizeof(double), 3 * nSides * nRings );
-    normal = ( double * )calloc( sizeof(double), 3 * nSides * nRings );
-
-    glPushMatrix( );
-
-    dpsi =  2.0 * M_PI / ( double )( nRings - 1 );
-    dphi = -2.0 * M_PI / ( double )( nSides - 1 );
-    psi  = 0.0;
-
-    for( j = 0; j < nRings; j++ )
+    if( ( 0 < nSides ) && ( 0 < nRings ) )
     {
-        cpsi = cos( psi );
-        spsi = sin( psi );
-        phi = 0.0;
+        /*
+         * Increment the number of sides and rings to allow for one more point
+         * than surface
+         */
+        nSides++;
+        nRings++;
 
-        for( i = 0; i < nSides; i++ )
-        {
-            int offset = 3 * ( j * nSides + i );
-            cphi = cos( phi );
-            sphi = sin( phi );
-            *( vertex + offset + 0 ) = cpsi * ( oradius + cphi * iradius );
-            *( vertex + offset + 1 ) = spsi * ( oradius + cphi * iradius );
-            *( vertex + offset + 2 ) =                    sphi * iradius;
-            *( normal + offset + 0 ) = cpsi * cphi;
-            *( normal + offset + 1 ) = spsi * cphi;
-            *( normal + offset + 2 ) =        sphi;
-            phi += dphi;
-        }
-
-        psi += dpsi;
+        vertex = ( double * )calloc( sizeof(double), 3 * nSides * nRings );
+        normal = ( double * )calloc( sizeof(double), 3 * nSides * nRings );
     }
+    if( vertex && normal )
+    {
+        glPushMatrix( );
 
-    glBegin( GL_QUADS );
-    for( i = 0; i < nSides - 1; i++ )
-        for( j = 0; j < nRings - 1; j++ )
+        dpsi =  2.0 * M_PI / ( double )( nRings - 1 );
+        dphi = -2.0 * M_PI / ( double )( nSides - 1 );
+        psi  = 0.0;
+
+        for( j = 0; j < nRings; j++ )
         {
-            int offset = 3 * ( j * nSides + i );
-            glNormal3dv( normal + offset );
-            glVertex3dv( vertex + offset );
-            glNormal3dv( normal + offset + 3 );
-            glVertex3dv( vertex + offset + 3 );
-            glNormal3dv( normal + offset + 3 * nSides + 3 );
-            glVertex3dv( vertex + offset + 3 * nSides + 3 );
-            glNormal3dv( normal + offset + 3 * nSides );
-            glVertex3dv( vertex + offset + 3 * nSides );
-        }
-    glEnd( );
+            cpsi = cos( psi );
+            spsi = sin( psi );
+            phi = 0.0;
 
+            for( i = 0; i < nSides; i++ )
+            {
+                int offset = 3 * ( j * nSides + i );
+                cphi = cos( phi );
+                sphi = sin( phi );
+                *( vertex + offset + 0 ) = cpsi * ( oradius + cphi * iradius );
+                *( vertex + offset + 1 ) = spsi * ( oradius + cphi * iradius );
+                *( vertex + offset + 2 ) =                    sphi * iradius;
+                *( normal + offset + 0 ) = cpsi * cphi;
+                *( normal + offset + 1 ) = spsi * cphi;
+                *( normal + offset + 2 ) =        sphi;
+                phi += dphi;
+            }
+
+            psi += dpsi;
+        }
+
+        glBegin( GL_QUADS );
+        for( i = 0; i < nSides - 1; i++ )
+            for( j = 0; j < nRings - 1; j++ )
+            {
+                int offset = 3 * ( j * nSides + i );
+                glNormal3dv( normal + offset );
+                glVertex3dv( vertex + offset );
+                glNormal3dv( normal + offset + 3 );
+                glVertex3dv( vertex + offset + 3 );
+                glNormal3dv( normal + offset + 3 * nSides + 3 );
+                glVertex3dv( vertex + offset + 3 * nSides + 3 );
+                glNormal3dv( normal + offset + 3 * nSides );
+                glVertex3dv( vertex + offset + 3 * nSides );
+            }
+        glEnd( );
+    }
+    
     free( vertex );
     free( normal );
     glPopMatrix( );
@@ -794,11 +848,13 @@ void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
     \brief      Draw a wireframe dodecahedron.
     \ingroup    geometry
 
-                Draws a regular, wireframe 12-sided polyhedron
+                This function draws a regular, wireframe 12-sided polyhedron
                 centered at the origin.
                 The distance from the origin to the vertices is
                 sqrt(3).
                 The facets are pentagons.
+                No facet is normal any of the \a x, \a y, or \a z
+                axes.
 
     \see        glutSolidDodecahedron(), glutWireRhombicDodecahedron(),
                 glutSolidRhombicDodecahedron()
@@ -806,14 +862,14 @@ void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
 */
 void OGAPIENTRY glutWireDodecahedron( void )
 {
-  /*
-   * Magic Numbers:  It is possible to create a dodecahedron by attaching
-   * two pentagons to each face of of a cube.  The coordinates of the points
-   * are:
-   *   (+-x,0, z); (+-1, 1, 1); (0, z, x )
-   * where x = (-1 + sqrt(5))/2, z = (1 + sqrt(5))/2 or
-   *       x = 0.61803398875 and z = 1.61803398875.
-   */
+    /*
+     * Magic Numbers:  It is possible to create a dodecahedron by attaching
+     * two pentagons to each face of of a cube.  The coordinates of the points
+     * are:
+     *   {(+/- x, 0, z), (+/- 1, 1, 1), (0, z, x )}
+     * where x = (-1 + sqrt(5))/2 and z = (1 + sqrt(5))/2 or, approximately
+     *       x = 0.61803398875    and z = 1.61803398875.
+     */
     glBegin( GL_LINE_LOOP );
         glNormal3d( 0.0,  0.525731112119,  0.850650808354 );
         glVertex3d( 0.0,  1.61803398875,  0.61803398875 );
@@ -919,7 +975,7 @@ void OGAPIENTRY glutWireDodecahedron( void )
     \brief      Draw a solid dodecahedron.
     \ingroup    geometry
 
-                Draws a regular, solid, 12-sided polyhedron
+                This function draws a regular, solid, 12-sided polyhedron
                 centered at the origin.
                 The distance from the origin to the vertices is
                 sqrt(3).
@@ -1053,9 +1109,12 @@ static double overt[ 6 ][ 3 ] =
     \brief      Draw a wireframe octahedron.
     \ingroup    geometry
 
-                Draws a regular, wireframe 8-sided polyhedron
+                This function draws a regular wireframe 8-sided polyhedron
                 centered at the origin.
-                The distance from the origin to the vertices is 1.
+                The vertices are at
+                 (+/-1, 0, 0),
+                 (0, +/-1, 0),
+                 (0, 0, +/-1).
 
     \note       We visit the same vertices the same number of times
                 as for the solid octahedron, but the order is different.
@@ -1114,9 +1173,12 @@ void OGAPIENTRY glutWireOctahedron( void )
     \brief      Draw a solid octahedron.
     \ingroup    geometry
 
-                Draws a regular, solid 8-sided polyhedron
+                This function draws a regular, solid 8-sided polyhedron
                 centered at the origin.
-                The distance from the origin to the vertices is 1.
+                The vertices are at
+                 (+/-1, 0, 0),
+                 (0, +/-1, 0),
+                 (0, 0, +/-1).
 
     \note       We visit the same vertices the same number of times
                 as in the wire octahedron, but the order is different.
@@ -1168,7 +1230,7 @@ void OGAPIENTRY glutSolidOctahedron( void )
     \brief      Draw a wireframe tetrahedron.
     \ingroup    geometry
 
-                Draws a regular, wireframe 4-sided polyhedron
+                This function draws a regular, wireframe 4-sided polyhedron
                 centered at the origin.
                 The distance from the origin to the vertices is 1.
 
@@ -1176,6 +1238,7 @@ void OGAPIENTRY glutSolidOctahedron( void )
     \todo       Put the normals into the (or an) array.
     \todo       Make the array static const, with file scope, and share
                 with glutSolidTetrahedron().
+    \todo       Maybe consolidate with the SierpinskySponge?
     \see        glutSolidTetrahedron()
 
 */
@@ -1224,7 +1287,7 @@ void OGAPIENTRY glutWireTetrahedron( void )
     \brief      Draw a solid tetrahedron.
     \ingroup    geometry
 
-                Draws a regular, solid 4-sided polyhedron
+                This function draws a regular, solid 4-sided polyhedron
                 centered at the origin.
                 The distance from the origin to the vertices is 1.
 
@@ -1303,9 +1366,11 @@ int icos_v[ 20 ][ 3 ] =
     \brief      Draw a wireframe icosahedron.
     \ingroup    geometry
 
-                Draws a regular, solid 20-sided polyhedron
+                This function draws a regular, solid 20-sided polyhedron
                 centered at the origin.
                 The distance from the origin to the vertices is 1.
+                No facet is normal to any of the \a x, \a y, or \a z
+                axes.
 
     \see        glutSolidIcosahedron()
 */
@@ -1357,7 +1422,7 @@ void OGAPIENTRY glutWireIcosahedron( void )
     \brief      Draw a solid icosahedron.
     \ingroup    geometry
 
-                Draws a regular, solid 20-sided polyhedron
+                This function draws a regular, solid 20-sided polyhedron
                 centered at the origin.
                 The distance from the origin to the vertices is 1.
 
@@ -1462,8 +1527,11 @@ double rdod_n[ 12 ][ 3 ] =
     \brief    Draw a wireframe rhombic dodecahedron
     \ingroup  geometry
 
-              Draws a wireframe dodecahedron whose facets are rhombic and
+              This function draws a wireframe dodecahedron whose
+              facets are rhombic and
               whose vertices are at unit radius.
+              No facet lies normal to any coordinate axes.
+              The polyhedron is centered at the origin.
 
     \see      glutSolidRhombicDodecahedron(), glutWireDodecahedron(),
               glutSolidDodecahedron()
@@ -1488,8 +1556,11 @@ void OGAPIENTRY glutWireRhombicDodecahedron( void )
     \brief    Draw a solid rhombic dodecahedron
     \ingroup  geometry
 
-              Draws a solid-shaded dodecahedron whose facets are rhombic and
+              This function draws a solid-shaded dodecahedron
+              whose facets are rhombic and
               whose vertices are at unit radius.
+              No facet lies normal to any coordinate axes.
+              The polyhedron is centered at the origin.
 
     \see      glutWireRhombicDodecahedron(), glutWireDodecahedron(),
               glutSolidDodecahedron()
@@ -1586,10 +1657,13 @@ static const int tetrahedron_edge_list[ 7 ] = { 0, 1, 2, 3, 4, 1, 5 };
     \param    offset        Location vector.
     \param    scale         Relative size.
 
-              Recursively draws a few levels of Sierpinski's Sponge
+              This function recursively draws a few levels of
+              Sierpinski's Sponge
               in wireframe.
               If \a num_levels is 0, draws 1 tetrahedron.
               The \a offset is a translation.
+              The \a z axis is normal to the base.
+              The sponge is centered at the origin.
 
     \note     Runtime is exponential in \a num_levels .
 
@@ -1664,12 +1738,17 @@ void OGAPIENTRY glutWireSierpinskiSponge(
     \param    offset        Location vector.
     \param    scale         Relative size.
 
-              Recursively draws a few levels of Sierpinski's Sponge,
-              solid-shaded.
+              This function recursively draws a few levels of
+              a solid-shaded Sierpinski's Sponge.
               If \a num_levels is 0, draws 1 tetrahedron.
               The \a offset is a translation.
+              The \a z axis is normal to the base.
+              The sponge is centered at the origin.
 
     \note     Runtime is exponential in \a num_levels .
+
+    \todo     Consider removing the \a offset parameter from the
+              API (use a helper function).
 
     \see      glutWireSierpinskiSponge()
 */

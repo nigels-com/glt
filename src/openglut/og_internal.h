@@ -34,17 +34,20 @@
 /* XXX Update these for each release! */
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 6
-#define VERSION_PATCH 1
+#define VERSION_PATCH 2
 
 /*
  * OpenGLUT is meant to be available under all Unix/X11, Win32, and WINCE
- * platforms.
+ * platforms.  Mac, and Mac OS X are not presently supported, but the
+ * joystick code makes reference to them as TARGET_HOST_*s.
  */
+#define TARGET_HOST_MACINTOSH   0
+#define TARGET_HOST_MAC_OSX     0
 #if defined( _WIN32_WCE )
 #   define TARGET_HOST_UNIX_X11    0
 #   define TARGET_HOST_WIN32       0
 #   define TARGET_HOST_WINCE       1
-#elif defined( _MSC_VER ) ||  defined( __CYGWIN__ ) || defined( __MINGW32__ )
+#elif defined( _MSC_VER ) || defined( __MINGW32__ )
 #   define TARGET_HOST_UNIX_X11    0
 #   define TARGET_HOST_WIN32       1
 #   define TARGET_HOST_WINCE       0
@@ -54,6 +57,13 @@
 #   define TARGET_HOST_WINCE       0
 #endif
 
+/*
+ * Mouse buttons 0 through {FREEGLUT_MAX_MENUS - 1} can be
+ * mapped to OpenGLUT menus.  This really should be made
+ * dynamic.  As long as we have legacy 3-button limitations
+ * for menus, we might as well keep the FREEGLUT_* name as
+ * a reminder of the limitation needing removal.
+ */
 #define FREEGLUT_MAX_MENUS         3
 
 /*
@@ -63,11 +73,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <mmsystem.h>
-#include <TCHAR.H>
-#endif
-
-#if defined( _MSC_VER )
-#define strdup   _strdup
+#include <tchar.h>
 #endif
 
 /*
@@ -99,7 +105,7 @@
 #endif
 
 /*
- * Microsoft VisualC++ 5.0's <math.h> does not define the PI
+ * M_PI is defined by many UNIX <math.h>, but is not standard.
  */
 #ifndef M_PI
 #    define M_PI  3.14159265358979323846
@@ -254,8 +260,8 @@ struct tagSOG_State
 
     GLboolean        Initialised;          /* OpenGLUT has been initialised  */
 
-    GLboolean        ForceDirectContext;   /* Force direct rendering?        */
-    GLboolean        TryDirectContext;     /* What about giving a try to?    */
+    GLboolean        ForceDirectContext;   /* Require direct rendering?      */
+    GLboolean        TryDirectContext;     /* Try direct before indirect?    */
 
     GLboolean        ForceIconic;          /* New top windows are iconified  */
     GLboolean        UseCurrentContext;    /* New windows share with current */
@@ -264,7 +270,7 @@ struct tagSOG_State
     GLboolean        XSyncSwitch;          /* X11 sync protocol switch       */
 
     int              KeyRepeat;            /* Global key repeat mode.        */
-    int              Modifiers;            /* Current ALT/SHIFT/CTRL state   */
+    unsigned         Modifiers;            /* Current ALT/SHIFT/CTRL state   */
 
     GLuint           FPSInterval;          /* Interval between FPS printfs   */
     GLuint           SwapCount;            /* Count of glutSwapBuffer calls  */
@@ -300,7 +306,7 @@ typedef struct tagSOG_Display SOG_Display;
 struct tagSOG_Display
 {
 #if TARGET_HOST_UNIX_X11
-    Display*        Display;            /* The display we are being run in.  */
+    Display        *Display;            /* The display we are being run in.  */
     int             Screen;             /* The screen we are about to use.   */
     Window          RootWindow;         /* The screen's root window.         */
     int             Connection;         /* The display's connection number   */
@@ -313,7 +319,7 @@ struct tagSOG_Display
      */
     int             DisplayModeValid;   /* Flag that indicates runtime status*/
     XF86VidModeModeLine DisplayMode;    /* Current screen's display settings */
-    int             DisplayModeClock;   /* The display mode's refresh rate   */
+    unsigned        DisplayModeClock;   /* The display mode's refresh rate   */
     int             DisplayViewPortX;   /* saved X location of the viewport  */
     int             DisplayViewPortY;   /* saved Y location of the viewport  */
     int             DisplayPointerX;    /* saved X location of the pointer   */
@@ -369,7 +375,7 @@ struct tagSOG_Context
     SOG_WindowContextType Context;    /* The window's OpenGL/WGL context     */
 
 #if TARGET_HOST_UNIX_X11
-    XVisualInfo*          VisualInfo; /* The window's visual information     */
+    XVisualInfo          *VisualInfo; /* The window's visual information     */
     Pixmap                Pixmap;     /* Used for offscreen rendering        */
 
     SOG_WindowHandleType  PrevFocus;  /* The previous focus window           */
@@ -481,7 +487,7 @@ do                                            \
         ogSetWindow( win );                   \
         FETCH_WCB( *win, cbname ) arg_list;   \
     }                                         \
-} while( /*CONSTCOND*/0 )
+} while( 0 )
 
 /*
  * The window callbacks the user can supply us with. Should be kept portable.
@@ -540,7 +546,7 @@ typedef struct tagSOG_MenuContext SOG_MenuContext;
 struct tagSOG_MenuContext
 {
 #if TARGET_HOST_UNIX_X11
-    XVisualInfo*        VisualInfo;   /* The window's visual information  */
+    XVisualInfo        *VisualInfo;   /* The window's visual information  */
 #endif
     SOG_WindowContextType Context;    /* The menu window's OpenGL context */
 };
@@ -697,7 +703,7 @@ struct tagSOG_StrokeChar
 typedef struct tagSOG_StrokeFont SOG_StrokeFont;
 struct tagSOG_StrokeFont
 {
-    char*           Name;                       /* The source font name      */
+    char           *Name;                       /* The source font name      */
     int             Quantity;                   /* Number of chars in font   */
     GLfloat         Height;                     /* Height of the characters  */
     const SOG_StrokeChar **Characters;          /* The characters mapping    */
@@ -727,14 +733,22 @@ extern SOG_State ogState;
  * A call to this function makes us sure that the Display and Structure
  * subsystems have been properly initialized and are ready to be used.
  */
-#define  freeglut_assert_ready  assert( ogState.Initialised );
+#define  OPENGLUT_READY ( ogState.Initialised )
+#define  freeglut_assert_ready  assert( OPENGLUT_READY )
+#define  OPENGLUT_ASSERT_READY  assert( OPENGLUT_READY )
+#define  OPENGLUT_REQUIRE_READY(func)                          \
+    if( !OPENGLUT_READY )                                      \
+        ogError(                                               \
+            "OpenGLUT must be initialized when calling %s().", \
+            func                                               \
+        )
 
 /*
  * A call to those macros assures us that there is a current
  * window and menu set, respectively:
  */
-#define  freeglut_assert_window assert( ogStructure.Window );
-#define  freeglut_assert_menu   assert( ogStructure.Menu );
+#define  freeglut_assert_window assert( ogStructure.Window )
+#define  freeglut_assert_menu   assert( ogStructure.Menu )
 
 /* -- PRIVATE FUNCTION DECLARATIONS ---------------------------------------- */
 
@@ -742,11 +756,7 @@ extern SOG_State ogState;
  * The initialize and deinitialize functions get called on glutInit()
  * and glutMainLoop() end respectively. They should create/clean up
  * everything inside of OpenGLUT.
- *
- * XXX ogInitialize() can be safely removed from this header, I think.
- * XXX ogDeinitialize is harder.
  */
-void ogInitialize( const char* displayName );
 void ogDeinitialize( void );
 
 /*
@@ -762,17 +772,19 @@ void ogDestroyStructure( void );
  * A helper function to check if a display mode is possible to use
  */
 #if TARGET_HOST_UNIX_X11
-XVisualInfo* ogChooseVisual( void );
+XVisualInfo *ogChooseVisual( void );
 #endif
 
 /*
  * The window procedure for Win32 events handling
  */
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg,
-                               WPARAM wParam, LPARAM lParam );
-GLboolean ogSetupPixelFormat( SOG_Window* window, GLboolean checkOnly,
-                              unsigned char layer_type );
+LRESULT CALLBACK ogWindowProc(
+    HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
+);
+GLboolean ogSetupPixelFormat(
+    SOG_Window *window, GLboolean checkOnly, unsigned char layer_type
+);
 #endif
 
 
@@ -792,30 +804,32 @@ typedef enum EOG_winType
  * Also CallBack clearing/initialization.
  * Defined in og_structure.c, og_window.c.
  */
-SOG_Window* ogCreateWindow( SOG_Window* parent, const char* title,
-                            int x, int y, int w, int h,
-                            EOG_winType winType );
+SOG_Window *ogCreateWindow(
+    SOG_Window *parent, const char *title, int x, int y, int w, int h,
+    EOG_winType winType
+);
 void        ogSetWindow ( SOG_Window *window );
-void        ogOpenWindow( SOG_Window* window, const char* title,
-                          int x, int y, int w, int h, GLboolean gameMode,
-                          GLboolean isSubWindow );
-void        ogCloseWindow( SOG_Window* window );
-void        ogAddToWindowDestroyList ( SOG_Window* window );
+void        ogOpenWindow(
+    SOG_Window *window, const char *title, int x, int y, int w, int h,
+    GLboolean gameMode, GLboolean isSubWindow
+);
+void        ogCloseWindow( SOG_Window *window );
+void        ogAddToWindowDestroyList ( SOG_Window *window );
 void        ogCloseWindows( void );
-void        ogDestroyWindow( SOG_Window* window );
+void        ogDestroyWindow( SOG_Window *window );
 
 /*
  * Menu creation and destruction. Defined in og_structure.c
  */
-SOG_Menu*   ogCreateMenu( OGCBMenu menuCallback );
-void        ogDestroyMenu( SOG_Menu* menu );
+SOG_Menu   *ogCreateMenu( OGCBMenu menuCallback );
+void        ogDestroyMenu( SOG_Menu *menu );
 
 /*
  * Joystick device management functions, defined in og_joystick.c
  */
 void        ogJoystickInit( int ident );
 void        ogJoystickClose( void );
-void        ogJoystickPollWindow( SOG_Window* window );
+void        ogJoystickPollWindow( SOG_Window *window );
 
 /*
  * Helper function to enumerate through all registered windows
@@ -829,23 +843,25 @@ void        ogJoystickPollWindow( SOG_Window* window );
  * and userData is the a custom user-supplied pointer. Functions
  * are defined and exported from og_structure.c file.
  */
-void ogEnumWindows( OGCBenumerator enumCallback, SOG_Enumerator* enumerator );
-void ogEnumSubWindows( SOG_Window* window, OGCBenumerator enumCallback,
-                       SOG_Enumerator* enumerator );
+void ogEnumWindows( OGCBenumerator enumCallback, SOG_Enumerator *enumerator );
+void ogEnumSubWindows(
+    SOG_Window *window, OGCBenumerator enumCallback,
+    SOG_Enumerator *enumerator
+);
 
 /*
  * ogWindowByHandle returns a (SOG_Window *) value pointing to the
  * first window in the queue matching the specified window handle.
  * The function is defined in og_structure.c file.
  */
-SOG_Window* ogWindowByHandle( SOG_WindowHandleType hWindow );
+SOG_Window *ogWindowByHandle( SOG_WindowHandleType hWindow );
 
 /*
  * This function is similiar to the previous one, except it is
  * looking for a specified (sub)window identifier. The function
  * is defined in og_structure.c file.
  */
-SOG_Window* ogWindowByID( int windowID );
+SOG_Window *ogWindowByID( int windowID );
 
 /*
  * Looks up a menu given its ID.
@@ -884,6 +900,15 @@ void ogListAppend(SOG_List *list, SOG_Node *node);
 void ogListRemove(SOG_List *list, SOG_Node *node);
 int ogListLength(SOG_List *list);
 void ogListInsert(SOG_List *list, SOG_Node *next, SOG_Node *node);
+
+/*
+ * String functions.
+ *
+ * (strdup() is not actually a standard function, so we cannot
+ *  (strictly legally) depend upon it.  To avoid conflict with
+ *  a native strdup(), we use a different name here.)
+ */
+char *ogStrDup( const char *str );
 
 /*
  * Error Messages functions
