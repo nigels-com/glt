@@ -21,7 +21,7 @@ text.  Leading and trailing spaces are ignored, so the following two
 "#D" lines are equivalent:
 
 #D This is a Description line
-#D    This is a Description line   
+#D    This is a Description line
 
 There should be no more than 22 "#D" lines in a .LIF file.
 

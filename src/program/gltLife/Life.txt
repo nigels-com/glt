@@ -50,9 +50,9 @@ generate strange and beautiful patterns, sometimes in complex and
 interesting ways.  Yet the rules of Life are delightfully simple:
 
 - The game is played on a 2-dimensional grid.  Each square, or
-    "cell", can be either "on" or "off".  
+    "cell", can be either "on" or "off".
 - If a cell is off and has 3 neighbors (out of 8), it will become
-    alive in the next clock tick.  
+    alive in the next clock tick.
 - If a cell is on and has 2 or 3 neighbors, it survives; otherwise,
     it dies on the next clock tick.
 
@@ -161,10 +161,10 @@ good ones:
 
       **
       **
-      
+
       (That's right, just a little 2x2 square.)
       Hey wait, is this art? I thought it was math. Hmm...
-      
+
       If you want to circumnavigate the universe with a glider, this
       is the universe to do it in: Its gliders go at the "speed of
       light":
@@ -221,8 +221,8 @@ good ones:
       ...*
       ...*
       ...*
-      
-      This rule has actually generated enough interest to have a 
+
+      This rule has actually generated enough interest to have a
       nickname.  It is called "HighLife".
 
 235678/3678 - Ice crystals.  Close variations of these rules almost
@@ -329,16 +329,16 @@ More enlightenment:
 - Berlekamp, Conway, and Guy: Winning Ways (for your Mathematical
     Plays), Volume 2, (c)1982.  ISBN 0-12-091152-3.
 
-- Dewdney, A.K.: The Armchair Universe, (c)1988.  
+- Dewdney, A.K.: The Armchair Universe, (c)1988.
     ISBN 0-7167-1939-8 pbk.
 
 - Gardner, Martin: Wheels, Life, and Other Mathematical Amusements,
     (c)1983.  ISBN 0-7167-1589-9.
 
-- Gutowitz, Howard: Cellular Automata: Theory and Experiment, 
+- Gutowitz, Howard: Cellular Automata: Theory and Experiment,
     (c)1991.  ISBN 0-262-57086-6.
 
-- Poundstone, William: The Recursive Universe, (c)1985. 
+- Poundstone, William: The Recursive Universe, (c)1985.
     ISBN 0-688-03975-8.
 
 - Preston, Duff: Modern Cellular Automata
@@ -349,10 +349,10 @@ More enlightenment:
     (c)1986.  ISBN 9971-50-124-4 pbk.
 
 
-- BYTE magazine: Sep 75, Oct 75, Dec 75, Jan 76, Dec 78, Jan 79, 
+- BYTE magazine: Sep 75, Oct 75, Dec 75, Jan 76, Dec 78, Jan 79,
     Apr 79, Oct 80, Jul 81.
 
-- Complex Systems: Bays, Carter: (various articles on 3-D life) 
+- Complex Systems: Bays, Carter: (various articles on 3-D life)
     Apr 87, Dec 87, Dec 90, Feb 91, Oct 92.
 
 - Recreational Computing: May/Jun 79.
@@ -360,8 +360,8 @@ More enlightenment:
 - Reviews of Modern Physics, Vol. 55: Stephen Wolfram: "Statistical
     Mechanics of Cellular Automata."
 
-- Scientific American: Oct 70, Nov 70, Jan 71, Feb 71, Mar 71, 
-    Apr 71, Nov 71, Jan 72, Dec 75, Mar 84, May 85, Feb 87, Aug 88, 
+- Scientific American: Oct 70, Nov 70, Jan 71, Feb 71, Mar 71,
+    Apr 71, Nov 71, Jan 72, Dec 75, Mar 84, May 85, Feb 87, Aug 88,
     Aug 89, Sep 89, Jan 90.
 
 
@@ -373,7 +373,7 @@ More enlightenment:
     12 Longvue Ave.
     New Rochelle, NY, 10804
 
-    
+
 - On the Internet, there is a newsgroup called comp.ai.alife, and
     another called comp.theory.cell-automata.  Neither deal directly
     with Conway's Game of Life, but with related topics.

@@ -2,7 +2,7 @@
 The 50 most common Life objects and their frequencies.
 These are experimental results by Achim Flammenkamp.
 
-rank name                  1/frequency 
+rank name                  1/frequency
 ====-----------------------===========
    1 blinker                      3.03
    2 block                        3.15

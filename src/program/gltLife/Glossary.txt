@@ -31,7 +31,7 @@ A for All
  ...****...
  ...*..*...
  ....**....
- 
+
 acorn
  .*.....
  ...*...
@@ -68,7 +68,7 @@ ants
  ..**...**...**...**...**...**...**...**
  **.....**.**...**...**...**...**...**..
  .....**................................
- 
+
 aVerage
  .....*..... (p5)
  ....*.*....
@@ -101,7 +101,7 @@ b-heptomino shuttle, p46 shuttle, twin bees shuttle
  ..................**.........
  .................**..........
  .................*...........
- 
+
 B track - a type of Life object in which one or more b-heptominos
   are perturbed by oscillators so as to travel in a loop.
 
@@ -407,7 +407,7 @@ cis-boat with tail, down boat with tail
  .*...
  *.*..
  .**..
- 
+
 clock
  ..*. (p2)
  **..
@@ -444,7 +444,7 @@ Conway's Game of Life - a classic game invented by the British
   mathematician John Horton Conway in 1970.  It is one of the
   simplest cellular automata simulations ever invented, but its
   richness is surprising.  The rules are as follows:
-  
+
   - The game is played on a 2-dimensional grid.  Each square, or
       "cell", is binary (either "on" or "off").
   - If a cell is off and has 3 neighbors (out of 8), it will become
@@ -704,7 +704,7 @@ heavyweight emulator
  ***..******..***
  *..*........*..*
  .**..........**.
- 
+
 heavyweight spaceship, HWSS, big fish
  .****** (c/2)
  *.....*
@@ -1063,7 +1063,7 @@ paperclip, drain trap
  .*.**
  **.*.
  *..*.
- .**..     
+ .**..
 
 pedestle
  .....*..... (p5)
@@ -1137,7 +1137,7 @@ pond on pond, bi-pond
  ...*..*
  ...*..*
  ....**.
- 
+
 population - the number of live ("on") cells of an object.
 
 predecessor - any pattern that can precede a given pattern by any
@@ -1329,7 +1329,7 @@ rotor - the active cells in an oscillator.
 sawtooth - a pattern whose population is unbounded, but doesn't tend
   uniformly to infinity.  The population returns to its minimum
   value at intervals, producing a zig-zag graph.
-  
+
 Schick engine
  .....**** (c/2)
  ....*...*
@@ -1446,7 +1446,7 @@ snacker
  .*.*............*.*.
  .*................*.
  **................**
- 
+
 snake
  *.** (p1)
  **.*
@@ -1479,7 +1479,7 @@ space dust - a section of an oscillator or spaceship which is
 
 spacefiller - any pattern that grows quadratically by filling space
   with still life.
-  
+
 spaceship - any pattern that moves, leaving no trail.
 
 spark - any piece of an oscillator or spaceship which dies out,
