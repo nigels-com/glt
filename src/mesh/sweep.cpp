@@ -3,17 +3,14 @@
 /*! \file
     \ingroup Mesh
 
-    $Id: sweep.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: sweep.cpp,v 2.1 2004/02/16 14:14:45 nigels Exp $
 
     $Log: sweep.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/16 14:14:45  nigels
+    Ensure that swept meshes use backface culling by default
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.10  2003/12/11 23:51:47  nigels
+    Ensure that swept meshes use backface culling by default
 
     Revision 1.9  2003/05/10 17:02:03  nigels
     *** empty log message ***
@@ -55,6 +52,7 @@ MeshSweep(const GltPath3D &f,const double radius,const int slices,const int stac
     vector<Vector> prev_vertex(slices);
 
     Mesh *mesh = new Mesh();
+    mesh->cullFace() = true;
 
     GltShapes *meshes = NULL;
 
@@ -233,6 +231,7 @@ MeshSweep(const GltPath3D &f,const double radius,const int slices,const int stac
         if (pos>0 && pos<stacks && convex)
         {
             mesh = new Mesh();
+            mesh->cullFace() = true;
             meshes->push_back(mesh);
         }
 
