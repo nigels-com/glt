@@ -171,21 +171,11 @@ handleTimeouts(void)
      to be non-NULL. */
   GETTIMEOFDAY(&now);
   while (IS_AT_OR_AFTER(__glutTimerList->timeout, now)) {
-
-#if 0  /* See Mesa bug 801485 */
-    timer = __glutTimerList;
-    timer->func(timer->value);
-    __glutTimerList = timer->next;
-    timer->next = freeTimerList;
-    freeTimerList = timer;
-#else
     timer = __glutTimerList;
     __glutTimerList = timer->next;
     timer->func(timer->value);
     timer->next = freeTimerList;
     freeTimerList = timer;
-#endif
-
     if (!__glutTimerList)
       break;
   }
