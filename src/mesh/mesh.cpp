@@ -6,17 +6,14 @@
 /*! \file
     \ingroup Mesh
 
-    $Id: mesh.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: mesh.cpp,v 2.1 2004/02/16 14:23:38 nigels Exp $
 
     $Log: mesh.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/16 14:23:38  nigels
+    Mesh shapes always control GL_CULL_FACE
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 1.23  2003/10/01 02:31:11  nigels
+    Mesh shapes always control GL_CULL_FACE
 
     Revision 1.22  2003/05/31 13:31:15  nigels
     3DS now loaded as GltShapes rather than via Mesh
@@ -248,6 +245,8 @@ Mesh::draw() const
 
         if (_cullFace)
             glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
 
         glBegin(GL_TRIANGLES);
         {

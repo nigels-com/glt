@@ -30,17 +30,11 @@
     \brief   Mesh
     \ingroup Mesh
 
-    $Id: mesh.h,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: mesh.h,v 2.1 2004/02/16 14:23:38 nigels Exp $
 
     $Log: mesh.h,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/16 14:23:38  nigels
+    Mesh shapes always control GL_CULL_FACE
 
     Revision 1.16  2003/05/31 13:31:15  nigels
     3DS now loaded as GltShapes rather than via Mesh
