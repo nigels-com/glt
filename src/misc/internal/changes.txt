@@ -1,0 +1,27 @@
+1.1  Tue Dec 23 05:48:32 CET 2003
+	- removed #warn directive, it's not worth the hassle.
+        - add LZF_STACK_ARG and AVOID_ERRNO configurations
+          for embedded systems.
+        - make it compile cleanly as c++.
+        - some small documentation and code fixes.
+
+1.0  Sun Nov 17 12:37:37 CET 2002
+	- slightly better compression ratio, almost unmeasurably
+          slower.
+        - some documentation fixes.
+
+0.4  Thu Jun 13 14:11:10 CEST 2002
+	- typoe fix.
+        - lzf demo program now properly decompresses small files.
+        - fix another 64 bit issue, found by Laurent Deniel.
+
+0.3  Tue Jan 16 13:21:14 CET 2001
+	- fix silly beginners 32/64 bit mistake.
+
+0.2  Thu Jan  4 05:56:42 CET 2001
+	- now totally independent of autoconfig, for
+          easy inclusion into other programs.
+        - much better fine-tuning, faster and better than 0.1.
+
+0.1  2000
+	- initial release.
