@@ -37,12 +37,17 @@ endif
 ########################################################################
 #
 # DEPENDENCIES
-
 # Use the gcc compiler to determine dependencies
+
 # OBJECTS is the set of .o files resulting from all sources
-# DEPENDS is the set of .d files corresponding to each .o
 
 DEPEND       := $(CXXFLAGS) -M -MM
+
+DEPENDS      := $(patsubst %.cpp,$(DEP)/%.d,$(CPP_SRC)) 
+DEPENDS      += $(patsubst %.c,$(DEP)/%.d,$(C_SRC)) 
+DEPENDS      += $(patsubst %.s,$(DEP)/%.d,$(ASM_SRC)) 
+
+# DEPENDS is the set of .d files corresponding to each .o
 
 OBJECTS      := $(patsubst %.cpp,$(OBJ)/%.o,$(CPP_SRC)) 
 OBJECTS      += $(patsubst %.c,$(OBJ)/%.o,$(C_SRC)) 
@@ -51,10 +56,6 @@ OBJECTS      += $(patsubst %.s,$(OBJ)/%.o,$(ASM_SRC))
 ifeq ($(TARGET),mingw32)
 OBJECTS      += $(patsubst %.rc,$(OBJ)/%.o,$(RES_SRC))
 endif
-
-DEPENDS      := $(patsubst %.cpp,$(DEP)/%.d,$(CPP_SRC)) 
-DEPENDS      += $(patsubst %.c,$(DEP)/%.d,$(C_SRC)) 
-DEPENDS      += $(patsubst %.s,$(DEP)/%.d,$(ASM_SRC)) 
 
 # Drag in all the dependencies, generating them
 # as needed.
@@ -148,6 +149,8 @@ settings:
 	@if (test $(MAKELEVEL) = 0); then					\
 		date;											\
 		printf "\n";									\
+        printf "TARGET   = %s\n" "$(TARGET)";           \
+		printf "\n";									\
 		printf "CC       = %s\n" "$(CC)";				\
 		printf "CFLAGS   = %s\n" "$(CFLAGS)";			\
 		printf "CLIBS    = %s\n" "$(CLIBS)";			\
@@ -155,8 +158,6 @@ settings:
 		printf "CXX      = %s\n" "$(CXX)";				\
 		printf "CXXFLAGS = %s\n" "$(CXXFLAGS)";			\
 		printf "CXXLIBS  = %s\n" "$(CXXLIBS)";			\
-		printf "\n";									\
-		printf "INCLUDE  = %s\n" "$(INCLUDE)";			\
 		printf "\n";									\
 	fi
 	
@@ -176,10 +177,10 @@ summary:
 # Programs composed of simply one .cpp file are
 # linked into a binary with the same name
 
-$(BIN)/%$(EXE): $(OBJ)/%.o $(LIBS)
+$(BIN)/%$(EXE): $(OBJ)/%.o # $(LIBS) 
 	mkdir -p $(BIN) 
 	printf "Linking    %s\n" $(patsubst $(BIN)/%$(EXE),%$(EXE),$@)
-	$(CXX) $< $(CXXLIBS) -o $@ 
+	$(CXX) $(OBJ)/$(patsubst $(BIN)/%$(EXE),%$(EXE),$@).o $(LIBS) $(CXXLIBS) -o $@ 
 
 # Programs composed of multiple compilation units
 # linked into a binary named $(NAME)
@@ -194,6 +195,11 @@ $(BIN)/$(NAME)$(EXE): $(DEPENDS) $(OBJECTS) $(LIBS)
 
 prog: $(if $(NAME),$(BIN)/$(NAME)$(EXE),$(patsubst %,$(BIN)/%$(EXE),$(PROGRAMS))) 
 	$(LOG_SUMMARY)
+
+run: $(BIN)/$(NAME)$(EXE)
+	-ls -la $(BIN)/$(NAME)$(EXE)
+	-$(BIN)/$(NAME)$(EXE)
+
 
 ########################################################################
 #
