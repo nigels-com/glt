@@ -9,6 +9,8 @@
 #include <misc/string.h>
 #include <math/real.h>
 
+#include <glt/error.h>
+
 #include <cstdio>
 #include <fstream>
 using namespace std;
@@ -102,6 +104,9 @@ GltRegistry::set(const std::string &settings)
 
     for (uint32 i=0; i<lines.size(); i++)
     {
+        if (!lines[i].size())
+            continue;
+
         // Skip line if it's a comment
 
         string::size_type comment = lines[i].find_first_of("#");
@@ -111,10 +116,16 @@ GltRegistry::set(const std::string &settings)
 
         string::size_type j = lines[i].find_first_of(":");
 
-        // Give up if it doesn't exist
+        // Looks like a comment
 
-        if (j==string::npos || comment<j)
+        if (j==string::npos && comment!=string::npos || lines[i].size()==0)
+            continue;
+
+        // Problem...
+
+        if (j==string::npos)
         {
+            gltWarning("Unrecognised setting: %s",lines[i].c_str());
             ok = false;
             continue;
         }
@@ -130,7 +141,8 @@ GltRegistry::set(const std::string &settings)
 
         // Set the field
 
-        set(name,val);
+        if (!set(name,val))
+            gltWarning("Unrecognised setting: %s",lines[i].c_str());
     }
 
     return ok;
