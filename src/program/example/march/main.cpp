@@ -46,7 +46,6 @@
 #include <string>
 #include <cmath>
 #include <iostream>
-#include <iostream>
 using namespace std;
 
 ////
@@ -87,15 +86,15 @@ protected:
 ////
 
 const string MarchingCubesDemo::_message =
-    "GLT Marching Cubes Demo\n" \
-    "\n" \
-    "        Left  Button    Menu\n" \
-    "        Right Button    Rotate\n" \
-    "Shift + Right Button    Pan\n" \
-    "Ctrl  + Right Button    Zoom\n" \
-    "\n" \
-    "               Space    Toggle animation\n" \
-    "           1,2,3,4,5    Set isosurface";
+    "GLT Marching Cubes Demo                 \n"
+    "                                        \n"
+    "        Left  Button    Menu            \n"
+    "        Right Button    Rotate          \n"
+    "Shift + Right Button    Pan             \n"
+    "Ctrl  + Right Button    Zoom            \n"
+    "                                        \n"
+    "               Space    Toggle animation\n"
+    "           1,2,3,4,5    Set isosurface  ";
 
 MarchingCubesDemo::MarchingCubesDemo()
 : GlutWindowExaminer("GLT Marching Cubes Demo"),
@@ -114,6 +113,8 @@ MarchingCubesDemo::~MarchingCubesDemo()
 void
 MarchingCubesDemo::OnOpen()
 {
+    ignoreKeyRepeat(true);
+	
     _font.init(vga8Font);
 
     _info.border() = true;
@@ -245,8 +246,8 @@ MarchingCubesDemo::generateDisplayList(GltFunc3d func)
     _list.endList();
 }
 
-
-bool GlutMain(const std::vector<std::string> &arg)
+bool 
+GlutMain(const std::vector<std::string> &arg)
 {
     cout << MarchingCubesDemo::_message << endl << endl;
 
