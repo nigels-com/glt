@@ -490,10 +490,10 @@ row_callback(png_structp png_ptr, png_bytep new_row,
  * In this function you will receive a pointer to new row data from
  * libpng called new_row that is to replace a corresponding row (of
  * the same data format) in a buffer allocated by your application.
- *
+ * 
  * The new row data pointer new_row may be NULL, indicating there is
  * no new data to be replaced (in cases of interlace loading).
- *
+ * 
  * If new_row is not NULL then you need to call
  * png_progressive_combine_row() to replace the corresponding row as
  * shown below:
@@ -631,7 +631,7 @@ void write_png(char *file_name /* , ... other image information ... */)
 
    /* set the palette if there is one.  REQUIRED for indexed-color images */
    palette = (png_colorp)png_malloc(png_ptr, PNG_MAX_PALETTE_LENGTH
-             * sizeof (png_color));
+             * png_sizeof (png_color));
    /* ... set palette colors ... */
    png_set_PLTE(png_ptr, info_ptr, palette, PNG_MAX_PALETTE_LENGTH);
    /* You must not free palette here, because png_set_PLTE only makes a link to
@@ -741,6 +741,7 @@ void write_png(char *file_name /* , ... other image information ... */)
    png_uint_32 k, height, width;
    png_byte image[height][width*bytes_per_pixel];
    png_bytep row_pointers[height];
+
    for (k = 0; k < height; k++)
      row_pointers[k] = image + k*width*bytes_per_pixel;
 
