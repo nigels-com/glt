@@ -61,6 +61,8 @@ class Matrix
     friend Matrix matrixRotate(const double azimuth,const double elevation);
     friend Matrix matrixOrient(const Vector3 &x,const Vector3 &y,const Vector3 &z);
     friend Matrix matrixOrient(const Vector3 &direction,const Vector3 &up);
+    friend Matrix matrixShadow(const Vector4 &plane,const Vector4 &light);
+    friend Matrix matrixMirror(const Vector3 &point,const Vector3 &norm);
 
     friend std::ostream &operator<<(std::ostream &os,const Matrix &m);
     friend std::istream &operator>>(std::istream &is,      Matrix &m);

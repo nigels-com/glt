@@ -3,17 +3,17 @@
 /*! \file
     \ingroup Math
 
-    $Id: matrix4.cpp,v 2.0 2004/02/08 19:44:12 nigels Exp $
+    $Id: matrix4.cpp,v 2.1 2004/02/16 02:43:16 nigels Exp $
 
     $Log: matrix4.cpp,v $
-    Revision 2.0  2004/02/08 19:44:12  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
+    Revision 2.1  2004/02/16 02:43:16  nigels
+    Added shadow and reflection matrices
 
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
+    Revision 1.24  2003/10/01 02:34:07  nigels
+    *** empty log message ***
 
-    - Jacques.
+    Revision 1.23  2003/09/16 01:43:44  nigels
+    Added shadow and mirror transformation matrices
 
     Revision 1.22  2003/07/22 03:58:05  nigels
     Vector -> Vector3
@@ -480,6 +480,91 @@ Matrix matrixOrient(const Vector3 &direction,const Vector3 &up)
     u.normalize();
 
     return matrixOrient(xProduct(u,d),u,d);
+}
+
+/*!
+    \brief      Shadow transformation matrix
+    \ingroup    Math
+    \param      plane       Plane equation
+    \param      light       Homogeneous light position
+
+    Based on:
+    Improving Shadows and Reflections via the Stencil Buffer
+    Mark J. Kilgard, NVIDIA Corporation
+
+*/
+
+Matrix matrixShadow(const Vector4 &plane,const Vector4 &light)
+{
+    const real dot = plane*light;
+
+    Matrix m;
+
+    m[0]  = dot - light[0]*plane[0];
+    m[1]  =     - light[1]*plane[0];
+    m[2]  =     - light[2]*plane[0];
+    m[3]  =     - light[3]*plane[0];
+
+    m[4]  =     - light[0]*plane[1];
+    m[5]  = dot - light[1]*plane[1];
+    m[6]  =     - light[2]*plane[1];
+    m[7]  =     - light[3]*plane[1];
+
+    m[8]  =     - light[0]*plane[2];
+    m[9]  =     - light[1]*plane[2];
+    m[10] = dot - light[2]*plane[2];
+    m[11] =     - light[3]*plane[2];
+
+    m[12] =     - light[0]*plane[3];
+    m[13] =     - light[1]*plane[3];
+    m[14] =     - light[2]*plane[3];
+    m[15] = dot - light[3]*plane[3];
+
+    return m;
+}
+
+/*!
+    \brief      Mirror transformation matrix
+    \ingroup    Math
+    \param      point       Point on plane
+    \param      norm        Normal to plane
+
+    Based on:
+    Improving Shadows and Reflections via the Stencil Buffer
+    Mark J. Kilgard, NVIDIA Corporation
+
+*/
+
+Matrix matrixMirror(const Vector3 &point,const Vector3 &norm)
+{
+    Vector3 n(norm);
+    n.normalize();
+
+    const real dot = point*n;
+
+    Matrix m;
+
+    m[0]  = 1.0 - 2.0*n[0]*n[0];
+    m[1]  =     - 2.0*n[1]*n[0];
+    m[2]  =     - 2.0*n[2]*n[0];
+    m[3]  = 0.0;
+
+    m[4]  =     - 2.0*n[0]*n[1];
+    m[5]  = 1.0 - 2.0*n[1]*n[1];
+    m[6]  =     - 2.0*n[2]*n[1];
+    m[7]  = 0.0;
+
+    m[8]  =     - 2.0*n[0]*n[2];
+    m[9]  =     - 2.0*n[1]*n[2];
+    m[10] = 1.0 - 2.0*n[2]*n[2];
+    m[11] = 0.0;
+
+    m[12] = 2.0*dot*n[0];
+    m[13] = 2.0*dot*n[1];
+    m[14] = 2.0*dot*n[2];
+    m[15] = 1.0;
+
+    return m;
 }
 
 /*!
