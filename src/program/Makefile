@@ -1,4 +1,4 @@
-SUBDIRS = test example util csg grips glui gltZpr \
+SUBDIRS = test example util csg grips glui zzip gltZpr \
 	gltVrml gltChaos gltLife gltPlasma \
 	matchrix raster coaster
 
