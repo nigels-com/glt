@@ -89,7 +89,7 @@ do                                                       \
               event for invoking the \a callback only once.
     \see      glutPostRedisplay(), glutOverlayDisplayFunc()
 */
-void OGAPIENTRY glutDisplayFunc( void (* callback)( void ) )
+void OGAPIENTRY glutDisplayFunc( void( *callback )( void ) )
 {
     if( !callback )
         ogError( "Fatal error in program.  NULL display callback not "
@@ -127,7 +127,7 @@ void OGAPIENTRY glutDisplayFunc( void (* callback)( void ) )
               <i>current window</i>, you can use glutGet().
     \see      glutGet(), glutReshapeWindow()
 */
-void OGAPIENTRY glutReshapeFunc( void (* callback)( int w, int h ) )
+void OGAPIENTRY glutReshapeFunc( void( *callback )( int w, int h ) )
 {
     SET_CALLBACK( Reshape );
 }
@@ -157,8 +157,9 @@ void OGAPIENTRY glutReshapeFunc( void (* callback)( int w, int h ) )
               keyboard and mouse events to their parent.
     \see      glutKeyboardUpFunc(), glutSpecialFunc()
 */
-void OGAPIENTRY glutKeyboardFunc( void (* callback)
-                                  ( unsigned char key, int x, int y ) )
+void OGAPIENTRY glutKeyboardFunc(
+    void( * callback )( unsigned char key, int x, int y )
+)
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( Keyboard );
@@ -209,7 +210,7 @@ void OGAPIENTRY glutKeyboardFunc( void (* callback)
               keyboard and mouse events to their parent.
     \see      glutSpecialUpFunc(), glutKeyboardFunc()
 */
-void OGAPIENTRY glutSpecialFunc( void (* callback)( int key, int x, int y ) )
+void OGAPIENTRY glutSpecialFunc( void( *callback )( int key, int x, int y ) )
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( Special );
@@ -231,7 +232,7 @@ void OGAPIENTRY glutSpecialFunc( void (* callback)( int key, int x, int y ) )
               application.
     \see      glutTimerFunc(), glutMainLoop(), glutMainLoopEvent()
 */
-void OGAPIENTRY glutIdleFunc( void (* callback)( void ) )
+void OGAPIENTRY glutIdleFunc( void( *callback )( void ) )
 {
     freeglut_assert_ready;
     ogState.IdleCallback = callback;
@@ -259,20 +260,21 @@ void OGAPIENTRY glutIdleFunc( void (* callback)( void ) )
               arbitrary number of timers.
     \see      glutIdleFunc(), glutMainLoop(), glutMainLoopEvent()
 */
-void OGAPIENTRY glutTimerFunc( unsigned int msec,
-                               void (* callback)( int data ),
-                               int data )
+void OGAPIENTRY glutTimerFunc(
+    unsigned int msec, void( *callback )( int data ), int data
+)
 {
     SOG_Timer *timer, *node;
 
     freeglut_assert_ready;
 
-    if( (timer = ogState.FreeTimers.Last) )
+    if( ( timer = ogState.FreeTimers.Last ) )
         ogListRemove( &ogState.FreeTimers, &timer->Node );
-    else
-        if( ! (timer = malloc(sizeof(SOG_Timer))) )
-            ogError( "Fatal error: "
-                     "Memory allocation failure in glutTimerFunc()\n" );
+    else if( !( timer = malloc( sizeof( SOG_Timer ) ) ) )
+        ogError(
+            "Fatal error: "
+            "Memory allocation failure in glutTimerFunc()\n"
+        );
 
     timer->Callback    = callback;
     timer->ID          = data;
@@ -308,7 +310,7 @@ void OGAPIENTRY glutTimerFunc( unsigned int msec,
     \todo     Deprecate this function?
     \see      glutWindowStatusFunc()
 */
-void OGAPIENTRY glutVisibilityFunc( void (* callback)( int status ) )
+void OGAPIENTRY glutVisibilityFunc( void( *callback )( int status ) )
 {
     SET_CALLBACK( Visibility );
 
@@ -335,8 +337,9 @@ void OGAPIENTRY glutVisibilityFunc( void (* callback)( int status ) )
               keyboard and mouse events to their parent.
     \see      glutKeyboardFunc(), glutSpecialUpFunc()
 */
-void OGAPIENTRY glutKeyboardUpFunc( void (* callback)
-                                    ( unsigned char key, int x, int y ) )
+void OGAPIENTRY glutKeyboardUpFunc(
+    void( *callback )( unsigned char key, int x, int y )
+)
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( KeyboardUp );
@@ -359,7 +362,9 @@ void OGAPIENTRY glutKeyboardUpFunc( void (* callback)
               keyboard and mouse events to their parent.
     \see      glutSpecialFunc(), glutKeyboardUpFunc()
 */
-void OGAPIENTRY glutSpecialUpFunc( void (* callback)( int key, int x, int y ) )
+void OGAPIENTRY glutSpecialUpFunc(
+    void( *callback )( int key, int x, int y )
+)
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( SpecialUp );
@@ -382,9 +387,10 @@ void OGAPIENTRY glutSpecialUpFunc( void (* callback)( int key, int x, int y ) )
               it with a better one.  This function may soon be deprecated,
               and eventually removed.
 */
-void OGAPIENTRY glutJoystickFunc( void (* callback)
-                                  ( unsigned int, int, int, int ),
-                                  int pollInterval )
+void OGAPIENTRY glutJoystickFunc(
+    void( *callback )( unsigned int, int, int, int ),
+    int pollInterval
+)
 {
     if( !ogState.JoysticksInitted )
     {
@@ -440,8 +446,9 @@ void OGAPIENTRY glutJoystickFunc( void (* callback)
               keyboard and mouse events to their parent.
     \see      glutMotionFunc(), glutPassiveMotionFunc(), glutMouseWheelFunc()
 */
-void OGAPIENTRY glutMouseFunc( void (* callback)( int button, int state,
-                                                  int x, int y ) )
+void OGAPIENTRY glutMouseFunc(
+    void( *callback )( int button, int state, int x, int y )
+)
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( Mouse );
@@ -473,9 +480,9 @@ void OGAPIENTRY glutMouseFunc( void (* callback)( int button, int state,
               keyboard and mouse events to their parent.
     \see      glutMouseFunc()
 */
-void OGAPIENTRY glutMouseWheelFunc( void (* callback)(
-                                        int wheel, int direction,
-                                        int x, int y ) )
+void OGAPIENTRY glutMouseWheelFunc(
+    void( *callback )( int wheel, int direction, int x, int y )
+)
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( MouseWheel );
@@ -501,7 +508,7 @@ void OGAPIENTRY glutMouseWheelFunc( void (* callback)(
               keyboard and mouse events to their parent.
     \see      glutMouseFunc(), glutPassiveMotion()
 */
-void OGAPIENTRY glutMotionFunc( void (* callback)( int x, int y ) )
+void OGAPIENTRY glutMotionFunc( void( *callback )( int x, int y ) )
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( Motion );
@@ -525,7 +532,7 @@ void OGAPIENTRY glutMotionFunc( void (* callback)( int x, int y ) )
               keyboard and mouse events to their parent.
     \see      glutMotionFunc(), glutMouseFunc(), glutEntryFunc()
 */
-void OGAPIENTRY glutPassiveMotionFunc( void (* callback)( int x, int y ) )
+void OGAPIENTRY glutPassiveMotionFunc( void( *callback )( int x, int y ) )
 {
     if( !ogStructure.Window->IsClientMenu )
         SET_CALLBACK( Passive );
@@ -547,7 +554,7 @@ void OGAPIENTRY glutPassiveMotionFunc( void (* callback)( int x, int y ) )
 
     \see      glutPassiveMotionFunc()
 */
-void OGAPIENTRY glutEntryFunc( void (* callback)( int state ) )
+void OGAPIENTRY glutEntryFunc( void( *callback )( int state ) )
 {
     SET_CALLBACK( Entry );
 }
@@ -577,7 +584,7 @@ void OGAPIENTRY glutEntryFunc( void (* callback)( int state ) )
               parameter.  You should only need one or the other.
     \see      glutDestroyWindow(), glutWMCloseFunc()
 */
-void OGAPIENTRY glutCloseFunc( void (* callback)( void ) )
+void OGAPIENTRY glutCloseFunc( void( *callback )( void ) )
 {
     SET_CALLBACK( Destroy );
 }
@@ -607,7 +614,7 @@ void OGAPIENTRY glutCloseFunc( void (* callback)( void ) )
               parameter.  You should only need one or the other.
     \see      glutDestroyWindow(), glutCloseFunc()
 */
-void OGAPIENTRY glutWMCloseFunc( void (* callback)( void ) )
+void OGAPIENTRY glutWMCloseFunc( void( *callback )( void ) )
 {
     glutCloseFunc( callback );
 }
@@ -636,7 +643,7 @@ void OGAPIENTRY glutWMCloseFunc( void (* callback)( void ) )
               that if they care, via window-destruction callbacks.
     \see      glutCloseFunc(), glutCreateMenu(), glutDestroyMenu()
 */
-void OGAPIENTRY glutMenuDestroyFunc( void (* callback)( void ) )
+void OGAPIENTRY glutMenuDestroyFunc( void( *callback )( void ) )
 {
     if( ogStructure.Menu )
         ogStructure.Menu->Destroy = callback;
@@ -667,7 +674,7 @@ void OGAPIENTRY glutMenuDestroyFunc( void (* callback)( void ) )
     \note     Obsolete.  Depcreated.  Remove before verion 1.0?
     \see      glutMenuStatusFunc()
 */
-void OGAPIENTRY glutMenuStateFunc( void (* callback)( int status ) )
+void OGAPIENTRY glutMenuStateFunc( void( *callback )( int status ) )
 {
     freeglut_assert_ready;
     ogState.MenuStateCallback = callback;
@@ -703,7 +710,7 @@ void OGAPIENTRY glutMenuStateFunc( void (* callback)( int status ) )
     \see      glutMenuStateFunc()
 */
 void OGAPIENTRY glutMenuStatusFunc(
-    void (* callback)( int status, int x, int y )
+    void( *callback )( int status, int x, int y )
 )
 {
     freeglut_assert_ready;
@@ -734,7 +741,7 @@ void OGAPIENTRY glutMenuStatusFunc(
     \see      glutDisplayFunc(), glutPostOverlayRedisplay(),
               glutEstablishOverlay(), glutUseLayer()
 */
-void OGAPIENTRY glutOverlayDisplayFunc( void (* callback)( void ) )
+void OGAPIENTRY glutOverlayDisplayFunc( void( *callback )( void ) )
 {
     SET_CALLBACK( OverlayDisplay );
 }
@@ -763,7 +770,7 @@ void OGAPIENTRY glutOverlayDisplayFunc( void (* callback)( void ) )
     \note     Makes glutVisibilityFunc() obsolete.
     \see      glutVisibilityFunc()
 */
-void OGAPIENTRY glutWindowStatusFunc( void (* callback)( int state ) )
+void OGAPIENTRY glutWindowStatusFunc( void( *callback )( int state ) )
 {
     SET_CALLBACK( WindowStatus );
 }
@@ -784,7 +791,7 @@ void OGAPIENTRY glutWindowStatusFunc( void (* callback)( int state ) )
     \see      glutSpaceballRotateFunc(), glutSpaceballButtonFunc(),
 */
 void OGAPIENTRY glutSpaceballMotionFunc(
-    void (* callback)( int x, int y, int z )
+    void( *callback )( int x, int y, int z )
 )
 {
     SET_CALLBACK( SpaceMotion );
@@ -805,7 +812,7 @@ void OGAPIENTRY glutSpaceballMotionFunc(
     \see      glutSpaceballMotionFunc(), glutSpaceballButtonFunc(),
 */
 void OGAPIENTRY glutSpaceballRotateFunc(
-    void (* callback)( int x, int y, int z )
+    void( *callback )( int x, int y, int z )
 )
 {
     SET_CALLBACK( SpaceRotation );
@@ -829,7 +836,7 @@ void OGAPIENTRY glutSpaceballRotateFunc(
     \see      glutSpaceballRotateFunc(), glutSpaceballMotiononFunc(),
 */
 void OGAPIENTRY glutSpaceballButtonFunc(
-    void (* callback)( int button , int state )
+    void( *callback )( int button , int state )
 )
 {
     SET_CALLBACK( SpaceButton );
@@ -853,7 +860,7 @@ void OGAPIENTRY glutSpaceballButtonFunc(
               the GLUT API.  This is a wrinkle.
     \see      glutDialsFunc()
 */
-void OGAPIENTRY glutButtonBoxFunc( void (* callback)( int button, int state ) )
+void OGAPIENTRY glutButtonBoxFunc( void( *callback )( int button, int state ) )
 {
     SET_CALLBACK( ButtonBox );
 }
@@ -875,7 +882,7 @@ void OGAPIENTRY glutButtonBoxFunc( void (* callback)( int button, int state ) )
     \note     OpenGLUT does not implement dials-box support.
     \see      glutButtonBoxFunc()
 */
-void OGAPIENTRY glutDialsFunc( void (* callback)( int dial, int value ) )
+void OGAPIENTRY glutDialsFunc( void( *callback )( int dial, int value ) )
 {
     SET_CALLBACK( Dials );
 }
@@ -927,7 +934,7 @@ void OGAPIENTRY glutTabletMotionFunc( void (* callback)( int x, int y ) )
     \see      glutTabletButtonFunc(), glutMouseFunc()
 */
 void OGAPIENTRY glutTabletButtonFunc(
-    void (* callback)( int button, int state,  int x, int y )
+    void( *callback )( int button, int state,  int x, int y )
 )
 {
     SET_CALLBACK( TabletButton );

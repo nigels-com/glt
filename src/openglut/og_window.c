@@ -100,7 +100,7 @@ wchar_t *oghStrToWstr( const char *str )
  */
 #if TARGET_HOST_UNIX_X11
 
-XVisualInfo* ogChooseVisual( void )
+XVisualInfo *ogChooseVisual( void )
 {
 #define BUFFER_SIZES 6
     int bufferSize[ BUFFER_SIZES ] = { 16, 12, 8, 4, 2, 1 };
@@ -259,29 +259,27 @@ GLboolean ogSetupPixelFormat( SOG_Window *window, GLboolean checkOnly,
  */
 void ogSetWindow( SOG_Window *window )
 {
+    if( window && ( window != ogStructure.Window ) )
+    {
 #if TARGET_HOST_UNIX_X11
-    if( window )
         glXMakeCurrent(
             ogDisplay.Display,
             window->Window.Handle,
             window->Window.Context
         );
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-    if( ogStructure.Window && !( ogStructure.Window->State.IsOffscreen ) )
-        ReleaseDC( ogStructure.Window->Window.Handle,
-                   ogStructure.Window->Window.Device );
-
-    if( window )
-    {
+        if( ogStructure.Window && !( ogStructure.Window->State.IsOffscreen ) )
+            ReleaseDC( ogStructure.Window->Window.Handle,
+                       ogStructure.Window->Window.Device );
         if( !( window->State.IsOffscreen ) )
             window->Window.Device = GetDC( window->Window.Handle );
         wglMakeCurrent(
             window->Window.Device,
             window->Window.Context
         );
-    }
 #endif
-    ogStructure.Window = window;
+        ogStructure.Window = window;
+    }
 }
 
 
@@ -290,7 +288,7 @@ void ogSetWindow( SOG_Window *window )
     to the OpenGLUT structure. OpenGL context is created here.
 */
 /* ARGSUSED6 */
-void ogOpenWindow( SOG_Window* window, const char* title,
+void ogOpenWindow( SOG_Window *window, const char *title,
                    int x, int y, int w, int h,
                    GLboolean gameMode, GLboolean isSubWindow )
 {
@@ -322,7 +320,6 @@ void ogOpenWindow( SOG_Window* window, const char* title,
     }
 
     if( ! window->Window.VisualInfo )
-    {
         /*
          * The ogChooseVisual() returned a null meaning that the visual
          * context is not available.
@@ -334,13 +331,11 @@ void ogOpenWindow( SOG_Window* window, const char* title,
             window->Window.VisualInfo = ogChooseVisual( );
             ogState.DisplayMode &= ~GLUT_DOUBLE;
         }
-
         /*
          * GLUT also checks for multi-sampling, but I don't see that
          * anywhere else in freeglut/OpenGLUT so I won't bother with
          * it for the moment.
          */
-    }
 
     /*!
       \bug This seems to be abusing an assert() for error-checking.
@@ -476,12 +471,6 @@ void ogOpenWindow( SOG_Window* window, const char* title,
         ogError( "unable to force direct context rendering for window '%s'",
                  title );
 
-    glXMakeCurrent(
-        ogDisplay.Display,
-        window->Window.Handle,
-        window->Window.Context
-    );
-
     /*!
        \todo Assume the new window is visible by default
         Is this a  safe assumption?
@@ -521,7 +510,11 @@ void ogOpenWindow( SOG_Window* window, const char* title,
     if( GL_FALSE == window->State.IsOffscreen )
     {
         /* Prepare the window and iconified window names. */
-        XStringListToTextProperty( (char **) &title, 1, &textProperty );
+        /*
+         * XXX Should strdup() the title, since XStringListToTextProperty()
+         * XXX apparently allows the right to edit {title}.
+         */
+        XStringListToTextProperty( ( char ** )&title, 1, &textProperty );
         XSetWMProperties(
             ogDisplay.Display,
             window->Window.Handle,
@@ -567,8 +560,8 @@ void ogOpenWindow( SOG_Window* window, const char* title,
     else if( GLUT_OFFSCREEN & ogState.DisplayMode )
     {
         /*
-         * XXX Resource allocation in this section currently causes an
-         * XXX ogError() invocation.  Perhaps it would be better to use
+         * XXX Resource allocation failure in this section currently causes
+         * XXX an ogError() invocation.  Perhaps it would be better to use
          * XXX a return-0-for-window-ID?  That would be more graceful,
          * XXX in some ways, but places burden on the client.
          */
@@ -586,7 +579,7 @@ void ogOpenWindow( SOG_Window* window, const char* title,
             ogError( "Could not create Device Context for offscreen.\n" );
         window->Window.Bitmap = CreateDIBSection(
             window->Window.Device, &info, DIB_RGB_COLORS,
-            &( window->Window.Bits ), NULL, 0
+            (void **) &( window->Window.Bits ), NULL, 0
         );
         if( !( window->Window.Bitmap ) )
             ogError( "Could not create bitmap for offscreen.\n" );
@@ -611,10 +604,11 @@ void ogOpenWindow( SOG_Window* window, const char* title,
     else
     {
 #if !TARGET_HOST_WINCE
-        if( ( ! isSubWindow ) && ( ! window->IsUnmanaged ) )
+        if( ( !isSubWindow ) && ( !window->IsUnmanaged ) )
         {
             /*!
                 \note Move this comment to a more central place?
+                (Already relocated to general, end-user documentation.)
                 Update the window dimensions, taking account of window
                 decorations.  OpenGLUT is to create the window with the
                 outside of its border at (x,y) and with dimensions (w,h).
@@ -625,12 +619,12 @@ void ogOpenWindow( SOG_Window* window, const char* title,
         }
 #endif
 
-        if( ! ogState.Position.Use )
+        if( !ogState.Position.Use )
         {
             x = CW_USEDEFAULT;
             y = CW_USEDEFAULT;
         }
-        if( ! ogState.Size.Use )
+        if( !ogState.Size.Use )
         {
             w = CW_USEDEFAULT;
             h = CW_USEDEFAULT;
@@ -873,8 +867,8 @@ int OGAPIENTRY glutCreateWindow( const char* title )
     goes.  Because windows and subwindows work almost identically
     from the perspective of a GLUT program, it is relatively easy
     to move a cluster of related controls into a separate top-level
-    window---or, conversely, embed what ws a top-level window
-    into a portion of another window.  OpenGLUT can also report
+    window---or, conversely, embed what was a top-level window
+    inside of another window.  OpenGLUT can also report
     some basic statistics about your (sub)window, relieving you
     of the duty of tracking all of that information for yourself.
 
@@ -921,7 +915,7 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
  *                   input to the parent window's handler, after translating
  *                   mouse coords.
  *
- * NB: You cannot use the X and Y macros within the INVOK_WCB() macro
+ * NB: You cannot use the X and Y macros within the INVOKE_WCB() macro
  *     invocations.  INVOKE_WCB(), being a macro, evaluates its
  *     parameters when, and only when, they are used.  It sets the
  *     current window before evaluating the translated coordinates,

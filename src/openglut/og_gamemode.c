@@ -171,7 +171,6 @@ static void oghRestoreState( void )
          * If we find one, switch to it and restore the remembered viewport.
          */
         for( i = 0; i < displayModesCount; i++ )
-        {
             if(displayModes[ i ]->hdisplay == ogDisplay.DisplayMode.hdisplay &&
                displayModes[ i ]->vdisplay == ogDisplay.DisplayMode.vdisplay &&
                displayModes[ i ]->dotclock == ogDisplay.DisplayModeClock )
@@ -197,7 +196,6 @@ static void oghRestoreState( void )
 
                 return;
             }
-        }
     }
 
 #   else
@@ -274,7 +272,6 @@ static GLboolean oghChangeDisplayMode( GLboolean haveToTest )
          * Check every of the modes looking for one that matches our demands
          */
         for( i = 0; i < displayModesCount; i++ )
-        {
             if( oghCheckDisplayMode(
                     displayModes[ i ]->hdisplay,
                     displayModes[ i ]->vdisplay,
@@ -294,7 +291,6 @@ static GLboolean oghChangeDisplayMode( GLboolean haveToTest )
                 );
                 return GL_TRUE;
             }
-        }
     }
 
     /*
@@ -430,7 +426,7 @@ static GLboolean oghChangeDisplayMode( GLboolean haveToTest )
                - \a depth 16
                - \a refresh 72
 
-    \bug      Undocumented; no standard implementation.
+    \todo     Undocumented; no standard implementation.
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
               glutGameModeGet()
 */
@@ -481,8 +477,8 @@ void OGAPIENTRY glutGameModeString( const char *string )
                  screen resolution will be opened.
                - The mouse may be restricted to operate within
                  your window.
-               - The display may become completely unusable,
-                 during and/or after gamemode.
+               - The display may become more or less unusable during or
+                 after gamemode.
 
               Also note that OpenGLUT may be unable to restore
               the original settings (this has been observed on
@@ -492,12 +488,12 @@ void OGAPIENTRY glutGameModeString( const char *string )
               change by an OpenGLUT compile-time option.
     \note     The resolution change only has a prayer of working
               on WIN32 and XFree86.
-    \bug      Undocumented; no standard implementation.
-    \bug      On some XFree86 servers, may signficantly degrade
+    \todo     Undocumented; no standard implementation.
+    \todo     On some XFree86 servers, may signficantly degrade
               display quality (ghosting, poor video syncing); this
               is an XFree86 bug, but we can neither detect it nor
               apparently work around it.
-    \bug      On some systems, including WIN32, can leave the
+    \todo     On some systems, including WIN32, can leave the
               display in game-mode resolution after you exit.
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
               glutGameModeGet()
@@ -677,7 +673,7 @@ void OGAPIENTRY glutLeaveGameMode( void )
                  any different than \a GLUT_GAME_MODE_ACTIVE.  This
                  is probably a bug.
 
-    \bug      Undocumented; no standard implementation.
+    \todo     Undocumented; no standard implementation.
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
               glutGameModeGet()
 */

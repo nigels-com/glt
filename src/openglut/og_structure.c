@@ -179,8 +179,7 @@ SOG_Menu *ogCreateMenu( OGCBMenu menuCallback )
     /*
      * Create a window for the menu to reside in.
      */
-
-    ogCreateWindow( NULL, NULL, x, y, w, h, OG_CW_MENU );
+    ogCreateWindow( NULL, "OpenGLUT menu", x, y, w, h, OG_CW_MENU );
     menu->Window = ogStructure.Window;
     glutDisplayFunc( ogDisplayMenu );
 

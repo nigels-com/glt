@@ -91,6 +91,8 @@ static void oghReshapeWindowByHandle ( SOG_WindowHandleType handle,
         return;
     assert( !( window->State.IsOffscreen ) );
 
+    window->State.NeedToResize = GL_FALSE;
+
 #if TARGET_HOST_UNIX_X11
 
     XResizeWindow( ogDisplay.Display, window->Window.Handle,
@@ -169,8 +171,8 @@ static void oghReshapeWindowByHandle ( SOG_WindowHandleType handle,
      * window.
      */
     /*!
-          \bug Shouldn't the client's callback invoke this if it is needed?
-               Or does GLUT also do this?  This seems *wrong*.
+       \bug Shouldn't the client's callback invoke this if it is needed?
+            Or does GLUT also do this?  This seems *wrong*.
     */
     window->State.Redisplay = GL_TRUE;
 
@@ -216,11 +218,8 @@ static void oghRedrawWindowByHandle ( SOG_WindowHandleType handle )
             window->State.Width,
             window->State.Height
         );
-
-        window->State.NeedToResize = GL_FALSE;
         ogSetWindow( current_window );
     }
-
     INVOKE_WCB( *window, Display, ( ) );
 }
 #endif
@@ -243,28 +242,19 @@ static void oghcbDisplayWindow( SOG_Window *window,
             window->State.Height
         );
 
-        window->State.NeedToResize = GL_FALSE;
         ogSetWindow ( current_window );
     }
 
     if( window->State.Redisplay &&
         window->State.Visible )
     {
+        SOG_Window *current_window = ogStructure.Window;
+
+        /* XXX Set this FALSE even if the window is not visible? */
         window->State.Redisplay = GL_FALSE;
 
-#if TARGET_HOST_UNIX_X11
-        {
-            SOG_Window *current_window = ogStructure.Window;
-
-            INVOKE_WCB( *window, Display, ( ) );
-            ogSetWindow( current_window );
-        }
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-        RedrawWindow(
-            window->Window.Handle, NULL, NULL,
-            RDW_NOERASE | RDW_INTERNALPAINT | RDW_INVALIDATE | RDW_UPDATENOW
-        );
-#endif
+        INVOKE_WCB( *window, Display, ( ) );
+        ogSetWindow( current_window );
     }
 
     ogEnumSubWindows( window, oghcbDisplayWindow, enumerator );
@@ -587,24 +577,33 @@ static void oghTakeActionOnWindowClose( void )
  * Yes, I know, it's all run together.  That's the red flag that this
  * stuff is in flux.  It won't stay like this forever.
  */
+typedef enum EOG_EventClass
+{
+    OG_E_UNKNOWN, /* Unknown event; in this case, dispatch natively */
+    OG_E_CREATE,  /* Window creation; have new window dimensions */
+    OG_E_COUNT    /* Dummy event; keep as LAST event class */
+} EOG_EventClass;
+typedef struct SOG_Event
+{
 #if TARGET_HOST_UNIX_X11
-typedef XEvent ogEventMsg;
+    XEvent         rawEvent;
 #elif TARGET_HOST_WIN32
-typedef MSG    ogEventMsg;
+    MSG            rawEvent;
 #endif
-int oghPendingWindowEvents( void )
+    EOG_EventClass class;
+} SOG_Event;
+int oghPendingWindowEvents( SOG_Event *event )
 {
 #if TARGET_HOST_UNIX_X11
     return XPending( ogDisplay.Display );
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-    ogEventMsg event;
-    return PeekMessage( &event, NULL, 0, 0, PM_NOREMOVE );
+    return PeekMessage( &( event->rawEvent ), NULL, 0, 0, PM_NOREMOVE );
 #endif
 }
-ogEventMsg *oghGetWindowEvent( ogEventMsg *event )
+SOG_Event *oghGetWindowEvent( SOG_Event *event )
 {
 #if TARGET_HOST_UNIX_X11
-    XNextEvent( ogDisplay.Display, event );
+    XNextEvent( ogDisplay.Display, &( event->rawEvent ) );
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
     /*
      * WIN32 can apparently report close-window events this way?
@@ -614,19 +613,21 @@ ogEventMsg *oghGetWindowEvent( ogEventMsg *event )
      * to occur.  It may be that it induces a second event in
      * the dispatch.
      */
-    if( !GetMessage( event, NULL, 0, 0 ) )
+    if( !GetMessage( &( event->rawEvent ), NULL, 0, 0 ) )
         oghTakeActionOnWindowClose( );
-    TranslateMessage( event );
+    TranslateMessage( &( event->rawEvent ) );
 #endif
     return event;
 }
-void oghDispatchEvent( ogEventMsg *event )
+void oghDispatchEvent( SOG_Event *ev )
 {
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    DispatchMessage( event );
+    DispatchMessage( &( ev->rawEvent ) );
 
 #elif TARGET_HOST_UNIX_X11
+
+    XEvent *event = &( ev->rawEvent );
 
     SOG_Window *window;
     /* This code was used constantly, so here it goes into a definition: */
@@ -1147,7 +1148,7 @@ void oghDispatchEvent( ogEventMsg *event )
                     }
                 }
             }
-	    break;
+            break;
         }
 
     case ReparentNotify:
@@ -1190,10 +1191,10 @@ void oghDispatchEvent( ogEventMsg *event )
 */
 void OGAPIENTRY glutMainLoopEvent( void )
 {
-    ogEventMsg event;
+    SOG_Event event;
     freeglut_assert_ready; /* XXX Looks like assert() abuse... */
 
-    while( oghPendingWindowEvents( ) )
+    while( oghPendingWindowEvents( &event ) )
     {
         oghGetWindowEvent( &event );
         oghDispatchEvent( &event );
@@ -1420,13 +1421,13 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             ogSetupPixelFormat( window, GL_FALSE, PFD_MAIN_PLANE );
 #endif
 
-            if( ! ogState.UseCurrentContext )
+            if( !ogState.UseCurrentContext )
                 window->Window.Context =
                     wglCreateContext( window->Window.Device );
             else
             {
                 window->Window.Context = wglGetCurrentContext( );
-                if( ! window->Window.Context )
+                if( !window->Window.Context )
                     window->Window.Context =
                         wglCreateContext( window->Window.Device );
             }
@@ -1555,7 +1556,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         /* Turn on the visibility in case it was turned off somehow */
         window->State.Visible = GL_TRUE;
         BeginPaint( hWnd, &ps );
-        oghRedrawWindowByHandle( hWnd );
+        window->State.Redisplay = GL_TRUE;
         EndPaint( hWnd, &ps );
         break;
 
@@ -1656,10 +1657,13 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
 #if !TARGET_HOST_WINCE
         if( GetSystemMetrics( SM_SWAPBUTTON ) )
+        {
             if( button == GLUT_LEFT_BUTTON )
                 button = GLUT_RIGHT_BUTTON;
-            else if( button == GLUT_RIGHT_BUTTON )
-                button = GLUT_LEFT_BUTTON;
+            else 
+                if( button == GLUT_RIGHT_BUTTON )
+                    button = GLUT_LEFT_BUTTON;
+        }
 #endif
 
         if( button == -1 )
@@ -2002,10 +2006,8 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         /*
          * XXX Probably should instead post a "window resized" event.
          * XXX Let the cliet call glutPostRedisplay() if needed.
-         * XXX If we are going to *force* a redisplay, we should
-         * XXX at least not invoke it direclty, I think.
          */
-        INVOKE_WCB( *window, Display, ( ) );
+        window->State.Redisplay = GL_TRUE;
 
         /*lRet = DefWindowProc( hWnd, uMsg, wParam, lParam ); */
         break;

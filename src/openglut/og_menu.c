@@ -277,16 +277,11 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
         glVertex2i(               border, menu->Height - border);
     glEnd( );
 
-    /*
-     * Check if any of the submenus is currently active...
-     */
+    /* Check if any of the submenus is currently active... */
     for( menuEntry = (SOG_MenuEntry *)menu->Entries.First;
          menuEntry;
          menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next )
-    {
-        /*
-         * Has the menu been marked as active, maybe?
-         */
+        /* Has the menu been marked as active, maybe? */
         if( menuEntry->IsActive )
         {
             /*
@@ -296,9 +291,7 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
              */
             int menuID = menuEntry->Ordinal;
 
-            /*
-             * So have the highlight drawn...
-             */
+            /* So have the highlight drawn... */
             glColor4fv( menu_pen_hback );
             glBegin( GL_QUADS );
                 glVertex2i( border,
@@ -311,27 +304,18 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
                             (menuID + 1)*FREEGLUT_MENU_HEIGHT + border );
             glEnd( );
         }
-    }
 
-    /*
-     * Print the menu entries now...
-     */
-
+    /* Print the menu entries now... */
     glColor4fv( menu_pen_fore );
-
     for( menuEntry = (SOG_MenuEntry *)menu->Entries.First, i = 0;
          menuEntry;
          menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next, ++i )
     {
-        /*
-         * If the menu entry is active, set the color to white
-         */
+        /* If the menu entry is active, set the color to white */
         if( menuEntry->IsActive )
             glColor4fv( menu_pen_hfore );
 
-        /*
-         * Move the raster into position...
-         */
+        /* Move the raster into position... */
         /* Try to center the text - JCJ 31 July 2003*/
         glRasterPos2i(
             2 * border,
@@ -339,15 +323,11 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
             ( int )( FREEGLUT_MENU_HEIGHT*0.3 - border )
         );
 
-        /*
-         * Have the label drawn, character after character:
-         */
+        /* Have the label drawn, character after character: */
         glutBitmapString( FREEGLUT_MENU_FONT,
                           ( unsigned char * )menuEntry->Text );
 
-        /*
-         * If it's a submenu, draw a right arrow
-         */
+        /* If it's a submenu, draw a right arrow */
         if( menuEntry->SubMenu )
         {
             int width = glutBitmapWidth( FREEGLUT_MENU_FONT, '_' );
@@ -361,9 +341,7 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
             glEnd( );
         }
 
-        /*
-         * If the menu entry is active, reset the color
-         */
+        /* If the menu entry is active, reset the color */
         if( menuEntry->IsActive )
             glColor4fv( menu_pen_fore );
     }
@@ -372,7 +350,6 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
     for( menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
          menuEntry;
          menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
-    {
         if( menuEntry->SubMenu && menuEntry->IsActive )
         {
             /* Yeah, indeed. Have it redrawn now: */
@@ -380,7 +357,6 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
             oghDisplayMenuBox( menuEntry->SubMenu );
             ogSetWindow( menu->Window );
         }
-    }
 }
 
 /*
@@ -523,7 +499,6 @@ void ogExecuteMenuCallback( SOG_Menu *menu )
     for( menuEntry = (SOG_MenuEntry *)menu->Entries.First;
          menuEntry;
          menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next)
-    {
         if( menuEntry->IsActive )
         {
             if( menuEntry->SubMenu )
@@ -533,7 +508,6 @@ void ogExecuteMenuCallback( SOG_Menu *menu )
                     menu->Callback( menuEntry->ID );
             return;
         }
-    }
 }
 
 /*

@@ -250,7 +250,8 @@ void OGAPIENTRY glutBitmapString( void *font, const unsigned char *string )
               position all of their glyphs to start at, or to the right of,
               the initial position.
 
-    \see      glutBitmapCharacter(), glutBitmapLength(), glutBitmapHeight()
+    \see      glutBitmapCharacter(), glutBitmapLength(), glutBitmapHeight(),
+              glutStrokeWidth()
 */
 int OGAPIENTRY glutBitmapWidth( void *font, int character )
 {
@@ -281,7 +282,8 @@ int OGAPIENTRY glutBitmapWidth( void *font, int character )
               Returns 0 if the \a font is invalid or if the 
               \a string is empty or \a NULL.
 
-    \see      glutBitmapString(), glutBitmapWidth(), glutBitmapHeight()
+    \see      glutBitmapString(), glutBitmapWidth(), glutBitmapHeight(),
+              glutStrokeLength()
 */
 int OGAPIENTRY glutBitmapLength( void *font, const unsigned char *string )
 {
@@ -318,15 +320,15 @@ int OGAPIENTRY glutBitmapLength( void *font, const unsigned char *string )
 
               Returns 0 if \a font is invalid.
 
-    \see      glutBitmapWidth(), glutBitmapLength(),
-              glutBitmapString()
+    \note     Does <i>not</i> report the height used by individual
+              characters.  This may limit its usefulness.  (Compare
+              with other font-metric queries.)
+    \see      glutBitmapCharacter(), glutBitmapString(), glutBitmapWidth(),
+              glutBitmapLength(), glutStrokeHeight()
 
     \internal
     \todo     We have discussed adding a "font descender" query.
               We should go ahead and do it.
-    \note     Does <i>not</i> report the height used by individual
-              characters.  This may limit its usefulness; perhaps we
-              should change it?  (And/or add a new function.)
 */
 int OGAPIENTRY glutBitmapHeight( void *font )
 {
@@ -430,6 +432,7 @@ void OGAPIENTRY glutStrokeString( void *fontID, const unsigned char *string )
          */
         while( c = *string++ )
             if( c < font->Quantity )
+            {
                 if( c == '\n' )
                 {
                     glTranslatef ( -length, -( float )( font->Height ), 0.0 );
@@ -457,6 +460,7 @@ void OGAPIENTRY glutStrokeString( void *fontID, const unsigned char *string )
                         glTranslatef( schar->Right, 0.0, 0.0 );
                     }
                 }
+            }
 }
 
 /*!
@@ -516,8 +520,7 @@ int OGAPIENTRY glutStrokeWidth( void *fontID, int character )
 
               This function reports the sum of the widths of the
               characters in a \a string, using the font metrics of
-              a given \a font.  (It also rounds to an integer only
-              once for the whole string.)
+              a given \a font.
 
               Like glutStrokeString(), glutStrokeLength() respects
               newlines in the input.
@@ -532,7 +535,7 @@ int OGAPIENTRY glutStrokeWidth( void *fontID, int character )
     \see      glutStrokeString(), glutStrokeWidth(), glutStrokeHeight(),
               glutBitmapLength()
 */
-int OGAPIENTRY glutStrokeLength( void *fontID, const unsigned char *string )
+float OGAPIENTRY glutStrokeLength( void *fontID, const unsigned char *string )
 {
     unsigned char c;
     float length = 0.0;
@@ -560,7 +563,7 @@ int OGAPIENTRY glutStrokeLength( void *fontID, const unsigned char *string )
 
     if( length < this_line_length )
         length = this_line_length;
-    return( int )( length + 0.5 );
+    return length;
 }
 
 /*!

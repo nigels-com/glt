@@ -239,14 +239,12 @@
                          return 1;
                  }
                  else if( errno == EACCES )
-                 {
                      if( !protection_warned )
                      {
                          fprintf( stderr, "Can't open %s for read!\n",
                                   buf );
                          protection_warned = 1;
                      }
-                 }
              }
              return 0;
          }
@@ -319,7 +317,6 @@
 
                  interesting_hid = TRUE;
                  if( page == HUP_GENERIC_DESKTOP )
-                 {
                      switch( usage )
                      {
                      case HUG_X:
@@ -349,7 +346,6 @@
                          interesting_hid = FALSE;
                          break;
                      }
-                 }
                  else if( page == HUP_BUTTON )
                  {
                      interesting_hid = ( usage > 0 ) &&
@@ -662,30 +658,24 @@ static void oghJoystickRawRead( SOG_Joystick* joy, int* buttons, float* axes )
                 for( i = 0; i < joy->num_axes; i++ )
                     if( joy->os->axes_usage[i] == usage)
                     {
-                        if( usage == HUG_HAT_SWITCH)
+                        if( usage != HUG_HAT_SWITCH)
+                            joy->os->cache_axes[i] = ( float )d;
+                        else
                         {
                             if( d < 0 || d > 8)
                                 d = 0;  /* safety */
                             joy->os->cache_axes[i] = ( float )hatmap_x[d];
                             joy->os->cache_axes[i + 1] = ( float )hatmap_y[d];
                         }
-                        else
-                        {
-                            joy->os->cache_axes[i] = ( float )d;
-                        }
                         break;
                     }
             }
             else if( page == HUP_BUTTON )
-            {
                if( usage > 0 && usage < _JS_MAX_BUTTONS + 1 )
-               {
                    if( d )
                        joy->os->cache_buttons |= ( 1 << usage - 1 );
                    else
                        joy->os->cache_buttons &= ~(1 << usage - 1);
-               }
-            }
         }
     }
     if( len < 0 && errno != EAGAIN )
@@ -959,9 +949,10 @@ static void oghJoystickEnumerateElements(
 {
     assert( CFGetTypeID( element ) == CFArrayGetTypeID( ) );
 
-    CFRange range = {0, CFArrayGetCount( ( CFArrayRef )element ) };
-    CFArrayApplyFunction( ( CFArrayRef )element, range,
-                          &oghJoystickElementEnumerator, joy );
+    CFRange range = { 0, CFArrayGetCount( ( CFArrayRef )element ) };
+    CFArrayApplyFunction(
+        ( CFArrayRef )element, range, &oghJoystickElementEnumerator, joy
+    );
 }
 
 /* XXX oghJoystickParseElement() seems to be unused */
@@ -991,38 +982,35 @@ static void oghJoystickParseElement(
         CFNumberGetValue( (CFNumberRef) refUsage, kCFNumberLongType, &usage );
         CFNumberGetValue( (CFNumberRef) refPage, kCFNumberLongType, &page );
 
-        if( page == kHIDPage_GenericDesktop )
+        if( page == kHIDPage_Button )
         {
-            switch( usage ) /* look at usage to determine function */
-            {
-            case kHIDUsage_GD_X:
-            case kHIDUsage_GD_Y:
-            case kHIDUsage_GD_Z:
-            case kHIDUsage_GD_Rx:
-            case kHIDUsage_GD_Ry:
-            case kHIDUsage_GD_Rz:
-            case kHIDUsage_GD_Slider: /* for throttle / trim controls */
-                printf(" axis\n");
-                oghJoystickAddAxisElement((CFDictionaryRef) element);
-                break;
-
-            case kHIDUsage_GD_Hatswitch:
-                printf(" hat\n");
-                oghJoystickAddHatElement((CFDictionaryRef) element);
-                break;
-
-            default:
-                printf("input type element has weird usage (%x)\n", usage);
-                break;
-            }
-        }
-        else if( page == kHIDPage_Button )
-        {
-            printf(" button\n");
+            printf( " button\n" );
             oghJoystickAddButtonElement((CFDictionaryRef) element);
         }
-        else
-            printf("input type element has weird page (%x)\n", page);
+        else if( page != kHIDPage_GenericDesktop )
+            printf( "input type element has weird page (%x)\n", page );
+        else switch( usage ) /* look at usage to determine function */
+        {
+        case kHIDUsage_GD_X:
+        case kHIDUsage_GD_Y:
+        case kHIDUsage_GD_Z:
+        case kHIDUsage_GD_Rx:
+        case kHIDUsage_GD_Ry:
+        case kHIDUsage_GD_Rz:
+        case kHIDUsage_GD_Slider: /* for throttle / trim controls */
+            printf(" axis\n");
+            oghJoystickAddAxisElement((CFDictionaryRef) element);
+            break;
+
+        case kHIDUsage_GD_Hatswitch:
+            printf(" hat\n");
+            oghJoystickAddHatElement((CFDictionaryRef) element);
+            break;
+
+        default:
+            printf("input type element has weird usage (%x)\n", usage);
+            break;
+        }
         break;
 
     case kIOHIDElementTypeCollection:
@@ -1487,13 +1475,11 @@ static void oghJoystickOpen( SOG_Joystick *joy )
                 }
 
                 cp = strrchr( joy->os->fname, '/' );
-                if( cp )
-                {
-                    if( oghJoystickFindUSBdev(
-                            &cp[1], joy->name, sizeof( joy->name )
-                        ) == 0 )
-                        strcpy( joy->name, &cp[1] );
-                }
+                if( cp && oghJoystickFindUSBdev(
+                        &cp[1], joy->name, sizeof( joy->name )
+                    ) == 0
+                )
+                    strcpy( joy->name, &cp[1] );
 
                 if( joy->num_axes > _JS_MAX_AXES )
                     joy->num_axes = _JS_MAX_AXES;
@@ -1716,7 +1702,6 @@ void ogJoystickClose( void )
 {
     int ident ;
     for( ident = 0; ident < MAX_NUM_JOYSTICKS; ident++ )
-    {
         if( ogJoystick[ ident ] )
         {
 
@@ -1759,7 +1744,6 @@ void ogJoystickClose( void )
             ogJoystick[ ident ] = NULL;
             /* show joystick has been deinitialized */
         }
-    }
 }
 
 /*

@@ -207,9 +207,7 @@ static void teapot( GLint grid, GLdouble scale, GLenum type )
     for (i = 0; i < 10; i++)
     {
         for (j = 0; j < 4; j++)
-        {
             for (k = 0; k < 4; k++)
-            {
                 for (l = 0; l < 3; l++)
                 {
                     p[j][k][l] = cpdata[patchdata[i][j * 4 + k]][l];
@@ -229,8 +227,6 @@ static void teapot( GLint grid, GLdouble scale, GLenum type )
                             s[j][k][l] *= -1.0;
                     }
                 }
-            }
-        }
 
         glMap2d(GL_MAP2_TEXTURE_COORD_2, 0.0, 1.0, 2, 2, 0.0, 1.0, 4, 2,
                 &tex[0][0][0]);

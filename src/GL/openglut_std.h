@@ -38,7 +38,7 @@ extern "C" {
 /*
  * Under windows, we have to differentiate between static and dynamic libraries
  */
-#if !( defined( _MSC_VER ) || defined( __CYGWIN__ ) || defined( __MINGW32__ ) )
+#if !defined( _MSC_VER ) && !defined( __MINGW32__ )
 #    define OGAPI
 #    define OGAPIENTRY
 #else
@@ -495,12 +495,12 @@ OGAPI int     OGAPIENTRY glutLayerGet( GLenum query );
 /*
  * Font stuff, see og_font.c
  */
-OGAPI void    OGAPIENTRY glutBitmapCharacter( void* font, int character );
-OGAPI int     OGAPIENTRY glutBitmapWidth( void* font, int character );
-OGAPI void    OGAPIENTRY glutStrokeCharacter( void* font, int character );
-OGAPI int     OGAPIENTRY glutStrokeWidth( void* font, int character );
-OGAPI int     OGAPIENTRY glutBitmapLength( void* font, const unsigned char* string );
-OGAPI int     OGAPIENTRY glutStrokeLength( void* font, const unsigned char* string );
+OGAPI void  OGAPIENTRY glutBitmapCharacter( void* font, int character );
+OGAPI int   OGAPIENTRY glutBitmapWidth( void* font, int character );
+OGAPI void  OGAPIENTRY glutStrokeCharacter( void* font, int character );
+OGAPI int   OGAPIENTRY glutStrokeWidth( void* font, int character );
+OGAPI int   OGAPIENTRY glutBitmapLength( void* font, const unsigned char* string );
+OGAPI float OGAPIENTRY glutStrokeLength( void* font, const unsigned char* string );
 
 /*
  * Geometry functions, see og_geometry.c

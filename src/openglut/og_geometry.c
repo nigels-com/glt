@@ -37,43 +37,13 @@
 #include <GL/openglut.h>
 #include "og_internal.h"
 
-/*
- * TODO BEFORE THE STABLE RELEASE:
- *
- * Following functions have been contributed by Andreas Umbach.
- *
- *      glutWireCube()          -- looks OK
- *      glutSolidCube()         -- OK
- *
- * Those functions have been implemented by John Fay.
- *
- *      glutWireTorus()         -- looks OK
- *      glutSolidTorus()        -- looks OK
- *      glutWireDodecahedron()  -- looks OK
- *      glutSolidDodecahedron() -- looks OK
- *      glutWireOctahedron()    -- looks OK
- *      glutSolidOctahedron()   -- looks OK
- *      glutWireTetrahedron()   -- looks OK
- *      glutSolidTetrahedron()  -- looks OK
- *      glutWireIcosahedron()   -- looks OK
- *      glutSolidIcosahedron()  -- looks OK
- *
- *  The Following functions have been updated by Nigel Stewart, based
- *  on FreeGLUT 2.0.0 implementations:
- *
- *      glutWireSphere()        -- looks OK
- *      glutSolidSphere()       -- looks OK
- *      glutWireCone()          -- looks OK
- *      glutSolidCone()         -- looks OK
- */
-
-
 /* -- INTERFACE FUNCTIONS -------------------------------------------------- */
 
 /*!
     \fn
     \brief    Draw a wireframe cube centered at the origin.
     \ingroup  geometry
+    \author   Code contributed by Andreas Umbach <marvin@dataway.ch>
     \param    width       The width, height and depth of the cube.
 
               The glutWireCube() function draws an axis-aligned wireframe cube
@@ -86,22 +56,22 @@ void OGAPIENTRY glutWireCube( GLdouble width )
     double size = width * 0.5;
 
 #   define V(a,b,c) glVertex3d( a size, b size, c size );
+#   define N(a,b,c) glNormal3d( a, b, c );
+    glBegin( GL_LINE_LOOP );
+        N( 0, 0, +1 ); V( +, +, + ); V( -, +, + ); V( -, -, + ); V( +, -, + );
+    glEnd( );
+    glBegin(GL_LINE_LOOP);
+        N( 0, 0, -1 ); V( +, +, - ); V( -, +, - ); V( -, -, - ); V( +, -, - );
+    glEnd( );
 
-    /* Squares in xy plane */
-
-    glBegin(GL_LINE_LOOP); V(+,+,+); V(-,+,+); V(-,-,+); V(+,-,+); glEnd();
-    glBegin(GL_LINE_LOOP); V(+,+,-); V(-,+,-); V(-,-,-); V(+,-,-); glEnd();
-
-    /* Connect squares in z direction */
-
-    glBegin(GL_LINES);
-        V(+,+,+); V(+,+,-); 
-        V(-,+,+); V(-,+,-);
-        V(-,-,+); V(-,-,-); 
-        V(+,-,+); V(+,-,-); 
-    glEnd();
-        
+    glBegin( GL_LINES );
+        N( +1,  0, 0 ); V( +, +, + ); V( +, +, - );
+        N(  0, +1, 0 ); V( -, +, + ); V( -, +, - );
+        N( -1,  0, 0 ); V( -, -, + ); V( -, -, - );
+        N(  0, -1, 0 ); V( +, -, + ); V( +, -, - );
+    glEnd( );
 #   undef V
+#   undef N
 }
 
 /*!
@@ -122,19 +92,15 @@ void OGAPIENTRY glutSolidCube( GLdouble width )
 
 #   define V(a,b,c) glVertex3d( a size, b size, c size );
 #   define N(a,b,c) glNormal3d( a, b, c );
-
-    /*
-     * PWO: Again, I dared to convert the code to use macros...
-     */
+    /* PWO: Again, I dared to convert the code to use macros... */
     glBegin( GL_QUADS );
-        N( 1.0, 0.0, 0.0); V(+,-,+); V(+,-,-); V(+,+,-); V(+,+,+);
-        N( 0.0, 1.0, 0.0); V(+,+,+); V(+,+,-); V(-,+,-); V(-,+,+);
-        N( 0.0, 0.0, 1.0); V(+,+,+); V(-,+,+); V(-,-,+); V(+,-,+);
-        N(-1.0, 0.0, 0.0); V(-,-,+); V(-,+,+); V(-,+,-); V(-,-,-);
-        N( 0.0,-1.0, 0.0); V(-,-,+); V(-,-,-); V(+,-,-); V(+,-,+);
-        N( 0.0, 0.0,-1.0); V(-,-,-); V(-,+,-); V(+,+,-); V(+,-,-);
-    glEnd();
-
+        N( 1, 0, 0 ); V( +, -, + ); V( +, -, - ); V( +, +, - ); V( +, +, + );
+        N( 0, 1, 0 ); V( +, +, + ); V( +, +, - ); V( -, +, - ); V( -, +, + );
+        N( 0, 0, 1 ); V( +, +, + ); V( -, +, + ); V( -, -, + ); V( +, -, + );
+        N( -1, 0, 0 ); V( -, -, + ); V( -, +, + ); V( -, +, - ); V( -, -, - );
+        N( 0, -1, 0 ); V( -, -, + ); V( -, -, - ); V( +, -, - ); V( +, -, + );
+        N( 0, 0, -1 ); V( -, -, - ); V( -, +, - ); V( +, +, - ); V( +, -, - );
+    glEnd( );
 #   undef V
 #   undef N
 }
@@ -150,38 +116,31 @@ void OGAPIENTRY glutSolidCube( GLdouble width )
     
     The sign of n can be flipped to get the reverse loop
 */
-static void ogCircleTable(double **sint,double **cost,const int n)
+static void ogCircleTable( double **sint, double **cost, const int n )
 {
     int i;
+    const int size = abs( n );
+    const double angle = 2 * M_PI / ( double )n;
 
-    /* Table size, the sign of n flips the circle direction */
-    const int size = abs(n);
+    *sint = ( double * ) calloc( sizeof( double ), size + 1 );
+    *cost = ( double * ) calloc( sizeof( double ), size + 1 );
 
-    /* Determine the angle between samples */
-    const double angle = 2*M_PI/(double)n;
-
-    /* Allocate memory for n samples, plus copy of first entry at the end */
-    *sint = (double *) calloc(sizeof(double), size+1);
-    *cost = (double *) calloc(sizeof(double), size+1);
-
-    /* Abort if memory allocation fails */
-    if (!(*sint) || !(*cost))
+    if( !( *sint ) || !( *cost ) )
     {
-        free(*sint);
-        free(*cost);
-        ogError("Failed to allocate memory in ogCircleTable");
+        free( *sint );
+        free( *cost );
+        ogError( "Failed to allocate memory in ogCircleTable" );
     }
 
-    /* Compute cos and sin around the circle */
-    for (i=0; i<size; i++)
+    for( i = 0; i < size; i++ )
     {
-        (*sint)[i] = sin(angle*i);
-        (*cost)[i] = cos(angle*i);
+        ( *sint )[ i ] = sin( angle * i );
+        ( *cost )[ i ] = cos( angle * i );
     }
 
     /* Last sample is duplicate of the first */
-    (*sint)[size] = (*sint)[0];
-    (*cost)[size] = (*cost)[0];
+    ( *sint )[ size ] = ( *sint )[ 0 ];
+    ( *cost )[ size ] = ( *cost )[ 0 ];
 }
 
 /*!
@@ -202,80 +161,87 @@ static void ogCircleTable(double **sint,double **cost,const int n)
 
     \see glutWireSphere()
 */
-void OGAPIENTRY glutSolidSphere(GLdouble radius, GLint slices, GLint stacks)
+void OGAPIENTRY glutSolidSphere( GLdouble radius, GLint slices, GLint stacks )
 {
     int i,j;
 
     /* Adjust z and radius as stacks are drawn. */
-    double z0,z1;
-    double r0,r1;
+    double z0, z1;
+    double r0, r1;
 
     /* Pre-computed circle */
-    double *sint1,*cost1;
-    double *sint2,*cost2;
-    ogCircleTable(&sint1,&cost1,-slices);
-    ogCircleTable(&sint2,&cost2,stacks*2);
+    double *sint1, *cost1;
+    double *sint2, *cost2;
+    ogCircleTable( &sint1, &cost1, -slices );
+    ogCircleTable( &sint2, &cost2, stacks * 2 );
 
     /* The top stack is covered with a triangle fan */
     z0 = 1.0;
-    z1 = cost2[1];
+    z1 = cost2[ 1 ];
     r0 = 0.0;
-    r1 = sint2[1];
+    r1 = sint2[ 1 ];
 
-    glBegin(GL_TRIANGLE_FAN);
+    glBegin( GL_TRIANGLE_FAN );
+        glNormal3d( 0, 0, 1 );
+        glVertex3d( 0, 0, radius );
 
-        glNormal3d(0,0,1);
-        glVertex3d(0,0,radius);
-
-        for (j=slices; j>=0; j--)
+        for( j = slices; j >= 0; j-- )
         {
-            glNormal3d(cost1[j]*r1,        sint1[j]*r1,        z1       );
-            glVertex3d(cost1[j]*r1*radius, sint1[j]*r1*radius, z1*radius);
+            glNormal3d( cost1[ j ] * r1, sint1[ j ] * r1, z1 );
+            glVertex3d(
+                cost1[ j ] * r1 * radius, sint1[ j ] * r1 * radius, z1 * radius
+            );
         }
-
-    glEnd();
+    glEnd( );
 
     /* Cover each stack with a quad strip, except the top and bottom stacks */
-    for( i=1; i<stacks-1; i++ )
+    for( i = 1; i < stacks - 1; i++ )
     {
-        z0 = z1; z1 = cost2[i+1];
-        r0 = r1; r1 = sint2[i+1];
+        z0 = z1;
+        z1 = cost2[ i + 1 ];
+        r0 = r1;
+        r1 = sint2[ i + 1];
 
-        glBegin(GL_QUAD_STRIP);
-
-            for(j=0; j<=slices; j++)
+        glBegin( GL_QUAD_STRIP );
+            for( j = 0; j <= slices; j++ )
             {
-                glNormal3d(cost1[j]*r1,        sint1[j]*r1,        z1       );
-                glVertex3d(cost1[j]*r1*radius, sint1[j]*r1*radius, z1*radius);
-                glNormal3d(cost1[j]*r0,        sint1[j]*r0,        z0       );
-                glVertex3d(cost1[j]*r0*radius, sint1[j]*r0*radius, z0*radius);
+                glNormal3d( cost1[ j ] * r1, sint1[ j ] * r1, z1 );
+                glVertex3d(
+                    cost1[ j ] * r1 * radius,
+                    sint1[ j ] * r1 * radius,
+                    z1 * radius
+                );
+                glNormal3d( cost1[ j ] * r0, sint1[ j ] * r0, z0 );
+                glVertex3d(
+                    cost1[ j ] * r0 * radius,
+                    sint1[ j ] * r0 * radius,
+                    z0 * radius
+                );
             }
-
-        glEnd();
+        glEnd( );
     }
 
     /* The bottom stack is covered with a triangle fan */
     z0 = z1;
     r0 = r1;
 
-    glBegin(GL_TRIANGLE_FAN);
+    glBegin( GL_TRIANGLE_FAN );
+        glNormal3d( 0, 0, -1 );
+        glVertex3d( 0, 0, -radius );
 
-        glNormal3d(0,0,-1);
-        glVertex3d(0,0,-radius);
-
-        for (j=0; j<=slices; j++)
+        for(j = 0; j <= slices; j++ )
         {
-            glNormal3d(cost1[j]*r0,        sint1[j]*r0,        z0       );
-            glVertex3d(cost1[j]*r0*radius, sint1[j]*r0*radius, z0*radius);
+            glNormal3d( cost1[ j ] * r0, sint1[ j ] * r0, z0 );
+            glVertex3d(
+                cost1[ j ] * r0 * radius, sint1[ j ] * r0 * radius, z0 * radius
+            );
         }
+    glEnd( );
 
-    glEnd();
-
-    /* Release sin and cos tables */
-    free(sint1);
-    free(cost1);
-    free(sint2);
-    free(cost2);
+    free( sint1 );
+    free( cost1 );
+    free( sint2 );
+    free( cost2 );
 }
 
 /*!
@@ -296,63 +262,58 @@ void OGAPIENTRY glutSolidSphere(GLdouble radius, GLint slices, GLint stacks)
 
     \see      glutSolidSphere().
 */
-void OGAPIENTRY glutWireSphere(GLdouble radius, GLint slices, GLint stacks)
+void OGAPIENTRY glutWireSphere( GLdouble radius, GLint slices, GLint stacks )
 {
-    int i,j;
+    int i, j;
 
     /* Adjust z and radius as stacks and slices are drawn. */
     double r;
-    double x,y,z;
+    double x, y, z;
 
     /* Pre-computed circle */
-    double *sint1,*cost1;
-    double *sint2,*cost2;
-    ogCircleTable(&sint1,&cost1,-slices  );
-    ogCircleTable(&sint2,&cost2, stacks*2);
+    double *sint1, *cost1;
+    double *sint2, *cost2;
+    ogCircleTable( &sint1, &cost1, -slices );
+    ogCircleTable( &sint2, &cost2,  stacks * 2 );
 
     /* Draw a line loop for each stack */
-    for (i=1; i<stacks; i++)
+    for( i = 1; i < stacks; i++ )
     {
-        z = cost2[i];
-        r = sint2[i];
+        z = cost2[ i ];
+        r = sint2[ i ];
 
-        glBegin(GL_LINE_LOOP);
-
-            for(j=0; j<=slices; j++)
+        glBegin( GL_LINE_LOOP );
+            for( j = 0; j <= slices; j++ )
             {
-                x = cost1[j];
-                y = sint1[j];
+                x = cost1[ j ];
+                y = sint1[ j ];
 
-                glNormal3d(x,y,z);
-                glVertex3d(x*r*radius,y*r*radius,z*radius);
+                glNormal3d( x, y, z );
+                glVertex3d( x * r * radius, y * r * radius, z * radius );
             }
-
-        glEnd();
+        glEnd( );
     }
 
     /* Draw a line loop for each slice */
-    for (i=0; i<slices; i++)
+    for( i = 0; i < slices; i++ )
     {
-        glBegin(GL_LINE_STRIP);
-
-            for(j=0; j<=stacks; j++)
+        glBegin( GL_LINE_STRIP );
+            for( j = 0; j <= stacks; j++ )
             {
-                x = cost1[i]*sint2[j];
-                y = sint1[i]*sint2[j];
-                z = cost2[j];
+                x = cost1[ i ] * sint2[ j ];
+                y = sint1[ i ] * sint2[ j ];
+                z = cost2[ j ];
 
-                glNormal3d(x,y,z);
-                glVertex3d(x*radius,y*radius,z*radius);
+                glNormal3d( x, y, z );
+                glVertex3d( x * radius, y * radius, z * radius );
             }
-
-        glEnd();
+        glEnd( );
     }
 
-    /* Release sin and cos tables */
-    free(sint1);
-    free(cost1);
-    free(sint2);
-    free(cost2);
+    free( sint1 );
+    free( cost1 );
+    free( sint2 );
+    free( cost2 );
 }
 
 /*!
@@ -385,12 +346,12 @@ void OGAPIENTRY glutSolidCone( GLdouble base, GLdouble height,
     const double rStep = base/stacks;
 
     /* Scaling factors for vertex normals */
-    const double cosn = ( height / sqrt ( height * height + base * base ));
-    const double sinn = ( base   / sqrt ( height * height + base * base ));
+    const double cosn = ( height / sqrt ( height * height + base * base ) );
+    const double sinn = ( base   / sqrt ( height * height + base * base ) );
 
     /* Pre-computed circle */
-    double *sint,*cost;
-    ogCircleTable(&sint,&cost,-slices);
+    double *sint, *cost;
+    ogCircleTable( &sint, &cost, -slices );
 
     /* Cover the circular base with a triangle fan... */
     z0 = 0.0;
@@ -399,52 +360,48 @@ void OGAPIENTRY glutSolidCone( GLdouble base, GLdouble height,
     r0 = base;
     r1 = r0 - rStep;
 
-    glBegin(GL_TRIANGLE_FAN);
+    glBegin( GL_TRIANGLE_FAN );
+        glNormal3d( 0.0, 0.0, -1.0 );
+        glVertex3d( 0.0, 0.0, z0 );
 
-        glNormal3d(0.0,0.0,-1.0);
-        glVertex3d(0.0,0.0, z0 );
-
-        for (j=0; j<=slices; j++)
-            glVertex3d(cost[j]*r0, sint[j]*r0, z0);
-
-    glEnd();
+        for( j = 0; j <= slices; j++ )
+            glVertex3d( cost[ j ] * r0, sint[ j ] * r0, z0 );
+    glEnd( );
 
     /* Cover each stack with a quad strip, except the top stack */
-    for( i=0; i<stacks-1; i++ )
+    for( i = 0; i < stacks - 1; i++ )
     {
-        glBegin(GL_QUAD_STRIP);
+        glBegin( GL_QUAD_STRIP );
 
-            for(j=0; j<=slices; j++)
+            for( j = 0; j <= slices; j++ )
             {
-                glNormal3d(cost[j]*sinn, sint[j]*sinn, cosn);
-                glVertex3d(cost[j]*r0,   sint[j]*r0,   z0  );
-                glVertex3d(cost[j]*r1,   sint[j]*r1,   z1  );
+                glNormal3d( cost[ j ] * sinn, sint[ j ] * sinn, cosn );
+                glVertex3d( cost[ j ] * r0,   sint[ j ] * r0,   z0   );
+                glVertex3d( cost[ j ] * r1,   sint[ j ] * r1,   z1   );
             }
 
-            z0 = z1; z1 += zStep;
-            r0 = r1; r1 -= rStep;
-
-        glEnd();
+            z0 = z1;
+            z1 += zStep;
+            r0 = r1;
+            r1 -= rStep;
+        glEnd( );
     }
 
     /* The top stack is covered with individual triangles */
-    glBegin(GL_TRIANGLES);
+    glBegin( GL_TRIANGLES );
+        glNormal3d( cost[ 0 ] * sinn, sint[ 0 ] * sinn, cosn );
 
-        glNormal3d(cost[0]*sinn, sint[0]*sinn, cosn);
-
-        for (j=0; j<slices; j++)
+        for( j = 0; j < slices; j++ )
         {
-            glVertex3d(cost[j+0]*r0,   sint[j+0]*r0,   z0    );
-            glVertex3d(0,              0,              height);
-            glNormal3d(cost[j+1]*sinn, sint[j+1]*sinn, cosn  );
-            glVertex3d(cost[j+1]*r0,   sint[j+1]*r0,   z0    );
+            glVertex3d( cost[ j + 0 ] * r0,   sint[ j + 0 ] * r0,   z0     );
+            glVertex3d( 0,                    0,                    height );
+            glNormal3d( cost[ j + 1 ] * sinn, sint[ j + 1 ] * sinn, cosn   );
+            glVertex3d( cost[ j + 1 ] * r0,   sint[ j + 1 ] * r0,   z0     );
         }
+    glEnd( );
 
-    glEnd();
-
-    /* Release sin and cos tables */
-    free(sint);
-    free(cost);
+    free( sint );
+    free( cost );
 }
 
 /*!
@@ -467,7 +424,7 @@ void OGAPIENTRY glutSolidCone( GLdouble base, GLdouble height,
 void OGAPIENTRY glutWireCone( GLdouble base, GLdouble height,
                               GLint slices, GLint stacks)
 {
-    int i,j;
+    int i, j;
 
     /* Step in z and radius as stacks are drawn. */
     double z = 0.0;
@@ -477,25 +434,23 @@ void OGAPIENTRY glutWireCone( GLdouble base, GLdouble height,
     const double rStep = base/stacks;
 
     /* Scaling factors for vertex normals */
-    const double cosn = ( height / sqrt ( height * height + base * base ));
-    const double sinn = ( base   / sqrt ( height * height + base * base ));
+    const double cosn = ( height / sqrt( height * height + base * base ) );
+    const double sinn = ( base   / sqrt( height * height + base * base ) );
 
     /* Pre-computed circle */
-    double *sint,*cost;
-    ogCircleTable(&sint,&cost,-slices);
+    double *sint, *cost;
+    ogCircleTable( &sint, &cost, -slices );
 
     /* Draw the stacks... */
-    for (i=0; i<stacks; i++)
+    for( i = 0; i < stacks; i++ )
     {
-        glBegin(GL_LINE_LOOP);
-
-            for( j=0; j<slices; j++ )
+        glBegin( GL_LINE_LOOP );
+            for( j = 0; j < slices; j++ )
             {
-                glNormal3d(cost[j]*sinn, sint[j]*sinn, cosn);
-                glVertex3d(cost[j]*r,    sint[j]*r,    z   );
+                glNormal3d( cost[ j ] * sinn, sint[ j ]* sinn, cosn );
+                glVertex3d( cost[ j ] * r,    sint[ j ] * r,   z    );
             }
-
-        glEnd();
+        glEnd( );
 
         z += zStep;
         r -= rStep;
@@ -504,20 +459,17 @@ void OGAPIENTRY glutWireCone( GLdouble base, GLdouble height,
     /* Draw the slices */
     r = base;
 
-    glBegin(GL_LINES);
-
-        for (j=0; j<slices; j++)
+    glBegin( GL_LINES );
+        for( j = 0; j < slices; j++ )
         {
-            glNormal3d(cost[j]*sinn, sint[j]*sinn, cosn  );
-            glVertex3d(cost[j]*r,    sint[j]*r,    0.0   );
-            glVertex3d(0.0,          0.0,          height);
+            glNormal3d( cost[ j ] * sinn, sint[ j ] * sinn, cosn   );
+            glVertex3d( cost[ j ] * r,    sint[ j ] * r,    0.0    );
+            glVertex3d( 0.0,              0.0,              height );
         }
+    glEnd( );
 
-    glEnd();
-
-    /* Release sin and cos tables */
-    free(sint);
-    free(cost);
+    free( sint );
+    free( cost );
 }
 
 
@@ -538,58 +490,58 @@ void OGAPIENTRY glutWireCone( GLdouble base, GLdouble height,
 
     \see      glutWireCylinder()
 */
-void OGAPIENTRY glutSolidCylinder(GLdouble radius, GLdouble height,
-                                  GLint slices, GLint stacks)
+void OGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height,
+                                   GLint slices, GLint stacks )
 {
-    int i,j;
+    int i, j;
 
     /* Step in z and radius as stacks are drawn. */
-    double z0,z1;
-    const double zStep = height/stacks;
+    double z0, z1;
+    const double zStep = height / stacks;
 
     /* Pre-computed circle */
-    double *sint,*cost;
-    ogCircleTable(&sint,&cost,-slices);
+    double *sint, *cost;
+    ogCircleTable( &sint, &cost, -slices );
 
     /* Cover the base and top */
-    glBegin(GL_TRIANGLE_FAN);
-        glNormal3d(0.0, 0.0, -1.0 );
-        glVertex3d(0.0, 0.0,  0.0 );
-        for (j=0; j<=slices; j++)
-          glVertex3d(cost[j]*radius, sint[j]*radius, 0.0);
+    glBegin( GL_TRIANGLE_FAN );
+        glNormal3d( 0.0, 0.0, -1.0 );
+        glVertex3d( 0.0, 0.0,  0.0 );
+        for (j = 0; j <= slices; j++ )
+            glVertex3d( cost[ j ] * radius, sint[ j ] * radius, 0.0 );
     glEnd();
 
-    glBegin(GL_TRIANGLE_FAN);
-        glNormal3d(0.0, 0.0, 1.0   );
-        glVertex3d(0.0, 0.0, height);
-        for (j=slices; j>=0; j--)
-          glVertex3d(cost[j]*radius, sint[j]*radius, height);
-    glEnd();
+    glBegin( GL_TRIANGLE_FAN );
+        glNormal3d( 0.0, 0.0, 1.0    );
+        glVertex3d( 0.0, 0.0, height );
+        for ( j = slices; j >= 0; j-- )
+            glVertex3d( cost[ j ] * radius, sint[ j ] * radius, height );
+    glEnd( );
 
     /* Do the stacks */
     z0 = 0.0;
     z1 = zStep;
 
-    for (i=1; i<=stacks; i++)
+    for( i = 1; i <= stacks; i++ )
     {
-        if (i==stacks)
+        if( i == stacks )
             z1 = height;
 
-        glBegin(GL_QUAD_STRIP);
-            for (j=0; j<=slices; j++ )
+        glBegin( GL_QUAD_STRIP );
+            for( j = 0; j <= slices; j++ )
             {
-                glNormal3d(cost[j],        sint[j],        0.0 );
-                glVertex3d(cost[j]*radius, sint[j]*radius, z0  );
-                glVertex3d(cost[j]*radius, sint[j]*radius, z1  );
+                glNormal3d( cost[ j ],          sint[ j ],          0.0 );
+                glVertex3d( cost[ j ] * radius, sint[ j ] * radius, z0  );
+                glVertex3d( cost[ j ] * radius, sint[ j ] * radius, z1  );
             }
-        glEnd();
+        glEnd( );
 
-        z0 = z1; z1 += zStep;
+        z0 = z1;
+        z1 += zStep;
     }
 
-    /* Release sin and cos tables */
-    free(sint);
-    free(cost);
+    free( sint );
+    free( cost );
 }
 
 /*!
@@ -609,52 +561,49 @@ void OGAPIENTRY glutSolidCylinder(GLdouble radius, GLdouble height,
 
     \see      glutSolidCylinder()
 */
-void OGAPIENTRY glutWireCylinder(GLdouble radius, GLdouble height, GLint slices, GLint stacks)
+void OGAPIENTRY glutWireCylinder(
+    GLdouble radius, GLdouble height, GLint slices, GLint stacks
+)
 {
-    int i,j;
+    int i, j;
 
     /* Step in z and radius as stacks are drawn. */
     double z = 0.0;
-    const double zStep = height/stacks;
+    const double zStep = height / stacks;
 
     /* Pre-computed circle */
-    double *sint,*cost;
-    ogCircleTable(&sint,&cost,-slices);
+    double *sint, *cost;
+    ogCircleTable( &sint, &cost, -slices );
 
     /* Draw the stacks... */
-    for (i=0; i<=stacks; i++)
+    for( i = 0; i <= stacks; i++ )
     {
-        if (i==stacks)
+        if( i == stacks )
             z = height;
 
-        glBegin(GL_LINE_LOOP);
-
-            for( j=0; j<slices; j++ )
+        glBegin( GL_LINE_LOOP );
+            for( j = 0; j < slices; j++ )
             {
-                glNormal3d(cost[j],        sint[j],        0.0);
-                glVertex3d(cost[j]*radius, sint[j]*radius, z  );
+                glNormal3d( cost[ j ],          sint[ j ],          0.0 );
+                glVertex3d( cost[ j ] * radius, sint[ j ] * radius, z   );
             }
-
-        glEnd();
+        glEnd( );
 
         z += zStep;
     }
 
     /* Draw the slices */
-    glBegin(GL_LINES);
-
-        for (j=0; j<slices; j++)
+    glBegin( GL_LINES );
+        for( j = 0; j < slices; j++ )
         {
-            glNormal3d(cost[j],        sint[j],        0.0   );
-            glVertex3d(cost[j]*radius, sint[j]*radius, 0.0   );
-            glVertex3d(cost[j]*radius, sint[j]*radius, height);
+            glNormal3d( cost[ j ],          sint[ j ],          0.0    );
+            glVertex3d( cost[ j ] * radius, sint[ j ] * radius, 0.0    );
+            glVertex3d( cost[ j ] * radius, sint[ j ] * radius, height );
         }
+    glEnd( );
 
-    glEnd();
-
-    /* Release sin and cos tables */
-    free(sint);
-    free(cost);
+    free( sint );
+    free( cost );
 }
 
 /*!
@@ -681,77 +630,72 @@ void OGAPIENTRY glutWireCylinder(GLdouble radius, GLdouble height, GLint slices,
 void OGAPIENTRY glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
                                GLint nSides, GLint nRings )
 {
-    double  iradius = dInnerRadius, oradius = dOuterRadius, phi, psi, dpsi, dphi;
+    double iradius = dInnerRadius;
+    double oradius = dOuterRadius;
+    double phi, psi, dpsi, dphi;
     double *vertex, *normal;
-    int    i, j;
     double spsi, cpsi, sphi, cphi;
+    int i, j;
 
-    /*
-     * Allocate the vertices array
-     */
-    vertex = (double *)calloc( sizeof(double), 3 * nSides * nRings );
-    normal = (double *)calloc( sizeof(double), 3 * nSides * nRings );
+    vertex = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
+    normal = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
 
-    glPushMatrix();
+    glPushMatrix( );
 
-    dpsi =  2.0 * M_PI / (double)nRings;
-    dphi = -2.0 * M_PI / (double)nSides;
+    dpsi =  2.0 * M_PI / ( double )nRings;
+    dphi = -2.0 * M_PI / ( double )nSides;
     psi  = 0.0;
 
-    for( j=0; j<nRings; j++ )
+    for( j = 0; j < nRings; j++ )
     {
-        cpsi = cos ( psi );
-        spsi = sin ( psi );
+        cpsi = cos( psi );
+        spsi = sin( psi );
         phi = 0.0;
 
-        for( i=0; i<nSides; i++ )
+        for( i = 0; i < nSides; i++ )
         {
             int offset = 3 * ( j * nSides + i );
-            cphi = cos ( phi );
-            sphi = sin ( phi );
-            *(vertex + offset + 0) = cpsi * ( oradius + cphi * iradius );
-            *(vertex + offset + 1) = spsi * ( oradius + cphi * iradius );
-            *(vertex + offset + 2) =                    sphi * iradius;
-            *(normal + offset + 0) = cpsi * cphi;
-            *(normal + offset + 1) = spsi * cphi;
-            *(normal + offset + 2) =        sphi;
+            cphi = cos( phi );
+            sphi = sin( phi );
+            *( vertex + offset + 0 ) = cpsi * ( oradius + cphi * iradius );
+            *( vertex + offset + 1 ) = spsi * ( oradius + cphi * iradius );
+            *( vertex + offset + 2 ) =                    sphi * iradius;
+            *( normal + offset + 0 ) = cpsi * cphi;
+            *( normal + offset + 1 ) = spsi * cphi;
+            *( normal + offset + 2 ) =        sphi;
             phi += dphi;
         }
 
         psi += dpsi;
     }
 
-    for( i=0; i<nSides; i++ )
+    for( i = 0; i < nSides; i++ )
     {
         glBegin( GL_LINE_LOOP );
-
-        for( j=0; j<nRings; j++ )
+        for( j = 0; j < nRings; j++ )
         {
             int offset = 3 * ( j * nSides + i );
             glNormal3dv( normal + offset );
             glVertex3dv( vertex + offset );
         }
-
-        glEnd();
+        glEnd( );
     }
 
-    for( j=0; j<nRings; j++ )
+    for( j = 0; j < nRings; j++ )
     {
-        glBegin(GL_LINE_LOOP);
-
-        for( i=0; i<nSides; i++ )
+        glBegin( GL_LINE_LOOP );
+        for( i = 0; i < nSides; i++ )
         {
             int offset = 3 * ( j * nSides + i );
             glNormal3dv( normal + offset );
             glVertex3dv( vertex + offset );
         }
-
-        glEnd();
+        glEnd( );
     }
 
-    free ( vertex );
-    free ( normal );
-    glPopMatrix();
+    free( vertex );
+    free( normal );
+    glPopMatrix( );
 }
 
 /*!
@@ -778,47 +722,46 @@ void OGAPIENTRY glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
 void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
                                 GLint nSides, GLint nRings )
 {
-    double  iradius = dInnerRadius, oradius = dOuterRadius, phi, psi, dpsi, dphi;
+    double iradius = dInnerRadius;
+    double oradius = dOuterRadius;
+    double phi, psi, dpsi, dphi;
     double *vertex, *normal;
-    int    i, j;
     double spsi, cpsi, sphi, cphi;
+    int i, j;
 
     /*
      * Increment the number of sides and rings to allow for one more point
      * than surface
      */
-    nSides ++;
-    nRings ++;
+    nSides++;
+    nRings++;
 
-    /*
-     * Allocate the vertices array
-     */
-    vertex = (double *)calloc( sizeof(double), 3 * nSides * nRings );
-    normal = (double *)calloc( sizeof(double), 3 * nSides * nRings );
+    vertex = ( double * )calloc( sizeof(double), 3 * nSides * nRings );
+    normal = ( double * )calloc( sizeof(double), 3 * nSides * nRings );
 
-    glPushMatrix();
+    glPushMatrix( );
 
-    dpsi =  2.0 * M_PI / (double)(nRings - 1);
-    dphi = -2.0 * M_PI / (double)(nSides - 1);
+    dpsi =  2.0 * M_PI / ( double )( nRings - 1 );
+    dphi = -2.0 * M_PI / ( double )( nSides - 1 );
     psi  = 0.0;
 
-    for( j=0; j<nRings; j++ )
+    for( j = 0; j < nRings; j++ )
     {
-        cpsi = cos ( psi );
-        spsi = sin ( psi );
+        cpsi = cos( psi );
+        spsi = sin( psi );
         phi = 0.0;
 
-        for( i=0; i<nSides; i++ )
+        for( i = 0; i < nSides; i++ )
         {
             int offset = 3 * ( j * nSides + i );
-            cphi = cos ( phi );
-            sphi = sin ( phi );
-            *(vertex + offset + 0) = cpsi * ( oradius + cphi * iradius );
-            *(vertex + offset + 1) = spsi * ( oradius + cphi * iradius );
-            *(vertex + offset + 2) =                    sphi * iradius;
-            *(normal + offset + 0) = cpsi * cphi;
-            *(normal + offset + 1) = spsi * cphi;
-            *(normal + offset + 2) =        sphi;
+            cphi = cos( phi );
+            sphi = sin( phi );
+            *( vertex + offset + 0 ) = cpsi * ( oradius + cphi * iradius );
+            *( vertex + offset + 1 ) = spsi * ( oradius + cphi * iradius );
+            *( vertex + offset + 2 ) =                    sphi * iradius;
+            *( normal + offset + 0 ) = cpsi * cphi;
+            *( normal + offset + 1 ) = spsi * cphi;
+            *( normal + offset + 2 ) =        sphi;
             phi += dphi;
         }
 
@@ -826,9 +769,8 @@ void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
     }
 
     glBegin( GL_QUADS );
-    for( i=0; i<nSides-1; i++ )
-    {
-        for( j=0; j<nRings-1; j++ )
+    for( i = 0; i < nSides - 1; i++ )
+        for( j = 0; j < nRings - 1; j++ )
         {
             int offset = 3 * ( j * nSides + i );
             glNormal3dv( normal + offset );
@@ -840,13 +782,11 @@ void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
             glNormal3dv( normal + offset + 3 * nSides );
             glVertex3dv( vertex + offset + 3 * nSides );
         }
-    }
+    glEnd( );
 
-    glEnd();
-
-    free ( vertex );
-    free ( normal );
-    glPopMatrix();
+    free( vertex );
+    free( normal );
+    glPopMatrix( );
 }
 
 /*!
@@ -866,49 +806,112 @@ void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
 */
 void OGAPIENTRY glutWireDodecahedron( void )
 {
-  /* Magic Numbers:  It is possible to create a dodecahedron by attaching two pentagons to each face of
-   * of a cube.  The coordinates of the points are:
+  /*
+   * Magic Numbers:  It is possible to create a dodecahedron by attaching
+   * two pentagons to each face of of a cube.  The coordinates of the points
+   * are:
    *   (+-x,0, z); (+-1, 1, 1); (0, z, x )
-   * where x = 0.61803398875 and z = 1.61803398875.
+   * where x = (-1 + sqrt(5))/2, z = (1 + sqrt(5))/2 or
+   *       x = 0.61803398875 and z = 1.61803398875.
    */
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.0,  0.525731112119,  0.850650808354 ); glVertex3d (  0.0,  1.61803398875,  0.61803398875 ); glVertex3d ( -1.0,  1.0,  1.0 ); glVertex3d ( -0.61803398875, 0.0,  1.61803398875 ); glVertex3d (  0.61803398875, 0.0,  1.61803398875 ); glVertex3d (  1.0,  1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.0,  0.525731112119, -0.850650808354 ); glVertex3d (  0.0,  1.61803398875, -0.61803398875 ); glVertex3d (  1.0,  1.0, -1.0 ); glVertex3d (  0.61803398875, 0.0, -1.61803398875 ); glVertex3d ( -0.61803398875, 0.0, -1.61803398875 ); glVertex3d ( -1.0,  1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.0, -0.525731112119,  0.850650808354 ); glVertex3d (  0.0, -1.61803398875,  0.61803398875 ); glVertex3d (  1.0, -1.0,  1.0 ); glVertex3d (  0.61803398875, 0.0,  1.61803398875 ); glVertex3d ( -0.61803398875, 0.0,  1.61803398875 ); glVertex3d ( -1.0, -1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.0, -0.525731112119, -0.850650808354 ); glVertex3d (  0.0, -1.61803398875, -0.61803398875 ); glVertex3d ( -1.0, -1.0, -1.0 ); glVertex3d ( -0.61803398875, 0.0, -1.61803398875 ); glVertex3d (  0.61803398875, 0.0, -1.61803398875 ); glVertex3d (  1.0, -1.0, -1.0 );
-  glEnd ();
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.0,  0.525731112119,  0.850650808354 );
+        glVertex3d( 0.0,  1.61803398875,  0.61803398875 );
+        glVertex3d( -1.0,  1.0,  1.0 );
+        glVertex3d( -0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( 0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( 1.0,  1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.0,  0.525731112119, -0.850650808354 );
+        glVertex3d( 0.0,  1.61803398875, -0.61803398875 );
+        glVertex3d( 1.0,  1.0, -1.0 );
+        glVertex3d( 0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( -0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( -1.0,  1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.0, -0.525731112119,  0.850650808354 );
+        glVertex3d( 0.0, -1.61803398875,  0.61803398875 );
+        glVertex3d( 1.0, -1.0,  1.0 );
+        glVertex3d( 0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( -0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( -1.0, -1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.0, -0.525731112119, -0.850650808354 );
+        glVertex3d( 0.0, -1.61803398875, -0.61803398875 );
+        glVertex3d( -1.0, -1.0, -1.0 );
+        glVertex3d( -0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( 0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( 1.0, -1.0, -1.0 );
+    glEnd( );
 
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.850650808354,  0.0,  0.525731112119 ); glVertex3d (  0.61803398875,  0.0,  1.61803398875 ); glVertex3d (  1.0, -1.0,  1.0 ); glVertex3d (  1.61803398875, -0.61803398875, 0.0 ); glVertex3d (  1.61803398875,  0.61803398875, 0.0 ); glVertex3d (  1.0,  1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d ( -0.850650808354,  0.0,  0.525731112119 ); glVertex3d ( -0.61803398875,  0.0,  1.61803398875 ); glVertex3d ( -1.0,  1.0,  1.0 ); glVertex3d ( -1.61803398875,  0.61803398875, 0.0 ); glVertex3d ( -1.61803398875, -0.61803398875, 0.0 ); glVertex3d ( -1.0, -1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.850650808354,  0.0, -0.525731112119 ); glVertex3d (  0.61803398875,  0.0, -1.61803398875 ); glVertex3d (  1.0,  1.0, -1.0 ); glVertex3d (  1.61803398875,  0.61803398875, 0.0 ); glVertex3d (  1.61803398875, -0.61803398875, 0.0 ); glVertex3d (  1.0, -1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d ( -0.850650808354,  0.0, -0.525731112119 ); glVertex3d ( -0.61803398875,  0.0, -1.61803398875 ); glVertex3d ( -1.0, -1.0, -1.0 ); glVertex3d ( -1.61803398875, -0.61803398875, 0.0 ); glVertex3d ( -1.61803398875,  0.61803398875, 0.0 ); glVertex3d ( -1.0,  1.0, -1.0 );
-  glEnd ();
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.850650808354,  0.0,  0.525731112119 );
+        glVertex3d( 0.61803398875,  0.0,  1.61803398875 );
+        glVertex3d( 1.0, -1.0,  1.0 );
+        glVertex3d( 1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( 1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( 1.0,  1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( -0.850650808354,  0.0,  0.525731112119 );
+        glVertex3d( -0.61803398875,  0.0,  1.61803398875 );
+        glVertex3d( -1.0,  1.0,  1.0 );
+        glVertex3d( -1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( -1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( -1.0, -1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.850650808354,  0.0, -0.525731112119 );
+        glVertex3d( 0.61803398875,  0.0, -1.61803398875 );
+        glVertex3d( 1.0,  1.0, -1.0 );
+        glVertex3d( 1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( 1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( 1.0, -1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( -0.850650808354,  0.0, -0.525731112119 );
+        glVertex3d( -0.61803398875,  0.0, -1.61803398875 );
+        glVertex3d( -1.0, -1.0, -1.0 );
+        glVertex3d( -1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( -1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( -1.0,  1.0, -1.0 );
+    glEnd( );
 
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.525731112119,  0.850650808354,  0.0 ); glVertex3d (  1.61803398875,  0.61803398875,  0.0 ); glVertex3d (  1.0,  1.0, -1.0 ); glVertex3d ( 0.0,  1.61803398875, -0.61803398875 ); glVertex3d ( 0.0,  1.61803398875,  0.61803398875 ); glVertex3d (  1.0,  1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d (  0.525731112119, -0.850650808354,  0.0 ); glVertex3d (  1.61803398875, -0.61803398875,  0.0 ); glVertex3d (  1.0, -1.0,  1.0 ); glVertex3d ( 0.0, -1.61803398875,  0.61803398875 ); glVertex3d ( 0.0, -1.61803398875, -0.61803398875 ); glVertex3d (  1.0, -1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d ( -0.525731112119,  0.850650808354,  0.0 ); glVertex3d ( -1.61803398875,  0.61803398875,  0.0 ); glVertex3d ( -1.0,  1.0,  1.0 ); glVertex3d ( 0.0,  1.61803398875,  0.61803398875 ); glVertex3d ( 0.0,  1.61803398875, -0.61803398875 ); glVertex3d ( -1.0,  1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_LINE_LOOP );
-  glNormal3d ( -0.525731112119, -0.850650808354,  0.0 ); glVertex3d ( -1.61803398875, -0.61803398875,  0.0 ); glVertex3d ( -1.0, -1.0, -1.0 ); glVertex3d ( 0.0, -1.61803398875, -0.61803398875 ); glVertex3d ( 0.0, -1.61803398875,  0.61803398875 ); glVertex3d ( -1.0, -1.0,  1.0 );
-  glEnd ();
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.525731112119,  0.850650808354,  0.0 );
+        glVertex3d( 1.61803398875,  0.61803398875,  0.0 );
+        glVertex3d( 1.0,  1.0, -1.0 );
+        glVertex3d( 0.0,  1.61803398875, -0.61803398875 );
+        glVertex3d( 0.0,  1.61803398875,  0.61803398875 );
+        glVertex3d( 1.0,  1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.525731112119, -0.850650808354,  0.0 );
+        glVertex3d( 1.61803398875, -0.61803398875,  0.0 );
+        glVertex3d( 1.0, -1.0,  1.0 );
+        glVertex3d( 0.0, -1.61803398875,  0.61803398875 );
+        glVertex3d( 0.0, -1.61803398875, -0.61803398875 );
+        glVertex3d( 1.0, -1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( -0.525731112119,  0.850650808354,  0.0 );
+        glVertex3d( -1.61803398875,  0.61803398875,  0.0 );
+        glVertex3d( -1.0,  1.0,  1.0 );
+        glVertex3d( 0.0,  1.61803398875,  0.61803398875 );
+        glVertex3d( 0.0,  1.61803398875, -0.61803398875 );
+        glVertex3d( -1.0,  1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( -0.525731112119, -0.850650808354,  0.0 );
+        glVertex3d( -1.61803398875, -0.61803398875,  0.0 );
+        glVertex3d( -1.0, -1.0, -1.0 );
+        glVertex3d( 0.0, -1.61803398875, -0.61803398875 );
+        glVertex3d( 0.0, -1.61803398875,  0.61803398875 );
+        glVertex3d( -1.0, -1.0,  1.0 );
+    glEnd( );
 }
 
 /*!
@@ -928,49 +931,105 @@ void OGAPIENTRY glutWireDodecahedron( void )
 */
 void OGAPIENTRY glutSolidDodecahedron( void )
 {
-  /* Magic Numbers:  It is possible to create a dodecahedron by attaching two pentagons to each face of
-   * of a cube.  The coordinates of the points are:
-   *   (+-x,0, z); (+-1, 1, 1); (0, z, x )
-   * where x = 0.61803398875 and z = 1.61803398875.
-   */
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.0,  0.525731112119,  0.850650808354 ); glVertex3d (  0.0,  1.61803398875,  0.61803398875 ); glVertex3d ( -1.0,  1.0,  1.0 ); glVertex3d ( -0.61803398875, 0.0,  1.61803398875 ); glVertex3d (  0.61803398875, 0.0,  1.61803398875 ); glVertex3d (  1.0,  1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.0,  0.525731112119, -0.850650808354 ); glVertex3d (  0.0,  1.61803398875, -0.61803398875 ); glVertex3d (  1.0,  1.0, -1.0 ); glVertex3d (  0.61803398875, 0.0, -1.61803398875 ); glVertex3d ( -0.61803398875, 0.0, -1.61803398875 ); glVertex3d ( -1.0,  1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.0, -0.525731112119,  0.850650808354 ); glVertex3d (  0.0, -1.61803398875,  0.61803398875 ); glVertex3d (  1.0, -1.0,  1.0 ); glVertex3d (  0.61803398875, 0.0,  1.61803398875 ); glVertex3d ( -0.61803398875, 0.0,  1.61803398875 ); glVertex3d ( -1.0, -1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.0, -0.525731112119, -0.850650808354 ); glVertex3d (  0.0, -1.61803398875, -0.61803398875 ); glVertex3d ( -1.0, -1.0, -1.0 ); glVertex3d ( -0.61803398875, 0.0, -1.61803398875 ); glVertex3d (  0.61803398875, 0.0, -1.61803398875 ); glVertex3d (  1.0, -1.0, -1.0 );
-  glEnd ();
+    /* See glutWireDodecahedron() for info about the Magic Numbers. */
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.0,  0.525731112119,  0.850650808354 );
+        glVertex3d( 0.0,  1.61803398875,  0.61803398875 );
+        glVertex3d( -1.0,  1.0,  1.0 );
+        glVertex3d( -0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( 0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( 1.0,  1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.0,  0.525731112119, -0.850650808354 );
+        glVertex3d( 0.0,  1.61803398875, -0.61803398875 );
+        glVertex3d( 1.0,  1.0, -1.0 );
+        glVertex3d( 0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( -0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( -1.0,  1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.0, -0.525731112119,  0.850650808354 );
+        glVertex3d( 0.0, -1.61803398875,  0.61803398875 );
+        glVertex3d( 1.0, -1.0,  1.0 );
+        glVertex3d( 0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( -0.61803398875, 0.0,  1.61803398875 );
+        glVertex3d( -1.0, -1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.0, -0.525731112119, -0.850650808354 );
+        glVertex3d( 0.0, -1.61803398875, -0.61803398875 );
+        glVertex3d( -1.0, -1.0, -1.0 );
+        glVertex3d( -0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( 0.61803398875, 0.0, -1.61803398875 );
+        glVertex3d( 1.0, -1.0, -1.0 );
+     glEnd( );
 
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.850650808354,  0.0,  0.525731112119 ); glVertex3d (  0.61803398875,  0.0,  1.61803398875 ); glVertex3d (  1.0, -1.0,  1.0 ); glVertex3d (  1.61803398875, -0.61803398875, 0.0 ); glVertex3d (  1.61803398875,  0.61803398875, 0.0 ); glVertex3d (  1.0,  1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d ( -0.850650808354,  0.0,  0.525731112119 ); glVertex3d ( -0.61803398875,  0.0,  1.61803398875 ); glVertex3d ( -1.0,  1.0,  1.0 ); glVertex3d ( -1.61803398875,  0.61803398875, 0.0 ); glVertex3d ( -1.61803398875, -0.61803398875, 0.0 ); glVertex3d ( -1.0, -1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.850650808354,  0.0, -0.525731112119 ); glVertex3d (  0.61803398875,  0.0, -1.61803398875 ); glVertex3d (  1.0,  1.0, -1.0 ); glVertex3d (  1.61803398875,  0.61803398875, 0.0 ); glVertex3d (  1.61803398875, -0.61803398875, 0.0 ); glVertex3d (  1.0, -1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d ( -0.850650808354,  0.0, -0.525731112119 ); glVertex3d ( -0.61803398875,  0.0, -1.61803398875 ); glVertex3d ( -1.0, -1.0, -1.0 ); glVertex3d ( -1.61803398875, -0.61803398875, 0.0 ); glVertex3d ( -1.61803398875,  0.61803398875, 0.0 ); glVertex3d ( -1.0,  1.0, -1.0 );
-  glEnd ();
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.850650808354,  0.0,  0.525731112119 );
+        glVertex3d( 0.61803398875,  0.0,  1.61803398875 );
+        glVertex3d( 1.0, -1.0,  1.0 );
+        glVertex3d( 1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( 1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( 1.0,  1.0,  1.0 );
+    glEnd( );
+    glBegin ( GL_POLYGON );
+        glNormal3d( -0.850650808354,  0.0,  0.525731112119 );
+        glVertex3d( -0.61803398875,  0.0,  1.61803398875 );
+        glVertex3d( -1.0,  1.0,  1.0 );
+        glVertex3d( -1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( -1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( -1.0, -1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.850650808354,  0.0, -0.525731112119 );
+        glVertex3d( 0.61803398875,  0.0, -1.61803398875 );
+        glVertex3d( 1.0,  1.0, -1.0 );
+        glVertex3d( 1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( 1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( 1.0, -1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( -0.850650808354,  0.0, -0.525731112119 );
+        glVertex3d( -0.61803398875,  0.0, -1.61803398875 );
+        glVertex3d( -1.0, -1.0, -1.0 );
+        glVertex3d( -1.61803398875, -0.61803398875, 0.0 );
+        glVertex3d( -1.61803398875,  0.61803398875, 0.0 );
+        glVertex3d( -1.0,  1.0, -1.0 );
+    glEnd( );
 
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.525731112119,  0.850650808354,  0.0 ); glVertex3d (  1.61803398875,  0.61803398875,  0.0 ); glVertex3d (  1.0,  1.0, -1.0 ); glVertex3d ( 0.0,  1.61803398875, -0.61803398875 ); glVertex3d ( 0.0,  1.61803398875,  0.61803398875 ); glVertex3d (  1.0,  1.0,  1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d (  0.525731112119, -0.850650808354,  0.0 ); glVertex3d (  1.61803398875, -0.61803398875,  0.0 ); glVertex3d (  1.0, -1.0,  1.0 ); glVertex3d ( 0.0, -1.61803398875,  0.61803398875 ); glVertex3d ( 0.0, -1.61803398875, -0.61803398875 ); glVertex3d (  1.0, -1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d ( -0.525731112119,  0.850650808354,  0.0 ); glVertex3d ( -1.61803398875,  0.61803398875,  0.0 ); glVertex3d ( -1.0,  1.0,  1.0 ); glVertex3d ( 0.0,  1.61803398875,  0.61803398875 ); glVertex3d ( 0.0,  1.61803398875, -0.61803398875 ); glVertex3d ( -1.0,  1.0, -1.0 );
-  glEnd ();
-  glBegin ( GL_POLYGON );
-  glNormal3d ( -0.525731112119, -0.850650808354,  0.0 ); glVertex3d ( -1.61803398875, -0.61803398875,  0.0 ); glVertex3d ( -1.0, -1.0, -1.0 ); glVertex3d ( 0.0, -1.61803398875, -0.61803398875 ); glVertex3d ( 0.0, -1.61803398875,  0.61803398875 ); glVertex3d ( -1.0, -1.0,  1.0 );
-  glEnd ();
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.525731112119,  0.850650808354,  0.0 );
+        glVertex3d( 1.61803398875,  0.61803398875,  0.0 );
+        glVertex3d( 1.0,  1.0, -1.0 );
+        glVertex3d( 0.0,  1.61803398875, -0.61803398875 );
+        glVertex3d( 0.0,  1.61803398875,  0.61803398875 );
+        glVertex3d( 1.0,  1.0,  1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( 0.525731112119, -0.850650808354,  0.0 );
+        glVertex3d( 1.61803398875, -0.61803398875,  0.0 );
+        glVertex3d( 1.0, -1.0,  1.0 );
+        glVertex3d( 0.0, -1.61803398875,  0.61803398875 );
+        glVertex3d( 0.0, -1.61803398875, -0.61803398875 );
+        glVertex3d( 1.0, -1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( -0.525731112119,  0.850650808354,  0.0 );
+        glVertex3d( -1.61803398875,  0.61803398875,  0.0 );
+        glVertex3d( -1.0,  1.0,  1.0 );
+        glVertex3d( 0.0,  1.61803398875,  0.61803398875 );
+        glVertex3d( 0.0,  1.61803398875, -0.61803398875 );
+        glVertex3d( -1.0,  1.0, -1.0 );
+    glEnd( );
+    glBegin( GL_POLYGON );
+        glNormal3d( -0.525731112119, -0.850650808354,  0.0 );
+        glVertex3d( -1.61803398875, -0.61803398875,  0.0 );
+        glVertex3d( -1.0, -1.0, -1.0 );
+        glVertex3d( 0.0, -1.61803398875, -0.61803398875 );
+        glVertex3d( 0.0, -1.61803398875,  0.61803398875 );
+        glVertex3d( -1.0, -1.0,  1.0 );
+    glEnd( );
 }
 
 
@@ -978,14 +1037,14 @@ void OGAPIENTRY glutSolidDodecahedron( void )
 /*
  * Octahedron VERTices.  Cleans up the code a bit.  (^&
  */
-static double overt [6][3] =
+static double overt[ 6 ][ 3 ] =
 {
-    { 1,  0,  0},
-    { 0,  1,  0},
-    { 0,  0,  1},
-    {-1,  0,  0},
-    { 0, -1,  0},
-    { 0,  0, -1},
+    {  1,  0,  0 },
+    {  0,  1,  0 },
+    {  0,  0,  1 },
+    { -1,  0,  0 },
+    {  0, -1,  0 },
+    {  0,  0, -1 },
 };
 
 
@@ -1014,43 +1073,40 @@ static double overt [6][3] =
 */
 void OGAPIENTRY glutWireOctahedron( void )
 {
-#define RADIUS    1.0f
-  glBegin( GL_LINE_LOOP );
-    glNormal3d( 0.577350269189, 0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 0 ]);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 2 ]);
-    glNormal3d( 0.577350269189, 0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 0 ]);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 5 ]);
-    glNormal3d( 0.577350269189,-0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 0 ]);
-      glVertex3dv( overt[ 2 ]);
-      glVertex3dv( overt[ 4 ]);
-    glNormal3d( 0.577350269189,-0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 0 ]);
-      glVertex3dv( overt[ 4 ]);
-      glVertex3dv( overt[ 5 ]);
-    glNormal3d(-0.577350269189, 0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 2 ]);
-      glVertex3dv( overt[ 3 ]);
-    glNormal3d(-0.577350269189, 0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 3 ]);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 5 ]);
-    glNormal3d(-0.577350269189,-0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 3 ]);
-      glVertex3dv( overt[ 4 ]);
-      glVertex3dv( overt[ 2 ]);
-    glNormal3d(-0.577350269189,-0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 3 ]);
-      glVertex3dv( overt[ 4 ]);
-      glVertex3dv( overt[ 5 ]);
-
-  glEnd();
-#undef RADIUS
+    glBegin( GL_LINE_LOOP );
+        glNormal3d( 0.577350269189, 0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 0 ] );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 2 ] );
+        glNormal3d( 0.577350269189, 0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 0 ] );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 5 ] );
+        glNormal3d( 0.577350269189,-0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 0 ] );
+        glVertex3dv( overt[ 2 ] );
+        glVertex3dv( overt[ 4 ] );
+        glNormal3d( 0.577350269189,-0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 0 ] );
+        glVertex3dv( overt[ 4 ] );
+        glVertex3dv( overt[ 5 ] );
+        glNormal3d(-0.577350269189, 0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 2 ] );
+        glVertex3dv( overt[ 3 ] );
+        glNormal3d(-0.577350269189, 0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 3 ] );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 5 ] );
+        glNormal3d(-0.577350269189,-0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 3 ] );
+        glVertex3dv( overt[ 4 ] );
+        glVertex3dv( overt[ 2 ] );
+        glNormal3d(-0.577350269189,-0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 3 ] );
+        glVertex3dv( overt[ 4 ] );
+        glVertex3dv( overt[ 5 ] );
+    glEnd( );
 }
 
 /*!
@@ -1070,42 +1126,40 @@ void OGAPIENTRY glutWireOctahedron( void )
 */
 void OGAPIENTRY glutSolidOctahedron( void )
 {
-#define RADIUS    1.0f
-  glBegin( GL_TRIANGLES );
-    glNormal3d( 0.577350269189, 0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 0 ]);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 2 ]);
-    glNormal3d( 0.577350269189, 0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 5 ]);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 0 ]);
-    glNormal3d( 0.577350269189,-0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 2 ]);
-      glVertex3dv( overt[ 4 ]);
-      glVertex3dv( overt[ 0 ]);
-    glNormal3d( 0.577350269189,-0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 0 ]);
-      glVertex3dv( overt[ 4 ]);
-      glVertex3dv( overt[ 5 ]);
-    glNormal3d(-0.577350269189, 0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 2 ]);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 3 ]);
-    glNormal3d(-0.577350269189, 0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 3 ]);
-      glVertex3dv( overt[ 1 ]);
-      glVertex3dv( overt[ 5 ]);
-    glNormal3d(-0.577350269189,-0.577350269189, 0.577350269189);
-      glVertex3dv( overt[ 3 ]);
-      glVertex3dv( overt[ 4 ]);
-      glVertex3dv( overt[ 2 ]);
-    glNormal3d(-0.577350269189,-0.577350269189,-0.577350269189);
-      glVertex3dv( overt[ 5 ]);
-      glVertex3dv( overt[ 4 ]);
-      glVertex3dv( overt[ 3 ]);
-  glEnd();
-#undef RADIUS
+    glBegin( GL_TRIANGLES );
+        glNormal3d( 0.577350269189, 0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 0 ] );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 2 ] );
+        glNormal3d( 0.577350269189, 0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 5 ] );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 0 ] );
+        glNormal3d( 0.577350269189,-0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 2 ] );
+        glVertex3dv( overt[ 4 ] );
+        glVertex3dv( overt[ 0 ] );
+        glNormal3d( 0.577350269189,-0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 0 ] );
+        glVertex3dv( overt[ 4 ] );
+        glVertex3dv( overt[ 5 ] );
+        glNormal3d(-0.577350269189, 0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 2 ] );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 3 ] );
+        glNormal3d(-0.577350269189, 0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 3 ] );
+        glVertex3dv( overt[ 1 ] );
+        glVertex3dv( overt[ 5 ] );
+        glNormal3d(-0.577350269189,-0.577350269189, 0.577350269189 );
+        glVertex3dv( overt[ 3 ] );
+        glVertex3dv( overt[ 4 ] );
+        glVertex3dv( overt[ 2 ] );
+        glNormal3d(-0.577350269189,-0.577350269189,-0.577350269189 );
+        glVertex3dv( overt[ 5 ] );
+        glVertex3dv( overt[ 4 ] );
+        glVertex3dv( overt[ 3 ] );
+    glEnd();
 }
 
 
@@ -1127,32 +1181,41 @@ void OGAPIENTRY glutSolidOctahedron( void )
 */
 void OGAPIENTRY glutWireTetrahedron( void )
 {
-  /* Magic Numbers:  r0 = ( 1, 0, 0 )
-   *                 r1 = ( -1/3, 2 sqrt(2) / 3, 0 )
-   *                 r2 = ( -1/3, -sqrt(2) / 3, sqrt(6) / 3 )
-   *                 r3 = ( -1/3, -sqrt(2) / 3, -sqrt(6) / 3 )
-   * |r0| = |r1| = |r2| = |r3| = 1
-   * Distance between any two points is 2 sqrt(6) / 3
-   *
-   * Normals:  The unit normals are simply the negative of the coordinates
-   * of the point not on the surface.
-   */
+    /*
+     * Magic Numbers:  r0 = ( 1, 0, 0 )
+     *                 r1 = ( -1/3, 2 sqrt(2) / 3, 0 )
+     *                 r2 = ( -1/3, -sqrt(2) / 3, sqrt(6) / 3 )
+     *                 r3 = ( -1/3, -sqrt(2) / 3, -sqrt(6) / 3 )
+     * |r0| = |r1| = |r2| = |r3| = 1
+     * Distance between any two points is 2 sqrt(6) / 3
+     *
+     * Normals:  The unit normals are simply the negative of the coordinates
+     * of the point not on the surface.
+     */
 
-  double r0[3] = {             1.0,             0.0,             0.0 };
-  double r1[3] = { -0.333333333333,  0.942809041582,             0.0 };
-  double r2[3] = { -0.333333333333, -0.471404520791,  0.816496580928 };
-  double r3[3] = { -0.333333333333, -0.471404520791, -0.816496580928 };
+    double r0[3] = {             1.0,             0.0,             0.0 };
+    double r1[3] = { -0.333333333333,  0.942809041582,             0.0 };
+    double r2[3] = { -0.333333333333, -0.471404520791,  0.816496580928 };
+    double r3[3] = { -0.333333333333, -0.471404520791, -0.816496580928 };
 
-  glBegin( GL_LINE_LOOP );
-    glNormal3d (           -1.0,             0.0,             0.0 );
-    glVertex3dv ( r1 ); glVertex3dv ( r3 ); glVertex3dv ( r2 );
-    glNormal3d ( 0.333333333333, -0.942809041582,             0.0 );
-    glVertex3dv ( r0 ); glVertex3dv ( r2 ); glVertex3dv ( r3 );
-    glNormal3d ( 0.333333333333,  0.471404520791, -0.816496580928 );
-    glVertex3dv ( r0 ); glVertex3dv ( r3 ); glVertex3dv ( r1 );
-    glNormal3d ( 0.333333333333,  0.471404520791,  0.816496580928 );
-    glVertex3dv ( r0 ); glVertex3dv ( r1 ); glVertex3dv ( r2 );
-  glEnd();
+    glBegin( GL_LINE_LOOP );
+        glNormal3d(           -1.0,             0.0,             0.0 );
+        glVertex3dv( r1 );
+        glVertex3dv( r3 );
+        glVertex3dv( r2 );
+        glNormal3d( 0.333333333333, -0.942809041582,             0.0 );
+        glVertex3dv( r0 );
+        glVertex3dv( r2 );
+        glVertex3dv( r3 );
+        glNormal3d( 0.333333333333,  0.471404520791, -0.816496580928 );
+        glVertex3dv( r0 );
+        glVertex3dv( r3 );
+        glVertex3dv( r1 );
+        glNormal3d( 0.333333333333,  0.471404520791,  0.816496580928 );
+        glVertex3dv( r0 );
+        glVertex3dv( r1 );
+        glVertex3dv( r2 );
+    glEnd();
 }
 
 
@@ -1171,45 +1234,68 @@ void OGAPIENTRY glutWireTetrahedron( void )
 */
 void OGAPIENTRY glutSolidTetrahedron( void )
 {
-  /* Magic Numbers:  r0 = ( 1, 0, 0 )
-   *                 r1 = ( -1/3, 2 sqrt(2) / 3, 0 )
-   *                 r2 = ( -1/3, -sqrt(2) / 3, sqrt(6) / 3 )
-   *                 r3 = ( -1/3, -sqrt(2) / 3, -sqrt(6) / 3 )
-   * |r0| = |r1| = |r2| = |r3| = 1
-   * Distance between any two points is 2 sqrt(6) / 3
-   *
-   * Normals:  The unit normals are simply the negative of the coordinates
-   * of the point not on the surface.
-   */
+    /*
+     * Magic Numbers:  r0 = ( 1, 0, 0 )
+     *                 r1 = ( -1/3, 2 sqrt(2) / 3, 0 )
+     *                 r2 = ( -1/3, -sqrt(2) / 3, sqrt(6) / 3 )
+     *                 r3 = ( -1/3, -sqrt(2) / 3, -sqrt(6) / 3 )
+     * |r0| = |r1| = |r2| = |r3| = 1
+     * Distance between any two points is 2 sqrt(6) / 3
+     *
+     * Normals:  The unit normals are simply the negative of the coordinates
+     * of the point not on the surface.
+     */
 
-  double r0[3] = {             1.0,             0.0,             0.0 };
-  double r1[3] = { -0.333333333333,  0.942809041582,             0.0 };
-  double r2[3] = { -0.333333333333, -0.471404520791,  0.816496580928 };
-  double r3[3] = { -0.333333333333, -0.471404520791, -0.816496580928 };
+    double r0[3] = {             1.0,             0.0,             0.0 };
+    double r1[3] = { -0.333333333333,  0.942809041582,             0.0 };
+    double r2[3] = { -0.333333333333, -0.471404520791,  0.816496580928 };
+    double r3[3] = { -0.333333333333, -0.471404520791, -0.816496580928 };
 
-  glBegin( GL_TRIANGLES );
-    glNormal3d (           -1.0,             0.0,             0.0 );
-    glVertex3dv ( r1 ); glVertex3dv ( r3 ); glVertex3dv ( r2 );
-    glNormal3d ( 0.333333333333, -0.942809041582,             0.0 );
-    glVertex3dv ( r0 ); glVertex3dv ( r2 ); glVertex3dv ( r3 );
-    glNormal3d ( 0.333333333333,  0.471404520791, -0.816496580928 );
-    glVertex3dv ( r0 ); glVertex3dv ( r3 ); glVertex3dv ( r1 );
-    glNormal3d ( 0.333333333333,  0.471404520791,  0.816496580928 );
-    glVertex3dv ( r0 ); glVertex3dv ( r1 ); glVertex3dv ( r2 );
-  glEnd();
+    glBegin( GL_TRIANGLES );
+        glNormal3d(           -1.0,             0.0,             0.0 );
+        glVertex3dv( r1 );
+        glVertex3dv( r3 );
+        glVertex3dv( r2 );
+        glNormal3d( 0.333333333333, -0.942809041582,             0.0 );
+        glVertex3dv( r0 );
+        glVertex3dv( r2 );
+        glVertex3dv( r3 );
+        glNormal3d( 0.333333333333,  0.471404520791, -0.816496580928 );
+        glVertex3dv( r0 );
+        glVertex3dv( r3 );
+        glVertex3dv( r1 );
+        glNormal3d( 0.333333333333,  0.471404520791,  0.816496580928 );
+        glVertex3dv( r0 );
+        glVertex3dv( r1 );
+        glVertex3dv( r2 );
+    glEnd();
 }
 
 /*
  *
  */
-double icos_r[12][3] = { { 1.0, 0.0, 0.0 },
-  {  0.447213595500,  0.894427191000, 0.0 }, {  0.447213595500,  0.276393202252, 0.850650808354 }, {  0.447213595500, -0.723606797748, 0.525731112119 }, {  0.447213595500, -0.723606797748, -0.525731112119 }, {  0.447213595500,  0.276393202252, -0.850650808354 },
-  { -0.447213595500, -0.894427191000, 0.0 }, { -0.447213595500, -0.276393202252, 0.850650808354 }, { -0.447213595500,  0.723606797748, 0.525731112119 }, { -0.447213595500,  0.723606797748, -0.525731112119 }, { -0.447213595500, -0.276393202252, -0.850650808354 },
-  { -1.0, 0.0, 0.0 } };
-int icos_v [20][3] = { { 0, 1, 2 }, { 0, 2, 3 }, { 0, 3, 4 }, { 0, 4, 5 }, { 0, 5, 1 },
-                       { 1, 8, 2 }, { 2, 7, 3 }, { 3, 6, 4 }, { 4, 10, 5 }, { 5, 9, 1 },
-                       { 1, 9, 8 }, { 2, 8, 7 }, { 3, 7, 6 }, { 4, 6, 10 }, { 5, 10, 9 },
-                       { 11, 9, 10 }, { 11, 8, 9 }, { 11, 7, 8 }, { 11, 6, 7 }, { 11, 10, 6 } };
+double icos_r[ 12 ][ 3 ] =
+{
+    { 1.0, 0.0, 0.0 },
+    {  0.447213595500,  0.894427191000, 0.0 },
+    {  0.447213595500,  0.276393202252, 0.850650808354 },
+    {  0.447213595500, -0.723606797748, 0.525731112119 },
+    {  0.447213595500, -0.723606797748, -0.525731112119 },
+    {  0.447213595500,  0.276393202252, -0.850650808354 },
+    { -0.447213595500, -0.894427191000, 0.0 },
+    { -0.447213595500, -0.276393202252, 0.850650808354 },
+    { -0.447213595500,  0.723606797748, 0.525731112119 },
+    { -0.447213595500,  0.723606797748, -0.525731112119 },
+    { -0.447213595500, -0.276393202252, -0.850650808354 },
+    { -1.0, 0.0, 0.0 }
+};
+int icos_v[ 20 ][ 3 ] =
+{
+    { 0, 1, 2 }, { 0, 2, 3 }, { 0, 3, 4 }, { 0, 4, 5 }, { 0, 5, 1 },
+    { 1, 8, 2 }, { 2, 7, 3 }, { 3, 6, 4 }, { 4, 10, 5 }, { 5, 9, 1 },
+    { 1, 9, 8 }, { 2, 8, 7 }, { 3, 7, 6 }, { 4, 6, 10 }, { 5, 10, 9 },
+    { 11, 9, 10 }, { 11, 8, 9 }, { 11, 7, 8 }, { 11, 6, 7 }, { 11, 10, 6 }
+};
 
 
 /*!
@@ -1222,24 +1308,47 @@ int icos_v [20][3] = { { 0, 1, 2 }, { 0, 2, 3 }, { 0, 3, 4 }, { 0, 4, 5 }, { 0, 
                 The distance from the origin to the vertices is 1.
 
     \see        glutSolidIcosahedron()
-
 */
 void OGAPIENTRY glutWireIcosahedron( void )
 {
-  int i;
-  for ( i = 0; i < 20; i++ )
-  {
-    double normal[3];
-    normal[0] = ( icos_r[icos_v[i][1]][1] - icos_r[icos_v[i][0]][1] ) * ( icos_r[icos_v[i][2]][2] - icos_r[icos_v[i][0]][2] ) - ( icos_r[icos_v[i][1]][2] - icos_r[icos_v[i][0]][2] ) * ( icos_r[icos_v[i][2]][1] - icos_r[icos_v[i][0]][1] );
-    normal[1] = ( icos_r[icos_v[i][1]][2] - icos_r[icos_v[i][0]][2] ) * ( icos_r[icos_v[i][2]][0] - icos_r[icos_v[i][0]][0] ) - ( icos_r[icos_v[i][1]][0] - icos_r[icos_v[i][0]][0] ) * ( icos_r[icos_v[i][2]][2] - icos_r[icos_v[i][0]][2] );
-    normal[2] = ( icos_r[icos_v[i][1]][0] - icos_r[icos_v[i][0]][0] ) * ( icos_r[icos_v[i][2]][1] - icos_r[icos_v[i][0]][1] ) - ( icos_r[icos_v[i][1]][1] - icos_r[icos_v[i][0]][1] ) * ( icos_r[icos_v[i][2]][0] - icos_r[icos_v[i][0]][0] );
-    glBegin ( GL_LINE_LOOP );
-      glNormal3dv ( normal );
-      glVertex3dv ( icos_r[icos_v[i][0]] );
-      glVertex3dv ( icos_r[icos_v[i][1]] );
-      glVertex3dv ( icos_r[icos_v[i][2]] );
-    glEnd ();
-  }
+    int i;
+    for( i = 0; i < 20; i++ )
+    {
+        double normal[ 3 ];
+        normal[ 0 ] =
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2] ) -
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] );
+        normal[ 1 ] =
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] ) -
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2 ] );
+        normal[ 2 ] =
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] ) -
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] );
+        glBegin( GL_LINE_LOOP );
+            glNormal3dv( normal );
+            glVertex3dv( icos_r[ icos_v[ i ][ 0 ] ] );
+            glVertex3dv( icos_r[ icos_v[ i ][ 1 ] ] );
+            glVertex3dv( icos_r[ icos_v[ i ][ 2 ] ] );
+        glEnd( );
+    }
 }
 
 
@@ -1253,44 +1362,100 @@ void OGAPIENTRY glutWireIcosahedron( void )
                 The distance from the origin to the vertices is 1.
 
     \see        glutWireIcosahedron()
-
 */
 void OGAPIENTRY glutSolidIcosahedron( void )
 {
-  int i;
+    int i;
 
-  glBegin ( GL_TRIANGLES );
-  for ( i = 0; i < 20; i++ )
-  {
-    double normal[3];
-    normal[0] = ( icos_r[icos_v[i][1]][1] - icos_r[icos_v[i][0]][1] ) * ( icos_r[icos_v[i][2]][2] - icos_r[icos_v[i][0]][2] ) - ( icos_r[icos_v[i][1]][2] - icos_r[icos_v[i][0]][2] ) * ( icos_r[icos_v[i][2]][1] - icos_r[icos_v[i][0]][1] );
-    normal[1] = ( icos_r[icos_v[i][1]][2] - icos_r[icos_v[i][0]][2] ) * ( icos_r[icos_v[i][2]][0] - icos_r[icos_v[i][0]][0] ) - ( icos_r[icos_v[i][1]][0] - icos_r[icos_v[i][0]][0] ) * ( icos_r[icos_v[i][2]][2] - icos_r[icos_v[i][0]][2] );
-    normal[2] = ( icos_r[icos_v[i][1]][0] - icos_r[icos_v[i][0]][0] ) * ( icos_r[icos_v[i][2]][1] - icos_r[icos_v[i][0]][1] ) - ( icos_r[icos_v[i][1]][1] - icos_r[icos_v[i][0]][1] ) * ( icos_r[icos_v[i][2]][0] - icos_r[icos_v[i][0]][0] );
-      glNormal3dv ( normal );
-      glVertex3dv ( icos_r[icos_v[i][0]] );
-      glVertex3dv ( icos_r[icos_v[i][1]] );
-      glVertex3dv ( icos_r[icos_v[i][2]] );
-  }
-
-  glEnd ();
+    glBegin( GL_TRIANGLES );
+    for( i = 0; i < 20; i++ )
+    {
+        double normal[ 3 ];
+        normal[ 0 ] =
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2 ] ) -
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] );
+        normal[ 1 ] =
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] ) -
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 2 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 2 ] );
+        normal[ 2 ] =
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] ) -
+            ( icos_r[ icos_v[ i ][ 1 ] ][ 1 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 1 ] ) *
+            ( icos_r[ icos_v[ i ][ 2 ] ][ 0 ] -
+              icos_r[ icos_v[ i ][ 0 ] ][ 0 ] );
+        glNormal3dv( normal );
+        glVertex3dv( icos_r[ icos_v[ i ][ 0 ] ] );
+        glVertex3dv( icos_r[ icos_v[ i ][ 1 ] ] );
+        glVertex3dv( icos_r[ icos_v[ i ][ 2 ] ] );
+    }
+    glEnd( );
 }
 
 /*
  *
  */
-double rdod_r[14][3] = { { 0.0, 0.0, 1.0 },
-  {  0.707106781187,  0.000000000000,  0.5 }, {  0.000000000000,  0.707106781187,  0.5 }, { -0.707106781187,  0.000000000000,  0.5 }, {  0.000000000000, -0.707106781187,  0.5 },
-  {  0.707106781187,  0.707106781187,  0.0 }, { -0.707106781187,  0.707106781187,  0.0 }, { -0.707106781187, -0.707106781187,  0.0 }, {  0.707106781187, -0.707106781187,  0.0 },
-  {  0.707106781187,  0.000000000000, -0.5 }, {  0.000000000000,  0.707106781187, -0.5 }, { -0.707106781187,  0.000000000000, -0.5 }, {  0.000000000000, -0.707106781187, -0.5 },
-  {  0.0, 0.0, -1.0 } };
-int rdod_v [12][4] = { { 0,  1,  5,  2 }, { 0,  2,  6,  3 }, { 0,  3,  7,  4 }, { 0,  4,  8, 1 },
-                       { 5, 10,  6,  2 }, { 6, 11,  7,  3 }, { 7, 12,  8,  4 }, { 8,  9,  5, 1 },
-                       { 5,  9, 13, 10 }, { 6, 10, 13, 11 }, { 7, 11, 13, 12 }, { 8, 12, 13, 9 } };
-double rdod_n[12][3] = {
-  {  0.353553390594,  0.353553390594,  0.5 }, { -0.353553390594,  0.353553390594,  0.5 }, { -0.353553390594, -0.353553390594,  0.5 }, {  0.353553390594, -0.353553390594,  0.5 },
-  {  0.000000000000,  1.000000000000,  0.0 }, { -1.000000000000,  0.000000000000,  0.0 }, {  0.000000000000, -1.000000000000,  0.0 }, {  1.000000000000,  0.000000000000,  0.0 },
-  {  0.353553390594,  0.353553390594, -0.5 }, { -0.353553390594,  0.353553390594, -0.5 }, { -0.353553390594, -0.353553390594, -0.5 }, {  0.353553390594, -0.353553390594, -0.5 }
-  };
+double rdod_r[ 14 ][ 3 ] =
+{
+    { 0.0, 0.0, 1.0 },
+    {  0.707106781187,  0.000000000000,  0.5 },
+    {  0.000000000000,  0.707106781187,  0.5 },
+    { -0.707106781187,  0.000000000000,  0.5 },
+    {  0.000000000000, -0.707106781187,  0.5 },
+    {  0.707106781187,  0.707106781187,  0.0 },
+    { -0.707106781187,  0.707106781187,  0.0 },
+    { -0.707106781187, -0.707106781187,  0.0 },
+    {  0.707106781187, -0.707106781187,  0.0 },
+    {  0.707106781187,  0.000000000000, -0.5 },
+    {  0.000000000000,  0.707106781187, -0.5 },
+    { -0.707106781187,  0.000000000000, -0.5 },
+    {  0.000000000000, -0.707106781187, -0.5 },
+    {  0.0, 0.0, -1.0 }
+};
+int rdod_v[ 12 ][ 4 ] =
+{
+    { 0,  1,  5,  2 },
+    { 0,  2,  6,  3 },
+    { 0,  3,  7,  4 },
+    { 0,  4,  8,  1 },
+    { 5, 10,  6,  2 },
+    { 6, 11,  7,  3 },
+    { 7, 12,  8,  4 },
+    { 8,  9,  5,  1 },
+    { 5,  9, 13, 10 },
+    { 6, 10, 13, 11 },
+    { 7, 11, 13, 12 },
+    { 8, 12, 13,  9 }
+};
+double rdod_n[ 12 ][ 3 ] =
+{
+  {  0.353553390594,  0.353553390594,  0.5 },
+  { -0.353553390594,  0.353553390594,  0.5 },
+  { -0.353553390594, -0.353553390594,  0.5 },
+  {  0.353553390594, -0.353553390594,  0.5 },
+  {  0.000000000000,  1.000000000000,  0.0 },
+  { -1.000000000000,  0.000000000000,  0.0 },
+  {  0.000000000000, -1.000000000000,  0.0 },
+  {  1.000000000000,  0.000000000000,  0.0 },
+  {  0.353553390594,  0.353553390594, -0.5 },
+  { -0.353553390594,  0.353553390594, -0.5 },
+  { -0.353553390594, -0.353553390594, -0.5 },
+  {  0.353553390594, -0.353553390594, -0.5 }
+};
 
 /*!
     \fn
@@ -1302,21 +1467,20 @@ double rdod_n[12][3] = {
 
     \see      glutSolidRhombicDodecahedron(), glutWireDodecahedron(),
               glutSolidDodecahedron()
-
 */
 void OGAPIENTRY glutWireRhombicDodecahedron( void )
 {
-  int i;
-  for ( i = 0; i < 12; i++ )
-  {
-    glBegin ( GL_LINE_LOOP );
-      glNormal3dv ( rdod_n[i] );
-      glVertex3dv ( rdod_r[rdod_v[i][0]] );
-      glVertex3dv ( rdod_r[rdod_v[i][1]] );
-      glVertex3dv ( rdod_r[rdod_v[i][2]] );
-      glVertex3dv ( rdod_r[rdod_v[i][3]] );
-    glEnd ();
-  }
+    int i;
+    for( i = 0; i < 12; i++ )
+    {
+        glBegin( GL_LINE_LOOP );
+            glNormal3dv( rdod_n[ i ] );
+            glVertex3dv( rdod_r[ rdod_v[ i ][ 0 ] ] );
+            glVertex3dv( rdod_r[ rdod_v[ i ][ 1 ] ] );
+            glVertex3dv( rdod_r[ rdod_v[ i ][ 2 ] ] );
+            glVertex3dv( rdod_r[ rdod_v[ i ][ 3 ] ] );
+        glEnd( );
+    }
 }
 
 /*!
@@ -1329,30 +1493,28 @@ void OGAPIENTRY glutWireRhombicDodecahedron( void )
 
     \see      glutWireRhombicDodecahedron(), glutWireDodecahedron(),
               glutSolidDodecahedron()
-
 */
 void OGAPIENTRY glutSolidRhombicDodecahedron( void )
 {
-  int i;
+    int i;
 
-  glBegin ( GL_QUADS );
-  for ( i = 0; i < 12; i++ )
-  {
-      glNormal3dv ( rdod_n[i] );
-      glVertex3dv ( rdod_r[rdod_v[i][0]] );
-      glVertex3dv ( rdod_r[rdod_v[i][1]] );
-      glVertex3dv ( rdod_r[rdod_v[i][2]] );
-      glVertex3dv ( rdod_r[rdod_v[i][3]] );
-  }
-
-  glEnd ();
+    glBegin( GL_QUADS );
+    for( i = 0; i < 12; i++ )
+    {
+        glNormal3dv( rdod_n[ i ] );
+        glVertex3dv( rdod_r[ rdod_v[ i ][ 0 ] ] );
+        glVertex3dv( rdod_r[ rdod_v[ i ][ 1 ] ] );
+        glVertex3dv( rdod_r[ rdod_v[ i ][ 2 ] ] );
+        glVertex3dv( rdod_r[ rdod_v[ i ][ 3 ] ] );
+    }
+    glEnd( );
 }
 
 
 
 #define NUM_FACES     4
 
-static GLdouble tetrahedron_v[4][3] =  /* Vertices */
+static GLdouble tetrahedron_v[ 4 ][ 3 ] =  /* Vertices */
 {
     { -0.5, -0.288675134595, -0.144337567297 },
     {  0.5, -0.288675134595, -0.144337567297 },
@@ -1360,18 +1522,61 @@ static GLdouble tetrahedron_v[4][3] =  /* Vertices */
     {  0.0,  0.0,             0.672159013631 }
 };
 
-static GLint tetrahedron_i[4][3] =  /* Vertex indices */
+static GLint tetrahedron_i[ 4 ][ 3 ] =  /* Vertex indices */
 {
     { 1, 0, 2 }, { 2, 0, 3 }, { 0, 1, 3 }, { 1, 2, 3 }
 };
 
-static GLdouble tetrahedron_n[4][3] =  /* Normals */
+static GLdouble tetrahedron_n[ 4 ][ 3 ] =  /* Normals */
 {
     {  0.0,             0.0,            -1.0 },
     { -0.816496580928,  0.471404520791,  0.333333333333 },
     {  0.0,            -0.942809041582,  0.333333333333 },
     {  0.816496580928,  0.471404520791,  0.333333333333 }
 };
+
+/*
+ * The edges for the wireframe tetrahedron at the base of the Sponge object.
+ *
+ * This array is structured as: 6 edges.  Each edge has
+ * the two vertices that define it, and the normal which
+ * we determine as the 50/50 blend of the two faces that the
+ * edge bounds.
+ *
+ * The array has been constructed with some care so that we can define
+ * a GL_LINE_STRIP as:
+ *
+ *   edges[ 0 ].v1, edges[ 0 ].v2 == edges[ 1 ].v1,
+ *                  edges[ 1 ].v2 == edges[ 2 ].v1,
+ *                  edges[ 2 ].v2 == edges[ 3 ].v1,
+ *   ...
+ *
+ * However, because an Euler Circuit can't be made on the vertices of a
+ * tetrahedron, we either need to walk one edge twice or stop and
+ * start at least once.  I chose to walk one edge twice, and use a secondary
+ * array to tell me in what order to walk which edges.  (See below.)
+ */
+typedef struct tetrahedron_edge
+{
+    int v1;
+    int v2;
+    double normal[ 3 ];
+} tetrahedron_edge;
+static const tetrahedron_edge tetrahedron_edges[ 6 ] =
+{
+    { 0, 1, { -0.707106781186674,  0.408248290463772, -0.577350269189535 } },
+    { 1, 2, { -0.707106781186674, -0.408248290463772,  0.577350269189535 } },
+    { 2, 0, {  0.000000000000000, -0.816496580927708, -0.577350269189652 } },
+    { 0, 3, {  0.707106781186674,  0.408248290463772, -0.577350269189535 } },
+    { 3, 1, {  0.000000000000000,  0.816496580927708,  0.577350269189652 } },
+    { 2, 3, {  0.707106781186674, -0.408248290463772,  0.577350269189535 } },
+};
+
+/*
+ * This is the list of edges for a GL_LINE_STRIP to build the tetrahedron.
+ * NOTE that this is not for a GL_LINE_LOOP.
+ */
+static const int tetrahedron_edge_list[ 7 ] = { 0, 1, 2, 3, 4, 1, 5 };
 
 /*!
     \fn
@@ -1391,48 +1596,64 @@ static GLdouble tetrahedron_n[4][3] =  /* Normals */
     \see      glutSolidSierpinskiSponge()
 */
 void OGAPIENTRY glutWireSierpinskiSponge(
-    int num_levels, const GLdouble offset[3], GLdouble scale
+    int num_levels, const GLdouble offset[ 3 ], GLdouble scale
 )
 {
-  int i, j;
+    int i;
 
-  if( !num_levels )
-  {
-    /* Maybe the base-case should call glutWireTetrahedron()? */
-    for( i = 0; i < NUM_FACES; i++ )
+    if( !num_levels )
     {
-      /* Should be able to organize this with just one line loop */
-      glBegin( GL_LINE_LOOP );
-      glNormal3dv( tetrahedron_n[i] );
-      for( j = 0; j < 3; j++ )
-      {
-        double x = offset[0] + scale * tetrahedron_v[tetrahedron_i[i][j]][0];
-        double y = offset[1] + scale * tetrahedron_v[tetrahedron_i[i][j]][1];
-        double z = offset[2] + scale * tetrahedron_v[tetrahedron_i[i][j]][2];
+        int edge = tetrahedron_edge_list[ 0 ];
+        int vert = tetrahedron_edges[ edge ].v1;
+        double x = offset[ 0 ] + scale * tetrahedron_v[ vert ][ 0 ];
+        double y = offset[ 1 ] + scale * tetrahedron_v[ vert ][ 1 ];
+        double z = offset[ 2 ] + scale * tetrahedron_v[ vert ][ 2 ];
+        
+        glBegin( GL_LINE_STRIP );
         glVertex3d( x, y, z );
-      }
-      glEnd( );
+        for( i = 0; i < 5; ++i )
+        {
+            edge = tetrahedron_edge_list[ i ];
+            vert = tetrahedron_edges[ edge ].v2;
+            glNormal3dv( tetrahedron_edges[ edge ].normal );
+            x = offset[ 0 ] + scale * tetrahedron_v[ vert ][ 0 ];
+            y = offset[ 1 ] + scale * tetrahedron_v[ vert ][ 1 ];
+            z = offset[ 2 ] + scale * tetrahedron_v[ vert ][ 2 ];
+            glVertex3d( x, y, z );
+        }
+        glEnd( );
+        glBegin( GL_LINES );
+        for( i = 5; i < 7; ++i )
+        {
+            edge = tetrahedron_edge_list[ i ];
+            vert = tetrahedron_edges[ edge ].v2;
+            glNormal3dv( tetrahedron_edges[ edge ].normal );
+            x = offset[ 0 ] + scale * tetrahedron_v[ vert ][ 0 ];
+            y = offset[ 1 ] + scale * tetrahedron_v[ vert ][ 1 ];
+            z = offset[ 2 ] + scale * tetrahedron_v[ vert ][ 2 ];
+            glVertex3d( x, y, z );
+        }
+        glEnd( );
     }
-  }
-  else
-  {
-    /* Use a local variable to avoid buildup of roundoff errors */
-    GLdouble local_offset[3];
-    num_levels --;
-    scale /= 2.0;
-    local_offset[0] = offset[0] + scale * tetrahedron_v[0][0];
-    local_offset[1] = offset[1] + scale * tetrahedron_v[0][1];
-    local_offset[2] = offset[2] + scale * tetrahedron_v[0][2];
-    glutWireSierpinskiSponge( num_levels, local_offset, scale );
-    local_offset[0] += scale;
-    glutWireSierpinskiSponge( num_levels, local_offset, scale );
-    local_offset[0] -= 0.5            * scale;
-    local_offset[1] += 0.866025403784 * scale;
-    glutWireSierpinskiSponge( num_levels, local_offset, scale );
-    local_offset[1] -= 0.577350269189 * scale;
-    local_offset[2] += 0.816496580928 * scale;
-    glutWireSierpinskiSponge( num_levels, local_offset, scale );
-  }
+    else
+    {
+        /* Use a local variable to avoid buildup of roundoff errors */
+        GLdouble local_offset[ 3 ];
+        num_levels--;
+        scale /= 2.0;
+        local_offset[ 0 ] = offset[ 0 ] + scale * tetrahedron_v[ 0 ][ 0 ];
+        local_offset[ 1 ] = offset[ 1 ] + scale * tetrahedron_v[ 0 ][ 1 ];
+        local_offset[ 2 ] = offset[ 2 ] + scale * tetrahedron_v[ 0 ][ 2 ];
+        glutWireSierpinskiSponge( num_levels, local_offset, scale );
+        local_offset[ 0 ] += scale;
+        glutWireSierpinskiSponge( num_levels, local_offset, scale );
+        local_offset[ 0 ] -= 0.5            * scale;
+        local_offset[ 1 ] += 0.866025403784 * scale;
+        glutWireSierpinskiSponge( num_levels, local_offset, scale );
+        local_offset[ 1 ] -= 0.577350269189 * scale;
+        local_offset[ 2 ] += 0.816496580928 * scale;
+        glutWireSierpinskiSponge( num_levels, local_offset, scale );
+    }
 }
 
 /*!
@@ -1453,47 +1674,50 @@ void OGAPIENTRY glutWireSierpinskiSponge(
     \see      glutWireSierpinskiSponge()
 */
 void OGAPIENTRY glutSolidSierpinskiSponge(
-    int num_levels, const GLdouble offset[3], GLdouble scale
+    int num_levels, const GLdouble offset[ 3 ], GLdouble scale
 )
 {
-  int i, j;
+    int i, j;
 
-  if( !num_levels )
-  {
-    /* Maybe the base-case should be a glutSolidTetrahedron() call? */
-    glBegin( GL_TRIANGLES );
-    for( i = 0; i < NUM_FACES; i++ )
+    if( !num_levels )
     {
-      glNormal3dv( tetrahedron_n[i] );
-      for( j = 0; j < 3; j++ )
-      {
-        double x = offset[0] + scale * tetrahedron_v[tetrahedron_i[i][j]][0];
-        double y = offset[1] + scale * tetrahedron_v[tetrahedron_i[i][j]][1];
-        double z = offset[2] + scale * tetrahedron_v[tetrahedron_i[i][j]][2];
-        glVertex3d( x, y, z );
-      }
+        /* Maybe the base-case should be a glutSolidTetrahedron() call? */
+        glBegin( GL_TRIANGLES );
+        for( i = 0; i < NUM_FACES; i++ )
+        {
+            glNormal3dv( tetrahedron_n[ i ] );
+            for( j = 0; j < 3; j++ )
+            {
+                double x = offset[ 0 ] +
+                    scale * tetrahedron_v[ tetrahedron_i[ i ][ j ] ][ 0 ];
+                double y = offset[ 1 ] +
+                    scale * tetrahedron_v[ tetrahedron_i[ i ][ j ] ][ 1 ];
+                double z = offset[ 2 ] +
+                    scale * tetrahedron_v[ tetrahedron_i[ i ][ j ] ][ 2 ];
+                glVertex3d( x, y, z );
+            }
+        }
+        glEnd( );
     }
-    glEnd ();
-  }
-  else
-  {
-    /* Use a local variable to avoid buildup of roundoff errors */
-    GLdouble local_offset[3];
-    num_levels --;
-    scale /= 2.0;
-    local_offset[0] = offset[0] + scale * tetrahedron_v[0][0];
-    local_offset[1] = offset[1] + scale * tetrahedron_v[0][1];
-    local_offset[2] = offset[2] + scale * tetrahedron_v[0][2];
-    glutSolidSierpinskiSponge( num_levels, local_offset, scale );
-    local_offset[0] += scale;
-    glutSolidSierpinskiSponge( num_levels, local_offset, scale );
-    local_offset[0] -= 0.5            * scale;
-    local_offset[1] += 0.866025403784 * scale;
-    glutSolidSierpinskiSponge( num_levels, local_offset, scale );
-    local_offset[1] -= 0.577350269189 * scale;
-    local_offset[2] += 0.816496580928 * scale;
-    glutSolidSierpinskiSponge( num_levels, local_offset, scale );
-  }
+    else
+    {
+        /* Use a local variable to avoid buildup of roundoff errors */
+        GLdouble local_offset[ 3 ];
+        num_levels--;
+        scale /= 2.0;
+        local_offset[ 0 ] = offset[ 0 ] + scale * tetrahedron_v[ 0 ][ 0 ];
+        local_offset[ 1 ] = offset[ 1 ] + scale * tetrahedron_v[ 0 ][ 1 ];
+        local_offset[ 2 ] = offset[ 2 ] + scale * tetrahedron_v[ 0 ][ 2 ];
+        glutSolidSierpinskiSponge( num_levels, local_offset, scale );
+        local_offset[ 0 ] += scale;
+        glutSolidSierpinskiSponge( num_levels, local_offset, scale );
+        local_offset[ 0 ] -= 0.5            * scale;
+        local_offset[ 1 ] += 0.866025403784 * scale;
+        glutSolidSierpinskiSponge( num_levels, local_offset, scale );
+        local_offset[ 1 ] -= 0.577350269189 * scale;
+        local_offset[ 2 ] += 0.816496580928 * scale;
+        glutSolidSierpinskiSponge( num_levels, local_offset, scale );
+    }
 }
 
 #undef NUM_FACES
