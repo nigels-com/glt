@@ -123,9 +123,11 @@ struct BitmapFile
  * Loading, saving and initalising
  */
 
-    void saveToBuffer(byte *);
-    bool loadFromBuffer(const byte *);
+    //void saveToBuffer(byte *);
+    void saveToString(std::string& out, const std::string& in);
 
+    //bool loadFromBuffer(const byte *);
+    bool loadFromString(const std::string& in, std::string& out);
 /**
  * Getting & setting dimensions and other info
  */
@@ -144,7 +146,7 @@ struct BitmapFile
  * Palette specific functions
  */
 
-         uint32 getPaletteSize() const;
+    uint32 getPaletteSize()	 const;
     const byte *getPalette()     const;
 
     void setPaletteSize(uint32);

@@ -81,6 +81,10 @@ BitmapFileHeader::BitmapFileHeader()
 {
 }
 
+BitmapFileHeader::~BitmapFileHeader()
+{
+}
+
 bool 
 BitmapFileHeader::loadFromBuffer(const byte **buff)
 {
@@ -127,6 +131,12 @@ BitmapInfoHeader::BitmapInfoHeader()
    numImportant(0),
    paletteData(NULL)
 {
+}
+
+BitmapInfoHeader::~BitmapInfoHeader()
+{
+    if (paletteData)
+        delete [] paletteData;
 }
 
 void
@@ -229,37 +239,65 @@ BitmapFile::~BitmapFile()
 
 /* returns true on success*/
 bool 
-BitmapFile::loadFromBuffer(const byte *buffPtr)
+BitmapFile::loadFromString(const std::string& inStr, std::string& outStr)
 {
-    const byte *buff = buffPtr;
+    uint32 imageSize;
+ 
+    const byte *buff = reinterpret_cast<const byte*>(inStr.data());
 
     if (buff == NULL)
+    { 
+        gltWarning("No data in image string.");
         return false;
+    }
 
-    if (fileHeader->loadFromBuffer(&buff) == 0)
+    if (!fileHeader->loadFromBuffer(&buff))
+    { 
+        gltWarning("Unsupported BMP variant.");
         return false;
+    }
 
     infoHeader->loadFromBuffer(&buff);
 
-    if (infoHeader->getImageSize() == 0)
+    if ( (imageSize = infoHeader->getImageSize()) == 0)
+    { 
+        gltWarning("0 sized image in input string.");
         return false;
+    }
 
     if (imageData)
         delete [] imageData;
 
-    imageData = new byte [infoHeader->getImageSize()];
+    imageData = new byte [imageSize];
 
-    memcpy(imageData, buff, infoHeader->getImageSize());
+    /* double copy at the moment */
+    /* needs to change */
+    memcpy(imageData, buff, imageSize);
 
-    buff += infoHeader->getImageSize();
+    outStr.resize(imageSize);
+
+    // flip the colors internally
+    convertRGBtoBGR();
+
+    // make a pointer for output
+    byte *outputBuffer = (byte*)(outStr.data());
+
+    //copy it over and voila
+    memcpy(outputBuffer, imageData, imageSize);
 
     return true;
 }
 
 void 
-BitmapFile::saveToBuffer(byte *buffPtr)
+BitmapFile::saveToString(std::string& outStr, const std::string& inStr)
 {
-    byte *buff = buffPtr;
+    const byte* inputBuffer = reinterpret_cast<const byte*>(inStr.data());
+
+    setImageData( inputBuffer );
+
+    outStr.resize( infoHeader->getImageSize() );
+
+    byte *buff = (byte*)(outStr.data());
 
     if (buff == NULL)
         return;
@@ -271,6 +309,7 @@ BitmapFile::saveToBuffer(byte *buffPtr)
         return;
     else
     {
+        convertRGBtoBGR();
         memcpy(buff, imageData, infoHeader->getImageSize() );
         buff += infoHeader->getImageSize();
     }
@@ -287,7 +326,7 @@ BitmapFile::adjustInternalDimensions()
     palSize = infoHeader->getPaletteSize();
     bpp = infoHeader->getBitCount();
 
-    infoHeader->setImageSize((uint32)(w * h * ( (float) bpp / 8 )));
+    infoHeader->setImageSize((uint32)(w * h * ( (double)bpp / 8 )));
     fileHeader->setFileSize(DEFAULT_FILE_SIZE + infoHeader->getImageSize() + palSize);
     fileHeader->setImageOffset(DEFAULT_IMAGE_OFFSET + palSize);
 }

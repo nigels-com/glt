@@ -4,9 +4,12 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.8 2004/03/21 20:37:50 nigels Exp $
+    $Id: bmp.cpp,v 2.9 2004/05/15 05:11:55 jgasseli Exp $
 
     $Log: bmp.cpp,v $
+    Revision 2.9  2004/05/15 05:11:55  jgasseli
+    modifying code for string use. Needs testing !
+
     Revision 2.8  2004/03/21 20:37:50  nigels
     Adjusted some formatting to bring it into GLT conventions
 
@@ -73,42 +76,12 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     BitmapFile bitmap;
 
     // Get a pointer to the input byte buffer.
-    const byte *inputBuffer = reinterpret_cast<const byte*>(data.data());
 
-    if (!(bitmap.loadFromBuffer(inputBuffer)))
-    { 
-        gltWarning("Unsupported BMP variant.");
+    if (!bitmap.loadFromString(data, image))
         return false;
-    }
 
     width  = bitmap.getWidth();
     height = bitmap.getHeight();
-
-    uint16 bpp = bitmap.getBpp();
-    uint32 imageSize = bitmap.getImageSize();
-    uint32 bufferSize = 0;
-
-    switch (bpp)
-    {
-    /* Not yet supported
-        case 1:  bufferSize = (imageSize+7)/8; break;
-        case 4:  bufferSize = (imageSize+1)/2; break;
-    */
-        case 8:  bufferSize = imageSize;   break;
-        case 16: bufferSize = imageSize*2; break;
-        case 24: bufferSize = imageSize*3; break;
-    }
-
-    image.resize(bufferSize);
-
-    // flip the colors internally
-    bitmap.convertRGBtoBGR();
-
-    // make a pointer for output
-    byte *outputBuffer = (byte*)(image.data());
-
-    //copy it over and voila
-    memcpy(outputBuffer, bitmap.getImageData(), bufferSize);
 
     //we are done
     return true;
@@ -249,10 +222,6 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
     // make a BitmapFile object for .BMP I/O
     BitmapFile bitmap;
 
-    // generate the byte buffer.
-    // don't copy, just reference
-    // std::string should keep data as long as we don't change the string
-    const byte* inputBuffer = reinterpret_cast<const byte*>(image.data());
     uint32 imageSize = image.size();
 
     bitmap.setWidth(width);
@@ -267,38 +236,7 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
        //...
     }
 
-    bitmap.setImageData( inputBuffer );
-
-    uint32 bufferSize = 0;
-
-    switch (bpp)
-    {
-    /* Not yet supported
-       case 1:
-          bufferSize = (imageSize+7) /8;
-	  break;
-       case 4:
-          bufferSize = (imageSize+1) /2;
-	  break;
-   */
-        case 8:
-	    bufferSize = imageSize;
-	    break;
-        case 16:
-            bufferSize = imageSize*2;
-	    break;
-        case 24:
-            bufferSize = imageSize*3;
-	    break;
-    }
-
-    data.resize(bufferSize);
-
-    byte* outputBuffer = (byte*)(data.data());
-
-    bitmap.convertRGBtoBGR();
-
-    bitmap.saveToBuffer(outputBuffer);
+    bitmap.saveToString(data, image);
 
 
     //we are done
