@@ -4,9 +4,12 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.3 2004/03/17 02:41:44 jgasseli Exp $
+    $Id: bmp.cpp,v 2.4 2004/03/17 03:28:23 nigels Exp $
 
     $Log: bmp.cpp,v $
+    Revision 2.4  2004/03/17 03:28:23  nigels
+    Converted #define to upper case, include bmp_P.cpp directly
+
     Revision 2.3  2004/03/17 02:41:44  jgasseli
     fixed style and code to better suit GLT. Removed bmp_P.cpp from build.
 
@@ -35,8 +38,11 @@
 
 #include <cassert>
 
-#ifdef bmp_P
+//#define BMP_NEW
+
+#ifdef BMP_NEW
 #include "bmp_P.h"
+#include "bmp_P.cpp"
 #endif
 
 using namespace std;
@@ -51,7 +57,7 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     // http://www.dcs.ed.ac.uk/home/mxr/gfx/2d/BMP.txt
     //
 
-#ifdef bmp_P
+#ifdef BMP_NEW
     /* Alternative file loading using bmp_P.cpp */
 
 
@@ -245,7 +251,7 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
 bool
 encodeBMP(string &data,const uint32 width,const uint32 height,const string &image)
 {
-#ifdef bmp_P
+#ifdef BMP_NEW
     /* Alternative file loading using bmp_P.cpp */
 
 
