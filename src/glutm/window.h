@@ -140,6 +140,8 @@ public:
     virtual void OnMotion(int x, int y);                        ///< Handler for mouse movement events
     virtual void OnPassiveMotion(int x, int y);                 ///< Handler for passive mouse motion events (no button pressed)
 
+    virtual void OnJoystick(unsigned int buttonMask, int x, int y, int z);  //< Handler for joystick events
+
     /*!
         \brief Handler for mouse entry/leave events
 
@@ -154,6 +156,21 @@ public:
     virtual void OnMenu(int value);                             ///< Handler for menu events
     virtual void OnReshape(int w, int h);                       ///< Handler for window reshape events
     virtual void OnVisibility(int visible);                     ///< Handler for window visibility events
+
+    /*!
+        \brief      Handler for item select/drop events
+
+        This is a GlutMaster extension that allows GlutWindows
+        to receive filenames or other text-based information
+        that is to be interpreted in an application-specific
+        manner.
+
+        Primarily, it is intended for passing file names
+        or comamnd lines.
+
+        \note   Experimental feature.  (GLUT extension)
+    */
+    virtual void OnCommand(const std::string &item);
 
     //
     // Window manipulation

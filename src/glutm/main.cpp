@@ -19,7 +19,10 @@ int WINAPI   WinMain(HINSTANCE hInstance,
     // Pass command line to GlutMain
 
     std::vector<std::string> arg;
-    stringSplit(arg,::GetCommandLine()," ");
+    arg.push_back(std::string());       // Todo: program name
+
+    if (strlen(lpCmdLine))
+        arg.push_back(lpCmdLine);
 
     if (GlutMain(arg))
     {

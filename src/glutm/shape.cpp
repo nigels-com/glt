@@ -312,6 +312,12 @@ GlutCylinder::draw() const
     glPushMatrix();
         transformation().glMultMatrix();
         glColor();
+        #ifdef GLUTM_FREEGLUT
+        if (solid())
+            glutSolidCylinder(_radius, _height, _slices, _stacks);
+        else
+            glutWireCylinder(_radius, _height, _slices, _stacks);
+        #else
         GLUquadricObj *quadObj = gluNewQuadric();
         gluQuadricDrawStyle(quadObj, (GLenum) (solid() ? GLU_FILL : GLU_SILHOUETTE));
         gluQuadricNormals(quadObj, (GLenum) GLU_SMOOTH);
@@ -326,6 +332,7 @@ GlutCylinder::draw() const
             gluDisk(quadObj,0.0,_radius,_slices,_loops);
         }
         gluDeleteQuadric(quadObj);
+        #endif
     glPopMatrix();
 
     GLERROR;
@@ -451,6 +458,7 @@ GlutCone::draw() const
         else
             glutWireCone(_base,_height,_slices,_stacks);
 
+        #ifndef GLUTM_FREEGLUT
         if (solid() && _closed)
         {
             GLUquadricObj *quadObj = gluNewQuadric();
@@ -461,6 +469,7 @@ GlutCone::draw() const
             gluDisk(quadObj,0.0,_base,_slices,_stacks);
             gluDeleteQuadric(quadObj);
         }
+        #endif
 
     glPopMatrix();
 

@@ -62,7 +62,7 @@ public:
     virtual void OnMouse(int button, int state, int x, int y);  ///< Handler for mouse button events
     virtual void OnMotion(int x, int y);                        ///< Handler for mouse movement events
     virtual void OnPassiveMotion(int x, int y);                 ///< Handler for passive mouse motion events (no button pressed)
-
+    virtual void OnJoystick(unsigned int buttonMask, int x, int y, int z);  //< Handler for joystick events
 };
 
 #endif

@@ -16,12 +16,21 @@ GlutTimer::GlutTimer()
   _tick(0),
   _tickPending(false)
 {
+    // Add this timer to global list
+    _timerList.push_back(this);
 }
 
 GlutTimer::~GlutTimer()
 {
+    // Remove this timer from any allocated slots
+    // Any residual callbacks will be ignored by
+    // GlutMaster
     Slot::remove(this);
-    _idleList.remove(this);
+
+    // Remove this timer from global list
+    _timerList.remove(this);
+
+    GlutMaster::setIdle(this,false);
 }
 
 void GlutTimer::OnIdle()         {}
@@ -53,23 +62,23 @@ unsigned int GlutTimer::getTick() const { return _tick; }
 uint32                         GlutTimer::Slot::_slot;
 std::vector<GlutTimer::Slot>   GlutTimer::Slot::_slots;
 
-list<GlutTimer *>              GlutTimer::_idleList;
+list<GlutTimer *>              GlutTimer::_timerList;
+uint32                         GlutTimer::_idleCount = 0;
 
 void
 GlutTimer::idleCallback()
 {
-    if (_idleList.size())
-    {
+    assert(_timerList.size());
+
         // All active windows with idle processing enabled
         // receive the OnIdle callback
 
-        list<GlutTimer *>::iterator i=_idleList.begin();
-        for (; i!=_idleList.end(); i++)
+    for (list<GlutTimer *>::iterator i=_timerList.begin(); i!=_timerList.end(); i++)
+        if ((*i)->_idle)
         {
             (*i)->OnPreIdle();  // Set GLUT window, OpenGL context, etc.
             (*i)->OnIdle();
         }
-    }
 }
 
 void
@@ -82,6 +91,8 @@ GlutTimer::timerCallback(int val)
     {
         if (slot->_target)
         {
+            assert(_timerList.size());
+
             if (slot->_tick)
             {
                 slot->_target->OnPreTimer();

@@ -78,8 +78,8 @@ GlutWindow::enterGameMode()
     {
         _windowSaved = true;
 
-        _windowX = _x;
-        _windowY = _y;
+        _windowX = getX();
+        _windowY = getY();
         _windowWidth = _width;
         _windowHeight = _height;
         GlutMaster::fullScreen(this);
@@ -190,15 +190,18 @@ bool GlutWindow::getAltModifier()    const { return _altModifier; }
 
 ////////////////////////////////////////////////////////////////////
 
-void GlutWindow::OnPreDisplay()
+void
+GlutWindow::OnPreDisplay()
 {
 }
 
-void GlutWindow::OnDisplay()
+void
+GlutWindow::OnDisplay()
 {
 }
 
-void GlutWindow::OnPostDisplay()
+void
+GlutWindow::OnPostDisplay()
 {
     if (_swapBuffers)
         swapBuffers();
@@ -208,13 +211,15 @@ void GlutWindow::OnIdle()         { postRedisplay(); }
 void GlutWindow::OnTick()         { postRedisplay(); }
 void GlutWindow::OnTimer(int val) { postRedisplay(); }
 
-void GlutWindow::OnPreIdle()
+void
+GlutWindow::OnPreIdle()
 {
     if (_windowID!=-1)
         glutSetWindow(_windowID);
 }
 
-void GlutWindow::OnPreTimer()
+void
+GlutWindow::OnPreTimer()
 {
     if (_windowID!=-1)
     {
@@ -227,7 +232,8 @@ void GlutWindow::OnPreTimer()
     }
 }
 
-void GlutWindow::OnReshape(int w, int h)
+void
+GlutWindow::OnReshape(int w, int h)
 {
     _width = w;
     _height = h;
@@ -243,8 +249,10 @@ void GlutWindow::OnMouse(int button, int state, int x, int y)   {}
 void GlutWindow::OnPassiveMotion(int x, int y)          {}
 void GlutWindow::OnEntry(int state)             {}
 void GlutWindow::OnVisibility(int visible)          {}
+void GlutWindow::OnJoystick(unsigned int buttonMask, int x, int y, int z) {}
 
-void GlutWindow::OnKeyboard(unsigned char key, int x, int y)
+void
+GlutWindow::OnKeyboard(unsigned char key, int x, int y)
 {
     switch (key)
     {
@@ -260,11 +268,13 @@ void GlutWindow::OnKeyboard(unsigned char key, int x, int y)
     }
 }
 
-void GlutWindow::OnKeyboardUp(unsigned char key, int x, int y)
+void
+GlutWindow::OnKeyboardUp(unsigned char key, int x, int y)
 {
 }
 
-void GlutWindow::OnSpecial(int key, int x, int y)
+void
+GlutWindow::OnSpecial(int key, int x, int y)
 {
     switch (key)
     {
@@ -277,11 +287,13 @@ void GlutWindow::OnSpecial(int key, int x, int y)
     }
 }
 
-void GlutWindow::OnSpecialUp(int key, int x, int y)
+void
+GlutWindow::OnSpecialUp(int key, int x, int y)
 {
 }
 
-void GlutWindow::OnMenu(int value)
+void
+GlutWindow::OnMenu(int value)
 {
     switch (value)
     {
@@ -296,6 +308,11 @@ void GlutWindow::OnMenu(int value)
     default:
         break;
     }
+}
+
+void
+GlutWindow::OnCommand(const std::string &item)
+{
 }
 
 bool

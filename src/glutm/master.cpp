@@ -155,6 +155,7 @@ GlutMaster::openWindow(GlutWindow *glutWindow)
         glutMotionFunc       (OnMotion);
         glutMouseFunc        (OnMouse);
         glutPassiveMotionFunc(OnPassiveMotion);
+        glutJoystickFunc     (OnJoystick,5);
         glutEntryFunc        (OnEntry);
         glutReshapeFunc      (OnReshape);
         glutVisibilityFunc   (OnVisibility);
@@ -194,6 +195,7 @@ GlutMaster::openWindow(GlutWindow *glutWindow)
 
     _toOpen.push_back(glutWindow);
     glutTimerFunc(0,GlutMaster::CheckOnOpen,0);
+    glutWindow->setTick(glutWindow->_tick);
 }
 
 void
@@ -226,6 +228,20 @@ GlutMaster::init(int argc,char *argv[])
         #ifdef GLUTM_OPEN_INVENTOR
         GlutWindowInventor::initOpenInventor();
         #endif
+
+        // For pre-exiting GlutTimer objects,
+        // start idle and tick events
+
+        if (GlutTimer::_idleCount)
+            glutIdleFunc(GlutTimer::idleCallback);
+
+        for (list<GlutTimer *>::iterator i=GlutTimer::_timerList.begin(); i!=GlutTimer::_timerList.end(); i++)
+            if ((*i)->_tick>0 && !(*i)->_tickPending)
+            {
+                int index = GlutTimer::Slot::add(*i,0,true);
+                glutTimerFunc((*i)->_tick,GlutTimer::timerCallback,index);
+                (*i)->_tickPending = true;
+            }
     }
 
     // We know that GLUT has been initialised,
@@ -302,21 +318,29 @@ GlutMaster::setIdle(GlutTimer *target,bool idle)
     if (!target)
         return;
 
-    list<GlutTimer *> &idleList = GlutTimer::_idleList;
+    #ifdef GLUTM_DEBUG
+    cout << DEBUG_TITLE("GlutMaster::setIdle");
+    cout << target << ' ';
+    cout << idle << endl;
+    #endif
 
-    if (find(idleList.begin(),idleList.end(),target)==idleList.end() && idle)
+    if (idle && !target->_idle)
     {
-        // Start the GLUT idle function, if necessary
-
-        idleList.push_back(target);
+        GlutTimer::_idleCount++;
         glutIdleFunc(GlutTimer::idleCallback);
     }
     else
-        if (find(idleList.begin(),idleList.end(),target)!=idleList.end() && !idle)
+        if (!idle && target->_idle)
         {
-            idleList.remove(target);
-            if (idleList.size()==0)
+            assert(GlutTimer::_idleCount);
+            GlutTimer::_idleCount--;
+            if (_glutInit)
+            {
+                if (GlutTimer::_idleCount)
+                    glutIdleFunc(GlutTimer::idleCallback);
+                else
                 glutIdleFunc(NULL);
+        }
         }
 
     target->_idle = idle;
@@ -337,6 +361,12 @@ GlutMaster::setTick(GlutTimer *target,unsigned int msec)
     cout << msec << " msec" << endl;
     #endif
 
+    // If GLUT is not yet initialised defer actual
+    // setup until glutInit()
+
+    if (!_glutInit)
+        return;
+
     if (msec!=0 && !target->_tickPending)
     {
         int index = GlutTimer::Slot::add(target,0,true);
@@ -348,8 +378,9 @@ GlutMaster::setTick(GlutTimer *target,unsigned int msec)
 void
 GlutMaster::setTimer(GlutTimer *target,unsigned int msec,int val)
 {
+    assert(_glutInit);
     assert(target);
-    if (!target)
+    if (!target || !_glutInit)
         return;
 
     #ifdef GLUTM_DEBUG
@@ -788,6 +819,23 @@ GlutMaster::OnPassiveMotion(int x, int y)
 
     if (window)
         window->OnPassiveMotion(x, y);
+}
+
+void
+GlutMaster::OnJoystick(unsigned int buttonMask, int x, int y, int z)
+{
+    GlutWindow *window = currentWindow();
+
+    assert(_glutInit);
+    assert(window);
+
+    #ifdef GLUTM_DEBUG
+    cout << DEBUG_TITLE("GlutMaster::OnJoystick");
+    cout << window << ' ' << buttonMask << ',' << x << ',' << y << ',' << z << endl;
+    #endif
+
+    if (window)
+        window->OnJoystick(buttonMask, x, y, z);
 }
 
 void

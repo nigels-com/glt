@@ -260,7 +260,9 @@ public:
         \param      height  Height of cone
         \param      slices  Slices
         \param      stacks  Stacks
-        \param      closed  Close each end
+        \param      closed  Closed at base
+
+        \note   FreeGLUT cones are always closed
     */
     GlutCone(const bool solid = true,const GLdouble base = 1.0,const GLdouble height = 1.0,const GLint slices = 15,const GLint stacks = 10,const bool closed = false);
     /// Destructor

@@ -7,6 +7,7 @@
 #include <glutm/glut.h>
 
 #include <glt/matrix.h>
+#include <glt/error.h>
 
 #include <cstddef>
 #include <cmath>
@@ -26,8 +27,6 @@ GlutWindowExaminer::GlutWindowExaminer(const std::string &title,int width,int he
   _mouseY(0),
   _oldCursor(0)
 {
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 }
 
 GlutWindowExaminer::~GlutWindowExaminer()
@@ -65,9 +64,13 @@ Vector GlutWindowExaminer::axisOfRotation(const Vector &v) const
 
 void GlutWindowExaminer::OnPreDisplay()
 {
+    GLERROR
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     _viewMatrix.glMultMatrix();
+
+    GLERROR
 }
 
 void GlutWindowExaminer::OnOpen()
@@ -83,9 +86,13 @@ void GlutWindowExaminer::OnClose()
 
 void GlutWindowExaminer::OnReshape(int w, int h)
 {
+    GLERROR
+
     GlutWindow::OnReshape(w,h);
     _ortho.set(w,h);
     OnOrient(_viewMatrix,_viewMatrixInverse);
+
+    GLERROR
 }
 
 void GlutWindowExaminer::OnKeyboard(unsigned char key, int x, int y)
@@ -229,6 +236,16 @@ void GlutWindowExaminer::OnMotion(int x, int y)
             zoom   = _mouseZoom   && (_mouseMiddle || (_mouseLeft && _mouseRight));
             pan    = _mousePan    && _mouseRight && !zoom;
             rotate = _mouseRotate && _mouseLeft  && !zoom;
+            break;
+
+        //
+        // Left mouse button, shift to pan, control to zoom
+        //
+
+        case MODE_MOUSE_LEFT:
+            zoom   = _mouseZoom   && _mouseLeft && getCtrlModifier();
+            pan    = _mousePan    && _mouseLeft && getShiftModifier() && !zoom;
+            rotate = _mouseRotate && _mouseLeft && !zoom && !pan;
             break;
 
         //

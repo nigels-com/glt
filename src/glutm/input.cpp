@@ -22,4 +22,5 @@ void GlutInput::OnSpecialUp(int key, int x, int y)             {}
 void GlutInput::OnMouse(int button, int state, int x, int y)   {}
 void GlutInput::OnMotion(int x, int y)                         {}
 void GlutInput::OnPassiveMotion(int x, int y)                  {}
+void GlutInput::OnJoystick(unsigned int buttonMask, int x, int y, int z) {}
 

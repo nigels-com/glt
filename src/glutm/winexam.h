@@ -32,9 +32,11 @@
 */
 
 #include <glutm/window.h>
+
+#include <glt/project.h>
+
 #include <math/matrix4.h>
 #include <math/vector3.h>
-#include <glt/project.h>
 
 /////////////////////////// GlutWindowExaminer ////////////////////////////////////
 
@@ -91,6 +93,7 @@ public:
     typedef enum
     {
         MODE_MOUSE_ONLY = 0,
+        MODE_MOUSE_LEFT,
         MODE_MOUSE_RIGHT,
         MODE_MAX
     } MouseMode;

@@ -159,6 +159,7 @@ private:
     static void OnMotion(int x, int y);
     static void OnMouse(int button, int state, int x, int y);
     static void OnPassiveMotion(int x, int y);
+    static void OnJoystick(unsigned int buttonMask, int x, int y, int z);
     static void OnEntry(int state);
     static void OnReshape(int w, int h);
     static void OnVisibility(int visible);

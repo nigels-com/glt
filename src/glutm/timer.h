@@ -142,7 +142,8 @@ private:
         static std::vector<Slot>        _slots;
     };
 
-    static std::list<GlutTimer *> _idleList;
+    static std::list<GlutTimer *> _timerList;       ///< List of timer objects
+    static uint32                 _idleCount;       ///< Count of timers receiving idle
 
     static void idleCallback();
     static void timerCallback(int val);

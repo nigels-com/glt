@@ -36,6 +36,23 @@
 #include <glt/gl.h>
 #include <glutm/config.h>
 
-#include <GL/glut.h>
+/* Use FreeGLUT */
+
+#ifdef GLUTM_FREEGLUT
+
+#   ifndef FREEGLUT_STATIC
+#   define FREEGLUT_STATIC
+#   endif
+
+#   include <GL/freeglut.h>
+#   include <GL/freeglut_ext.h>
+
+/* Use GLUT */
+
+#else
+
+#   include <GL/glut.h>
+
+#endif
 
 #endif

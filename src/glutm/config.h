@@ -46,6 +46,7 @@
 #endif
 
 // GLUTM_OPEN_INVENTOR      Define this for SGI OSS Open Inventor support
+// GLUTM_FREEGLUT           Define this for FreeGlut support
 // GLUTM_RAYPP              Define this for Ray++ Raytracing support
 // GLUTM_DEBUG              Define this for debug info
 // GLUTM_SAVER              Define this for WIN32 screen saver
@@ -55,6 +56,7 @@
 //#define GLUTM_OPEN_INVENTOR
 //#define GLUTM_RAYPP
 //#define GLUTM_SAVER
+#define GLUTM_FREEGLUT
 #define GLUT_STATIC
 #endif
 
@@ -62,6 +64,7 @@
 //#define GLUTM_OPEN_INVENTOR
 //#define GLUTM_RAYPP
 //#define GLUTM_DEBUG
+#define GLUTM_FREEGLUT
 #endif
 
 // MS Visual C++ compiler has the facility
@@ -71,6 +74,10 @@
 #pragma comment (lib, "scrnsave")
 #pragma comment (lib, "advapi32")
 #pragma comment (lib, "winmm")
+#endif
+
+#if defined(GLUTM_FREEGLUT) && defined(_MSC_VER)
+#pragma comment (lib, "freeglut")
 #endif
 
 #endif
