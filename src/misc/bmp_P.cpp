@@ -46,7 +46,7 @@
 template <typename T>
 inline T readFromBuffer(const byte **pos)
 {
-    T tmp = littleEndian(reinterpret_cast<const T *>(*pos));
+    T tmp = reinterpret_cast<const T *>(*pos);
     *pos += sizeof(T);
     return tmp;
 }
@@ -54,18 +54,10 @@ inline T readFromBuffer(const byte **pos)
 template <typename T>
 inline void writeToBuffer (T val, byte **buff)
 {
-    byte *temp = reinterpret_cast<byte*>(&val);
-
-    #ifdef GLT_BIG_ENDIAN
-    flip(val);
-    #endif
-
-    for (register unsigned i = 0; i < sizeof(T); ++i)
-    {
-        **buff = *temp;
-	++(*buff);
-	++temp;
-    };
+    T *tmp = reinterpret_cast<T*>(*buff);
+  
+    *tmp = val;
+    (*buff) += sizeof(T);
 }
 
 /**
@@ -88,18 +80,18 @@ BitmapFileHeader::~BitmapFileHeader()
 bool 
 BitmapFileHeader::loadFromBuffer(const byte **buff)
 {
-    fileType = readFromBuffer<uint16>(buff);
+    fileType = littleEndian(readFromBuffer<uint16>(buff));
 
     if (fileType != BMP_FILE_ID)/*check for the correct id*/
         return false;
 
-    fileSize = readFromBuffer<uint32>(buff);
+    fileSize = littleEndian(readFromBuffer<uint32>(buff));
 
     /* these are always 0 so no need to worry about byte-order */
     res1 = readFromBuffer<uint16>(buff);
     res2 = readFromBuffer<uint16>(buff);
 
-    imageOffset = readFromBuffer<uint32>(buff);
+    imageOffset = littleEndian(readFromBuffer<uint32>(buff));
 
     return true;
 }
@@ -107,14 +99,14 @@ BitmapFileHeader::loadFromBuffer(const byte **buff)
 void 
 BitmapFileHeader::saveToBuffer(byte **buff)
 {
-    writeToBuffer<uint16>(fileType, buff);
-    writeToBuffer<uint32>(fileSize, buff);
+    writeToBuffer<uint16>(littleEndian(fileType), buff);
+    writeToBuffer<uint32>(littleEndian(fileSize), buff);
 
     /* these are always 0 so no need to worry about byte-order */
     writeToBuffer<uint16>(res1, buff);
     writeToBuffer<uint16>(res2, buff);
 
-    writeToBuffer<uint32>(imageOffset, buff);
+    writeToBuffer<uint32>(littleEndian(imageOffset), buff);
 }
 
 BitmapInfoHeader::BitmapInfoHeader()
@@ -142,17 +134,17 @@ BitmapInfoHeader::~BitmapInfoHeader()
 void
 BitmapInfoHeader::loadFromBuffer(const byte **buff)
 {
-    infoSize     = readFromBuffer<uint32>(buff);
-    imageWidth   = readFromBuffer<uint32>(buff);
-    imageHeight  = readFromBuffer<uint32>(buff);
-    colourPlanes = readFromBuffer<uint16>(buff);
-    bitCount     = readFromBuffer<uint16>(buff);
-    compression  = readFromBuffer<uint32>(buff);
-    imageSize    = readFromBuffer<uint32>(buff);
-    pixelsX      = readFromBuffer<uint32>(buff);
-    pixelsY      = readFromBuffer<uint32>(buff);
-    numColours   = readFromBuffer<uint32>(buff);
-    numImportant = readFromBuffer<uint32>(buff);
+    infoSize     = littleEndian(readFromBuffer<uint32>(buff));
+    imageWidth   = littleEndian(readFromBuffer<uint32>(buff));
+    imageHeight  = littleEndian(readFromBuffer<uint32>(buff));
+    colourPlanes = littleEndian(readFromBuffer<uint16>(buff));
+    bitCount     = littleEndian(readFromBuffer<uint16>(buff));
+    compression  = littleEndian(readFromBuffer<uint32>(buff));
+    imageSize    = littleEndian(readFromBuffer<uint32>(buff));
+    pixelsX      = littleEndian(readFromBuffer<uint32>(buff));
+    pixelsY      = littleEndian(readFromBuffer<uint32>(buff));
+    numColours   = littleEndian(readFromBuffer<uint32>(buff));
+    numImportant = littleEndian(readFromBuffer<uint32>(buff));
 
     loadPaletteFromBuffer(buff);
 }
@@ -173,17 +165,17 @@ BitmapInfoHeader::loadPaletteFromBuffer(const byte **buff)
 void
 BitmapInfoHeader::saveToBuffer(byte **buff)
 {
-    writeToBuffer<uint32>(infoSize, buff);
-    writeToBuffer<uint32>(imageWidth, buff);
-    writeToBuffer<uint32>(imageHeight, buff);
-    writeToBuffer<uint16>(colourPlanes, buff);
-    writeToBuffer<uint16>(bitCount, buff);
-    writeToBuffer<uint32>(compression, buff);
-    writeToBuffer<uint32>(imageSize, buff);
-    writeToBuffer<uint32>(pixelsX, buff);
-    writeToBuffer<uint32>(pixelsY, buff);
-    writeToBuffer<uint32>(numColours, buff);
-    writeToBuffer<uint32>(numImportant, buff);
+    writeToBuffer<uint32>(littleEndian(infoSize), buff);
+    writeToBuffer<uint32>(littleEndian(imageWidth), buff);
+    writeToBuffer<uint32>(littleEndian(imageHeight), buff);
+    writeToBuffer<uint16>(littleEndian(colourPlanes), buff);
+    writeToBuffer<uint16>(littleEndian(bitCount), buff);
+    writeToBuffer<uint32>(littleEndian(compression), buff);
+    writeToBuffer<uint32>(littleEndian(imageSize), buff);
+    writeToBuffer<uint32>(littleEndian(pixelsX), buff);
+    writeToBuffer<uint32>(littleEndian(pixelsY), buff);
+    writeToBuffer<uint32>(littleEndian(numColours), buff);
+    writeToBuffer<uint32>(littleEndian(numImportant), buff);
 
     savePaletteToBuffer(buff);
 }
