@@ -30,7 +30,7 @@
     \brief OpenGL Cursor Interface
     \ingroup GLT
 
-    $Id: cursor.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
+    $Id: cursor.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
 
     These functions manage the raster position, and provide
     a wrapper for the OpenGL font routines.
@@ -42,6 +42,9 @@
     \author  RMIT Dept. Mechanical and Manufacturing Engineering, Australia
 
     $Log: cursor.h,v $
+    Revision 2.0  2004/02/08 19:44:11  nigels
+    Migrate to CVS on sourceforge, revision incremented to 2.0
+
     Revision 1.2  2004/02/08 14:13:21  jgasseli
     Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
     errors on my puter.

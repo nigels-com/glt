@@ -9,9 +9,12 @@
     - http://www.sulaco.co.za/opengl3.htm
     - http://www.4thdimented.com/dimented_tutorialQuake3_1.htm
 
-    $Id: md3.cpp,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
+    $Id: md3.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
 
     $Log: md3.cpp,v $
+    Revision 2.0  2004/02/08 19:44:13  nigels
+    Migrate to CVS on sourceforge, revision incremented to 2.0
+
     Revision 1.2  2004/02/08 14:13:21  jgasseli
     Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
     errors on my puter.

@@ -30,9 +30,12 @@
     \brief   OpenGL Viewport Class
     \ingroup GLT
 
-    $Id: viewport.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
+    $Id: viewport.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
 
     $Log: viewport.h,v $
+    Revision 2.0  2004/02/08 19:44:11  nigels
+    Migrate to CVS on sourceforge, revision incremented to 2.0
+
     Revision 1.2  2004/02/08 14:13:21  jgasseli
     Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
     errors on my puter.

@@ -4,9 +4,12 @@
     \brief   Routines for converting data to C/C++ source code
     \ingroup Misc
 
-    $Id: text2src.cpp,v 1.2 2004/02/08 14:13:22 jgasseli Exp $
+    $Id: text2src.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
 
     $Log: text2src.cpp,v $
+    Revision 2.0  2004/02/08 19:44:13  nigels
+    Migrate to CVS on sourceforge, revision incremented to 2.0
+
     Revision 1.2  2004/02/08 14:13:22  jgasseli
     Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
     errors on my puter.

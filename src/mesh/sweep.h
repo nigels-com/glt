@@ -30,9 +30,12 @@
     \brief   Sweeping
     \ingroup Mesh
 
-    $Id: sweep.h,v 1.2 2004/02/08 14:13:21 jgasseli Exp $
+    $Id: sweep.h,v 2.0 2004/02/08 19:44:13 nigels Exp $
 
     $Log: sweep.h,v $
+    Revision 2.0  2004/02/08 19:44:13  nigels
+    Migrate to CVS on sourceforge, revision incremented to 2.0
+
     Revision 1.2  2004/02/08 14:13:21  jgasseli
     Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
     errors on my puter.
