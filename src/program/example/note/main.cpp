@@ -21,7 +21,7 @@ using namespace std;
 #include "playback.h"
 #include "rasterb.h"
 
-string filename;
+string outfile;
 
 const int magicSize = 8;
 const int messageSize = 1024*16;    // 16K Message Size maximum
@@ -197,12 +197,12 @@ GltNoteWindow::OnMenu(int value)
 
     case NOTE_SAVE:
         {
-            if (filename.size())
+            if (outfile.size())
             {
                 // Read the EXE into memory
 
                 string exe;
-                ifstream is(filename.c_str(),ios::in|ios::binary);
+                ifstream is(outfile.c_str(),ios::in|ios::binary);
                 readStream(is,exe);
 
                 // Replace message
@@ -214,7 +214,7 @@ GltNoteWindow::OnMenu(int value)
 
                 // Write EXE
 
-                string file(filename);
+                string file(outfile);
 #ifdef WIN32
                 file = file.substr(file.rfind('\\')+1);
 #else
@@ -238,7 +238,7 @@ GltNoteWindow::OnMenu(int value)
 bool GlutMain(const std::vector<std::string> &arg)
 {
     if (arg.size())
-        filename = arg.front();
+        outfile = arg.front();
 
     cout << endl;
     cout << "note" << endl;
