@@ -7,7 +7,7 @@
    provided without guarantee or warrantee expressed or  implied. This
    program is -not- in the public domain. */
 
-#ifdef _WIN32
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #define WIN32_LEAN_AND_MEAN
 #define NO_MIN_MAX
 #include <windows.h>
@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32)
+#if defined(_MSC_VER) || defined(__MINGW32__)
 
 /* GLUT 3.7 now tries to avoid including <windows.h>
    to avoid name space pollution, but Win32's <GL/gl.h>
@@ -39,7 +39,7 @@ extern "C" {
 
 /* To disable automatic library usage for GLUT, define GLUT_NO_LIB_PRAGMA
    in your compile preprocessor options. */
-# if !defined(GLUT_BUILDING_LIB) && !defined(GLUT_NO_LIB_PRAGMA) && !defined(__CYGWIN32__) && !defined(__MINGW32__)
+# if !defined(GLUT_BUILDING_LIB) && !defined(GLUT_NO_LIB_PRAGMA)
 #  pragma comment (lib, "winmm.lib")      /* link with Windows MultiMedia lib */
 /* To enable automatic SGI OpenGL for Windows library usage for GLUT,
    define GLUT_USE_SGI_OPENGL in your compile preprocessor options.  */
@@ -61,7 +61,7 @@ extern "C" {
 /* To disable supression of annoying warnings about floats being promoted
    to doubles, define GLUT_NO_WARNING_DISABLE in your compile preprocessor
    options. */
-# if !defined(GLUT_NO_WARNING_DISABLE) && !defined(__CYGWIN32__) && !defined(__MINGW32__)
+# if !defined(GLUT_NO_WARNING_DISABLE)
 #  pragma warning (disable:4244)  /* Disable bogus VC++ 4.2 conversion warnings. */
 #  pragma warning (disable:4305)  /* VC++ 5.0 version of above warning. */
 # endif
@@ -133,7 +133,7 @@ extern _CRTIMP void __cdecl exit(int);
 /* GLUT API entry point declarations for Win32. */
 #	define GLUTAPI extern
 
-#if defined(_WIN32) && !defined(_WINDEF_) && !defined(MESA) && !defined(__CYGWIN32__) && !defined(__MINGW32__)
+#if defined(_MSC_VER) && !defined(_WINDEF_) && !defined(MESA)
 #	if !defined(MESA_MINWARN)
 #		pragma message( "note: WINDOWS.H not included, providing Mesa definition of CALLBACK macro" )
 #		pragma message( "----: and PROC typedef. If you receive compiler warnings about either ")
@@ -146,7 +146,7 @@ typedef void *HDC;
 typedef unsigned long COLORREF;
 #endif
 
-#if defined(_WIN32) && !defined(_WINGDI_) && !defined(MESA) && !defined(__CYGWIN32__) && !defined(__MINGW32__)
+#if defined(_MSC_VER) && !defined(_WINGDI_) && !defined(MESA)
 #	if !defined(MESA_MINWARN)
 #		pragma message( "note: WINDOWS.H not included, providing Mesa definition of wgl functions" )
 #		pragma message( "----: and macros. If you receive compiler warnings about any being multiply ")
@@ -200,7 +200,7 @@ WGLAPI int   GLAPIENTRY SetPixelFormat(HDC,int,const PIXELFORMATDESCRIPTOR *);
 #  pragma warning( pop )
 #endif
 
-#else /* _WIN32 not defined */
+#else /* _MSC_VER not defined */
 
 /* Define GLUTAPIENTRY and GLUTCALLBACK to nothing if we aren't on Win32. */
 #  define GLUTAPIENTRY
@@ -360,7 +360,7 @@ WGLAPI int   GLAPIENTRY SetPixelFormat(HDC,int,const PIXELFORMATDESCRIPTOR *);
 #define GLUT_NORMAL			0
 #define GLUT_OVERLAY			1
 
-#if defined(_WIN32)
+#if defined(_MSC_VER) || defined(__CYGWIN32__) || defined(__MINGW32__)
 /* Stroke font constants (use these in GLUT program). */
 #define GLUT_STROKE_ROMAN		((void*)0)
 #define GLUT_STROKE_MONO_ROMAN		((void*)1)
@@ -541,7 +541,7 @@ GLUTAPI void *glutBitmapHelvetica18;
 
 /* GLUT initialization sub-API. */
 GLUTAPI void GLUTAPIENTRY glutInit(int *argcp, char **argv);
-#if defined(_WIN32) && !defined(GLUT_DISABLE_ATEXIT_HACK)
+#if defined(_MSC_VER) && !defined(GLUT_DISABLE_ATEXIT_HACK)
 GLUTAPI void GLUTAPIENTRY __glutInitWithExit(int *argcp, char **argv, void (__cdecl *exitfunc)(int));
 #ifndef GLUT_BUILDING_LIB
 static void GLUTAPIENTRY glutInit_ATEXIT_HACK(int *argcp, char **argv) { __glutInitWithExit(argcp, argv, exit); }
@@ -558,7 +558,7 @@ GLUTAPI void GLUTAPIENTRY glutMainLoop(void);
 
 /* GLUT window sub-API. */
 GLUTAPI int GLUTAPIENTRY glutCreateWindow(const char *title);
-#if defined(_WIN32) && !defined(GLUT_DISABLE_ATEXIT_HACK)
+#if defined(_MSC_VER) && !defined(GLUT_DISABLE_ATEXIT_HACK)
 GLUTAPI int GLUTAPIENTRY __glutCreateWindowWithExit(const char *title, void (__cdecl *exitfunc)(int));
 #ifndef GLUT_BUILDING_LIB
 static int GLUTAPIENTRY glutCreateWindow_ATEXIT_HACK(const char *title) { return __glutCreateWindowWithExit(title, exit); }
@@ -604,7 +604,7 @@ GLUTAPI void GLUTAPIENTRY glutHideOverlay(void);
 
 /* GLUT menu sub-API. */
 GLUTAPI int GLUTAPIENTRY glutCreateMenu(void (GLUTCALLBACK *func)(int));
-#if defined(_WIN32) && !defined(GLUT_DISABLE_ATEXIT_HACK)
+#if defined(_MSC_VER) && !defined(GLUT_DISABLE_ATEXIT_HACK)
 GLUTAPI int GLUTAPIENTRY __glutCreateMenuWithExit(void (GLUTCALLBACK *func)(int), void (__cdecl *exitfunc)(int));
 #ifndef GLUT_BUILDING_LIB
 static int GLUTAPIENTRY glutCreateMenu_ATEXIT_HACK(void (GLUTCALLBACK *func)(int)) { return __glutCreateMenuWithExit(func, exit); }
