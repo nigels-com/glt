@@ -1,24 +1,31 @@
-/****************************************************************************
+/*
 
-  GLUI User Interface Toolkit
-  ---------------------------
+  glui.cpp
 
-     glui.cpp
-
-
-          --------------------------------------------------
-
+  GLUI User Interface Toolkit (LGPL)
   Copyright (c) 1998 Paul Rademacher
 
-  This program is freely distributable without licensing fees and is
-  provided without guarantee or warrantee expressed or implied. This
-  program is -not- in the public domain.
+  WWW:    http://sourceforge.net/projects/glui/
+  Forums: http://sourceforge.net/forum/?group_id=92496
 
-*****************************************************************************/
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
 
 #include "glui.h"
 #include "stdinc.h"
-#include <GL/glut.h>
 
 
 /*** This object must be used to create a GLUI ***/
@@ -243,40 +250,40 @@ glui_keyboard_func(unsigned char key, int x, int y)
 void
 glui_special_func(int key, int x, int y)
 {
-    GLUI              *glui;
-    int                current_window;
-    GLUI_Glut_Window  *glut_window;
+  GLUI              *glui;
+  int                current_window;
+  GLUI_Glut_Window  *glut_window;
 
-    current_window = glutGetWindow();
-    glut_window = GLUI_Master.find_glut_window( current_window );
+  current_window = glutGetWindow();
+  glut_window = GLUI_Master.find_glut_window( current_window );
 
     if (glut_window) /**  Was event in a GLUT window?  **/
     {
         if ( GLUI_Master.active_control_glui AND GLUI_Master.active_control )
         {
-            glutSetWindow( GLUI_Master.active_control_glui->get_glut_window_id() );
+      glutSetWindow( GLUI_Master.active_control_glui->get_glut_window_id() );
 
-            GLUI_Master.active_control_glui->special(key,x,y);
-            finish_drawing();
+      GLUI_Master.active_control_glui->special(key,x,y);
+      finish_drawing();
 
-            glutSetWindow( current_window );
-        }
+      glutSetWindow( current_window );
+    }
         else
         {
             if (glut_window->glut_special_CB)
-                glut_window->glut_special_CB( key, x, y );
-        }
+      glut_window->glut_special_CB( key, x, y );
     }
+  }
     else /***  Nope, event was in a standalone GLUI window  **/
     {
         glui = GLUI_Master.find_glui_by_window_id(glutGetWindow());
 
         if ( glui )
         {
-            glui->special(key,x,y);
-            finish_drawing();
-        }
+      glui->special(key,x,y);
+      finish_drawing();
     }
+  }
 }
 
 /********************************************** glui_mouse_func() ********/
@@ -410,6 +417,17 @@ void glui_idle_func(void)
   }
 }
 
+/*********************************** GLUI_Master_Object::GLUI_Master_Object() ******/
+
+GLUI_Master_Object::GLUI_Master_Object()
+:   glut_idle_CB(NULL),
+    glui_id_counter(1)
+{
+}
+
+GLUI_Master_Object::~GLUI_Master_Object()
+{
+}
 
 /*********************************** GLUI_Master_Object::create_glui() ******/
 

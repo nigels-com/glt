@@ -12,7 +12,6 @@
 ****************************************************************************/
 
 #include <string.h>
-#include <GL/glut.h>
 #include "glui.h"
 
 float xy_aspect;
@@ -310,12 +309,13 @@ void myGlutDisplay( void )
 
 /**************************************** main() ********************/
 
-void main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
   /****************************************/
   /*   Initialize GLUT and create window  */
   /****************************************/
 
+  glutInit(&argc, argv);
   glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
   glutInitWindowPosition( 50, 50 );
   glutInitWindowSize( 800, 600 );
@@ -411,6 +411,9 @@ void main(int argc, char* argv[])
   glui->add_checkbox_to_panel( options, "Draw axes", &show_axes );
   glui->add_checkbox_to_panel( options, "Draw text", &show_text );
 
+  options->close();
+//  options->open();
+  options->set_w(180);
 
   /**** Add listbox ****/
   glui->add_statictext( "" );
@@ -478,5 +481,7 @@ void main(int argc, char* argv[])
   /**** Regular GLUT main loop ****/
 
   glutMainLoop();
+
+  return EXIT_SUCCESS;
 }
 

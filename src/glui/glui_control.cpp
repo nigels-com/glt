@@ -1,20 +1,28 @@
-/****************************************************************************
+/*
 
-  GLUI User Interface Toolkit
-  ---------------------------
+  glui_control.cpp - top-level GLUI_Control class
 
-     glui_control.cpp - top-level GLUI_Control class
-
-
-          --------------------------------------------------
-
+  GLUI User Interface Toolkit (LGPL)
   Copyright (c) 1998 Paul Rademacher
 
-  This program is freely distributable without licensing fees and is
-  provided without guarantee or warrantee expressed or implied. This
-  program is -not- in the public domain.
+  WWW:    http://sourceforge.net/projects/glui/
+  Forums: http://sourceforge.net/forum/?group_id=92496
 
-*****************************************************************************/
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
 
 #include "glui.h"
 #include "stdinc.h"
@@ -439,20 +447,20 @@ GLUI_Control::draw_name(int x, int y)
 void
 GLUI_Control::translate_and_draw_front()
 {
-    if ( NOT can_draw() )
-        return;
+  if ( NOT can_draw() )
+    return;
 
     int orig = set_to_glut_window();
     int state = glui->set_front_draw_buffer();
 
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix();
-        translate_to_origin();
-        draw(0,0);
-    glPopMatrix();
+  glMatrixMode( GL_MODELVIEW );
+  glPushMatrix();
+  translate_to_origin();
+  draw(0,0);
+  glPopMatrix();
 
-    glui->restore_draw_buffer(state);
-    restore_window(orig);
+  glui->restore_draw_buffer(state);
+  restore_window(orig);
 }
 
 
@@ -461,24 +469,24 @@ GLUI_Control::translate_and_draw_front()
 void
 GLUI_Control::set_w(int new_w)
 {
-    w = new_w;
-    update_size();  /* Make sure control is big enough to fit text */
+  w = new_w;
+  update_size();  /* Make sure control is big enough to fit text */
 
-    if ( NOT glui )
-        return;
+  if ( NOT glui )
+    return;
 
-    glui->pack_controls();
+  glui->pack_controls();
 
     if ( glui->get_glut_window_id() != -1 )
     {
-        int orig = set_to_glut_window();
-        glutReshapeWindow( glui->main_panel->w, glui->main_panel->h );
-        glutPostRedisplay();
-        /*    printf( "Requesting a reshape to window %d: %d %d\n",
-        glutGetWindow(),
-        glui->main_panel->w, glui->main_panel->h );*/
-        restore_window(orig);
-    }
+    int orig = set_to_glut_window();
+    glutReshapeWindow( glui->main_panel->w, glui->main_panel->h );
+    glutPostRedisplay();
+    /*    printf( "Requesting a reshape to window %d: %d %d\n",
+      glutGetWindow(),
+      glui->main_panel->w, glui->main_panel->h );*/
+    restore_window(orig);
+  }
 }
 
 
@@ -487,21 +495,21 @@ GLUI_Control::set_w(int new_w)
 void
 GLUI_Control::set_h(int new_h)
 {
-    h = new_h;
-    update_size();  /* Make sure control is big enough to fit text */
+  h = new_h;
+  update_size();  /* Make sure control is big enough to fit text */
 
-    if ( NOT glui )
-        return;
+  if ( NOT glui )
+    return;
 
-    glui->pack_controls();
+  glui->pack_controls();
 
     if ( glui->get_glut_window_id() != -1 )
     {
-        int orig = set_to_glut_window();
-        glutReshapeWindow( glui->main_panel->w, glui->main_panel->h );
-        glutPostRedisplay();
-        restore_window(orig);
-    }
+    int orig = set_to_glut_window();
+    glutReshapeWindow( glui->main_panel->w, glui->main_panel->h );
+    glutPostRedisplay();
+    restore_window(orig);
+  }
 }
 
 
@@ -510,7 +518,7 @@ GLUI_Control::set_h(int new_h)
 void
 GLUI_Control::set_alignment(int new_align)
 {
-    alignment = new_align;
+  alignment = new_align;
 
     if ( glui )
     {
@@ -518,11 +526,11 @@ GLUI_Control::set_alignment(int new_align)
 
         if ( glui->get_glut_window_id() != -1 )
         {
-            int orig = set_to_glut_window();
-            glutPostRedisplay();
-            restore_window(orig);
-        }
+      int orig = set_to_glut_window();
+      glutPostRedisplay();
+      restore_window(orig);
     }
+  }
 }
 
 
@@ -533,29 +541,29 @@ GLUI_Control::set_alignment(int new_align)
 void
 GLUI_Control::sync_live(int recurse, int draw_it)
 {
-    GLUI_Node *node;
-    int        sync_it=true;
-    int        i;
-    float      *fp;
-    int        changed = false;
+  GLUI_Node *node;
+  int        sync_it=true;
+  int        i;
+  float      *fp;
+  int        changed = false;
 
-    /*** If this is currently active control, and mouse button is down,
+  /*** If this is currently active control, and mouse button is down,
     don't sync ***/
     if ( glui )
     {
-        if ( this == glui->active_control AND glui->mouse_button_down )
-          sync_it = false;
+    if ( this == glui->active_control AND glui->mouse_button_down )
+      sync_it = false;
 
-        /*** Actually, just disable syncing if button is down ***/
-        /*** Nope, go ahead and sync if mouse is down - this allows syncing in
-          callbacks ***/
-        if ( 0 ) { /* THIS CODE BELOW SHOULD NOT BE EXECUTED */
-          if ( glui->mouse_button_down ) {
-        /* printf( "Can't sync\n" );              */
-        return;
-          }
-        }
+    /*** Actually, just disable syncing if button is down ***/
+    /*** Nope, go ahead and sync if mouse is down - this allows syncing in
+      callbacks ***/
+    if ( 0 ) { /* THIS CODE BELOW SHOULD NOT BE EXECUTED */
+      if ( glui->mouse_button_down ) {
+    /* printf( "Can't sync\n" );              */
+    return;
+      }
     }
+  }
 
   /***  If this control has a live variable, we check its current value
     against the stored value in the control  ***/
@@ -882,18 +890,14 @@ GLUI_Control::needs_idle()
 
 GLUI_Control::~GLUI_Control()
 {
-  GLUI_Control *node, *node_tmp;
+    GLUI_Control *item = (GLUI_Control*) this->first_child();
 
-  /*  printf( "destroying %s\n", this->name );              */
-
-  node = (GLUI_Control*) this->first_child();
-  while( node != NULL ) {
-    /*    printf( "recursively destroying: '%s'\n", node->name );              */
-
-    node_tmp = node;
-    node = (GLUI_Control*) node->next();
-    delete node_tmp;
-  }
+    while (item)
+    {
+        GLUI_Control *tmp = item;
+        item = (GLUI_Control*) item->next();
+        delete tmp;
+    }
 }
 
 

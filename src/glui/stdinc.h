@@ -1,8 +1,8 @@
 #ifndef _STDINC_H_
 #define _STDINC_H_
 
-#include <stdio.h>
-#include <math.h>
+#include <cstdio>
+#include <cmath>
 
 #ifndef AND
 #define AND &&
@@ -15,10 +15,6 @@
 #define false 0
 #endif
 
-#ifndef Bool
-typedef char Bool;
-#endif
-
 #ifndef MAX
 #define MAX(a,b)  ((a)>(b) ? (a) : (b))
 #define MIN(a,b)  ((a)<(b) ? (a) : (b))
@@ -27,12 +23,6 @@ typedef char Bool;
 #ifndef ABS
 #define ABS(a) ((a)>=0 ? (a) : (-(a)))
 #endif
-
-/********* TOGGLE_BOOL(boolean) : toggles values of 'boolean' ******/
-#ifndef TOGGLE_BOOL
-#define TOGGLE_BOOL(a)  ((a)=1-(a))
-#endif
-
 
 /********************  bit comparisons and operations ***************/
 #ifndef TEST_BIT
@@ -118,7 +108,7 @@ typedef  char String[81];
 
      /******************* swap two values, using a temp variable *********/
 #ifndef SWAP2
-#define SWAP2(a,b,t) {t=a;a=b;b=t;}
+#define SWAP2(a,b,t) {t=a;a=b;b=t;}     
 #endif
 
 #define VEC3_TO_ARRAY(v,a)  a[0]=v[0], a[1]=v[1], a[2]=v[2]
@@ -128,4 +118,4 @@ typedef  char String[81];
 
 
 
-
+     

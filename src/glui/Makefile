@@ -22,7 +22,6 @@ default: lib
 
 ifdef WINDIR
 ARCHIVE = libglui32.a
-#INCLUDE += -D_WIN32
 else
 ARCHIVE = libglui.a
 endif

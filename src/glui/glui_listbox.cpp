@@ -1,20 +1,28 @@
-/****************************************************************************
+/*
 
-  GLUI User Interface Toolkit
-  ---------------------------
+  glui_listbox - GLUI_ListBox control class
 
-     glui_listbox - GLUI_ListBox control class
-
-
-          --------------------------------------------------
-
+  GLUI User Interface Toolkit (LGPL)
   Copyright (c) 1998 Paul Rademacher
 
-  This program is freely distributable without licensing fees and is
-  provided without guarantee or warrantee expressed or implied. This
-  program is -not- in the public domain.
+  WWW:    http://sourceforge.net/projects/glui/
+  Forums: http://sourceforge.net/forum/?group_id=92496
 
-*****************************************************************************/
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
 
 #include "glui.h"
 #include "stdinc.h"
@@ -93,13 +101,13 @@ void    GLUI_Listbox::draw( int x, int y )
   if ( enabled ) {
     glui->std_bitmaps.
       draw(GLUI_STDBITMAP_LISTBOX_UP,
-       w-glui->std_bitmaps.bitmaps[GLUI_STDBITMAP_LISTBOX_UP].w-1,
+       w-glui->std_bitmaps.width(GLUI_STDBITMAP_LISTBOX_UP)-1,
        2 );
   }
   else {
     glui->std_bitmaps.
       draw(GLUI_STDBITMAP_LISTBOX_UP_DIS,
-       w-glui->std_bitmaps.bitmaps[GLUI_STDBITMAP_LISTBOX_UP].w-1,
+       w-glui->std_bitmaps.width(GLUI_STDBITMAP_LISTBOX_UP)-1,
        2 );
   }
 
@@ -202,35 +210,35 @@ int  GLUI_Listbox::add_item( int id, char *new_text )
 
 /************************************** GLUI_Listbox::delete_item() **********/
 
-int  GLUI_Listbox::delete_item( char *text )
+int  GLUI_Listbox::delete_item(char *text)
 {
-  GLUI_Listbox_Item *node = get_item_ptr( text );
+    GLUI_Listbox_Item *node = get_item_ptr(text);
 
-  if ( node ) {
-    node->unlink();
-    delete node;
-    return true;
-  }
-  else {
+    if (node)
+    {
+        node->unlink();
+        delete node;
+        return true;
+    }
+
     return false;
-  }
 }
 
 
 /************************************** GLUI_Listbox::delete_item() **********/
 
-int  GLUI_Listbox::delete_item( int id )
+int  GLUI_Listbox::delete_item(int id)
 {
-  GLUI_Listbox_Item *node = get_item_ptr( id );
+    GLUI_Listbox_Item *node = get_item_ptr(id);
 
-  if ( node ) {
-    node->unlink();
-    delete node;
-    return true;
-  }
-  else {
+    if (node)
+    {
+        node->unlink();
+        delete node;
+        return true;
+    }
+
     return false;
-  }
 }
 
 
@@ -391,20 +399,17 @@ int    GLUI_Listbox::do_selection( int item_num )
 
 /*********************************** GLUI_Listbox::~GLUI_Listbox() **********/
 
-GLUI_Listbox::~GLUI_Listbox( )
+GLUI_Listbox::~GLUI_Listbox()
 {
-  GLUI_Listbox_Item *item, *tmp_item;
+    GLUI_Listbox_Item *item = (GLUI_Listbox_Item *) items_list.first_child();
 
-  item = (GLUI_Listbox_Item *) items_list.first_child();
-  while( item ) {
-    tmp_item = item;
-
-    delete item;
-
-    item = (GLUI_Listbox_Item *) tmp_item->next();
-  }
+    while (item)
+    {
+        GLUI_Listbox_Item *tmp = item;
+        item = (GLUI_Listbox_Item *) item->next();
+        delete tmp;
+    }
 }
-
 
 /****************************** GLUI_Listbox::special_handler() **********/
 

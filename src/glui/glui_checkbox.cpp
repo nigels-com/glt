@@ -1,20 +1,28 @@
-/****************************************************************************
+/*
 
-  GLUI User Interface Toolkit
-  ---------------------------
+  glui_checkbox - GLUI_Checkbox control class
 
-     glui_checkbox - GLUI_Checkbox control class
-
-
-          --------------------------------------------------
-
+  GLUI User Interface Toolkit (LGPL)
   Copyright (c) 1998 Paul Rademacher
 
-  This program is freely distributable without licensing fees and is
-  provided without guarantee or warrantee expressed or implied. This
-  program is -not- in the public domain.
+  WWW:    http://sourceforge.net/projects/glui/
+  Forums: http://sourceforge.net/forum/?group_id=92496
 
-*****************************************************************************/
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
 
 #include "glui.h"
 #include "stdinc.h"
@@ -25,7 +33,7 @@ int    GLUI_Checkbox::mouse_down_handler( int local_x, int local_y )
 {
   orig_value = int_val;
 
-  TOGGLE_BOOL( int_val );
+  int_val = !int_val;
 
   currently_inside = true;
 
@@ -76,7 +84,7 @@ int    GLUI_Checkbox::mouse_held_down_handler( int local_x, int local_y,
     draw_checked();*/
 
   if ( inside != currently_inside )
-    TOGGLE_BOOL( int_val );
+    int_val = !int_val;
 
   currently_inside = inside;
 

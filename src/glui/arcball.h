@@ -1,6 +1,30 @@
-/**********************************************************************
+/*
 
-  Arcball.h
+  arcball.h
+
+  GLUI User Interface Toolkit (LGPL)
+  Copyright (c) 1998 Paul Rademacher
+
+  WWW:    http://sourceforge.net/projects/glui/
+  Forums: http://sourceforge.net/forum/?group_id=92496
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*/
+
+/**********************************************************************
 
   A C++ class that implements the Arcball, as described by Ken
   Shoemake in Graphics Gems IV.
@@ -27,29 +51,38 @@
 
   ------------------------------------------------------------------
 
-  Feb 25, 1998 - Paul Rademacher (rademach@cs.unc.edu)
+  Feb 1998, Paul Rademacher (rademach@cs.unc.edu)
+  Oct 2003, Nigel Stewart - GLUI Code Cleaning
 
 **********************************************************************/
 
-
-#ifndef _ARCBALL_H_
-#define _ARCBALL_H_
-
+#ifndef GLUI_ARCBALL_H
+#define GLUI_ARCBALL_H
 
 #include "stdinc.h"
 #include "algebra3.h"
 #include "quaternion.h"
-#include <GL/glut.h>
 
-class Arcball {
+class Arcball
+{
 public:
-  Bool  constraint_x, constraint_y;
-  vec2  center;
-  float radius, damp_factor;
-  int   zero_increment;
+    Arcball();
+    Arcball(mat4 *mtx);
+    Arcball(const vec2 &center, float radius);
 
-  vec3  constrain_vector( vec3 vector, vec3 axis );
-  vec3  mouse_to_sphere( vec2 p );
+    void  set_damping(const float d);
+    void  idle();
+    void  mouse_down(const int x, const int y);
+    void  mouse_up();
+    void  mouse_motion(const int x, const int y, const int shift, const int ctrl, const int alt);
+    void  mouse_motion(const int x, const int y);
+    void  set_constraints(const bool constrain_x, const bool constrain_y);
+    void  set_params(const vec2 &center, const float radius);
+    void  reset_mouse();
+    void  init();
+
+    vec3  constrain_vector(const vec3 &vector, const vec3 &axis);
+    vec3  mouse_to_sphere(const vec2 &p);
 
   //public:
     int   is_mouse_down;  /* true for down, false for up */
@@ -59,22 +92,10 @@ public:
     mat4  rot, rot_increment;
     mat4  *rot_ptr;
 
-    void  set_damping( float d );
-    void  idle( void );
-    void  mouse_down( int x, int y );
-    void  mouse_up( void );
-    void  mouse_motion( int x, int y, int shift, int ctrl, int alt );
-    void  mouse_motion( int x, int y );
-    void  set_constraints( Bool constrain_x, Bool constrain_y );
-    void  set_params( vec2 center, float radius );
-    void  reset_mouse( void );
-    void  init( void );
-
-    Arcball( void );
-    Arcball( mat4 *mtx );
-    Arcball( vec2 center, float radius );
+    bool  constraint_x, constraint_y;
+    vec2  center;
+    float radius, damp_factor;
+    int   zero_increment;
 };
 
-
 #endif
-
