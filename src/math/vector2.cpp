@@ -3,9 +3,12 @@
 /*! \file
     \ingroup Math
 
-    $Id: vector2.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
+    $Id: vector2.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
 
     $Log: vector2.cpp,v $
+    Revision 2.2  2004/05/03 03:27:06  nigels
+    Migrating from MIN/MAX to std::min and std::max
+
     Revision 2.1  2004/02/16 02:40:33  nigels
     Whitespace differences
 
@@ -307,16 +310,16 @@ Vector2::dist(const Vector2 &x) const
 Vector2 &
 Vector2::vmin(const Vector2 &v)
 {
-    _vector[0] = MIN(_vector[0],v[0]);
-    _vector[1] = MIN(_vector[1],v[1]);
+    _vector[0] = std::min(_vector[0],v[0]);
+    _vector[1] = std::min(_vector[1],v[1]);
     return *this;
 }
 
 Vector2 &
 Vector2::vmax(const Vector2 &v)
 {
-    _vector[0] = MAX(_vector[0],v[0]);
-    _vector[1] = MAX(_vector[1],v[1]);
+    _vector[0] = std::max(_vector[0],v[0]);
+    _vector[1] = std::max(_vector[1],v[1]);
     return *this;
 }
 

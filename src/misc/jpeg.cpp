@@ -4,9 +4,12 @@
     \brief   JPEG image encoding and decoding
     \ingroup Misc
 
-    $Id: jpeg.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
+    $Id: jpeg.cpp,v 2.2 2004/05/03 03:30:14 nigels Exp $
 
     $Log: jpeg.cpp,v $
+    Revision 2.2  2004/05/03 03:30:14  nigels
+    Migrating from MIN/MAX to std::min and std::max
+
     Revision 2.1  2004/02/10 13:43:46  nigels
     no message
 
@@ -281,7 +284,7 @@ protected:
             // Traverse all the blocks and copy into output
             while (i!=dest->blocks.end() && j>0)
             {
-                memcpy(k,i->data(),MIN(i->size(),j));
+                memcpy(k,i->data(),std::min(i->size(),j));
                 j -= i->size();     // Decrease remaining bytes
                 k += i->size();     // Advance output pointer
                 i++;                // Increment block iterator

@@ -3,9 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: color.cpp,v 2.1 2004/02/12 13:48:56 nigels Exp $
+    $Id: color.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
 
     $Log: color.cpp,v $
+    Revision 2.2  2004/05/03 03:27:06  nigels
+    Migrating from MIN/MAX to std::min and std::max
+
     Revision 2.1  2004/02/12 13:48:56  nigels
     no message
 
@@ -209,8 +212,8 @@ GltColor::toHSV(real &h,real &s,real &v) const
 {
     // Based on http://www.cs.rit.edu/~ncs/color/t_convert.html
 
-    const real min = MIN(red(),MIN(green(),blue()));
-    const real max = MAX(red(),MAX(green(),blue()));
+    const real min = std::min(red(),std::min(green(),blue()));
+    const real max = std::max(red(),std::max(green(),blue()));
 
     v = max;
 

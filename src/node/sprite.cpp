@@ -75,13 +75,13 @@ GltSprite::init(const GLsizei width,const GLsizei height,const byte *image,const
 
     assert(maxTextureSize>0);
 
-    uint32 tileWidth  = MIN(lowerPowerOf2(width) ,maxTextureSize);
-    uint32 tileHeight = MIN(lowerPowerOf2(height),maxTextureSize);
+    uint32 tileWidth  = std::min(lowerPowerOf2(width) ,maxTextureSize);
+    uint32 tileHeight = std::min(lowerPowerOf2(height),maxTextureSize);
 
     #if 0 // Limit texture size for debugging
     const uint32 testSize = 256;
-    tileWidth  = MIN(tileWidth,testSize);
-    tileHeight = MIN(tileHeight,testSize);
+    tileWidth  = std::min(tileWidth,testSize);
+    tileHeight = std::min(tileHeight,testSize);
     #endif
 
     _nx = width /tileWidth;
@@ -196,8 +196,8 @@ GltSprite::draw() const
                     const GLdouble b = (j+1==_ny ? 1.0 - (_height-y)/GLdouble(height) : 0.0);
                     const GLdouble t = 1.0;
 
-                    const uint32 w = MIN(uint32(width), _width-x);
-                    const uint32 h = MIN(uint32(height),_height-y);
+                    const uint32 w = std::min(uint32(width), _width-x);
+                    const uint32 h = std::min(uint32(height),_height-y);
 
                     glBegin(GL_POLYGON);
                         glTexCoord2d(l,b); glVertex2i(0,0);

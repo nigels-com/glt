@@ -11,6 +11,7 @@
 
 #include <node/fields.h>
 
+#include <algorithm>
 #include <cmath>
 using namespace std;
 
@@ -55,7 +56,7 @@ GltHistogram::draw() const
     if (!visible() || _min==_max || _min>_max || !_count.size())
         return;
 
-    const unsigned int max = maxCount();
+    const unsigned int m = maxCount();
 
     GLERROR;
 
@@ -69,7 +70,7 @@ GltHistogram::draw() const
     // viewing system
 
     GltViewport viewport(true);
-    gluOrtho2D(0,_count.size(),0,MAX(max,1));
+    gluOrtho2D(0,_count.size(),0,std::max(m,1u));
 
     GLERROR;
 
@@ -117,7 +118,7 @@ GltHistogram::draw() const
 void
 GltHistogram::reset()
 {
-    _size = MAX(_size,0);
+    _size = std::max(_size,0);
     _count.clear();
     _count.resize(_size);
     for (int i=0; i<_size; i++)
@@ -169,7 +170,7 @@ unsigned int GltHistogram::minCount() const
     unsigned int min = ~0;
 
     for (uint32 i=0; i<_count.size(); i++)
-        min = MIN(min,_count[i]);
+        min = std::min(min,_count[i]);
 
     return min;
 }
@@ -179,7 +180,7 @@ unsigned int GltHistogram::maxCount() const
     unsigned int max = 0;
 
     for (uint32 i=0; i<_count.size(); i++)
-        max = MAX(max,_count[i]);
+        max = std::max(max,_count[i]);
 
     return max;
 }

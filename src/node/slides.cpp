@@ -157,7 +157,7 @@ GltSlides::draw() const
 
                                 slide->transformation() =
                                     matrixTranslate(-cxSlide,-cySlide) *
-                                    matrixScale(MIN(sx,sy)) *
+                                    matrixScale(std::min(sx,sy)) *
                                     matrixTranslate(cxViewport,cyViewport);
                             }
                             else

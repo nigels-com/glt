@@ -110,7 +110,7 @@ GltRegistry::set(const std::string &settings)
         // Skip line if it's a comment
 
         string::size_type comment = lines[i].find_first_of("#");
-        comment = MIN(comment,lines[i].find("//"));
+        comment = std::min(comment,lines[i].find("//"));
 
         // Find the first colon character
 

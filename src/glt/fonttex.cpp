@@ -3,9 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fonttex.cpp,v 2.1 2004/02/16 01:09:31 nigels Exp $
+    $Id: fonttex.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
 
     $Log: fonttex.cpp,v $
+    Revision 2.2  2004/05/03 03:27:06  nigels
+    Migrating from MIN/MAX to std::min and std::max
+
     Revision 2.1  2004/02/16 01:09:31  nigels
     Tweak the horizontal spacing of characters
     Tweak the GREY_ALPHA texture to improve appearance
@@ -155,10 +158,10 @@ GltFontTexture::init(void *data)
 
         for (i=1; i<_numGlyphs; i++)
         {
-            minGlyph = MIN(minGlyph,_glyph[i].glyph);
-            maxGlyph = MAX(maxGlyph,_glyph[i].glyph);
-            _hStep = MAX(_hStep,_glyph[i].advance);
-            _vStep = MAX(_vStep,_glyph[i].height);
+            minGlyph = std::min(minGlyph,_glyph[i].glyph);
+            maxGlyph = std::max(maxGlyph,_glyph[i].glyph);
+            _hStep =   std::max<int>(_hStep,_glyph[i].advance);
+            _vStep =   std::max<int>(_vStep,_glyph[i].height);
         }
 
         _minGlyph = minGlyph;

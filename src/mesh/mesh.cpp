@@ -6,9 +6,12 @@
 /*! \file
     \ingroup Mesh
 
-    $Id: mesh.cpp,v 2.1 2004/02/16 14:23:38 nigels Exp $
+    $Id: mesh.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
 
     $Log: mesh.cpp,v $
+    Revision 2.2  2004/05/03 03:27:06  nigels
+    Migrating from MIN/MAX to std::min and std::max
+
     Revision 2.1  2004/02/16 14:23:38  nigels
     Mesh shapes always control GL_CULL_FACE
 
@@ -350,13 +353,13 @@ Mesh::writeDebugInfo(ostream &os) const
 
         for (uint32 p=1; p<_point.size(); p++)
         {
-            min_.x() = MIN(min_.x(),_point[p].x());
-            min_.y() = MIN(min_.y(),_point[p].y());
-            min_.z() = MIN(min_.z(),_point[p].z());
+            min_.x() = std::min(min_.x(),_point[p].x());
+            min_.y() = std::min(min_.y(),_point[p].y());
+            min_.z() = std::min(min_.z(),_point[p].z());
 
-            max_.x() = MAX(max_.x(),_point[p].x());
-            max_.y() = MAX(max_.y(),_point[p].y());
-            max_.z() = MAX(max_.z(),_point[p].z());
+            max_.x() = std::max(max_.x(),_point[p].x());
+            max_.y() = std::max(max_.y(),_point[p].y());
+            max_.z() = std::max(max_.z(),_point[p].z());
         }
 
         os << "  min    = " << min_ << endl;

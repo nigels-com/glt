@@ -3,9 +3,12 @@
 /*! \file
     \ingroup Math
 
-    $Id: vector3.cpp,v 2.1 2004/02/16 02:39:28 nigels Exp $
+    $Id: vector3.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
 
     $Log: vector3.cpp,v $
+    Revision 2.2  2004/05/03 03:27:06  nigels
+    Migrating from MIN/MAX to std::min and std::max
+
     Revision 2.1  2004/02/16 02:39:28  nigels
     Vector3::writePov
 
@@ -347,18 +350,18 @@ Vector3::dist(const Vector3 &x) const
 Vector3 &
 Vector3::vmin(const Vector3 &v)
 {
-    _vector[0] = MIN(_vector[0],v[0]);
-    _vector[1] = MIN(_vector[1],v[1]);
-    _vector[2] = MIN(_vector[2],v[2]);
+    _vector[0] = std::min(_vector[0],v[0]);
+    _vector[1] = std::min(_vector[1],v[1]);
+    _vector[2] = std::min(_vector[2],v[2]);
     return *this;
 }
 
 Vector3 &
 Vector3::vmax(const Vector3 &v)
 {
-    _vector[0] = MAX(_vector[0],v[0]);
-    _vector[1] = MAX(_vector[1],v[1]);
-    _vector[2] = MAX(_vector[2],v[2]);
+    _vector[0] = std::max(_vector[0],v[0]);
+    _vector[1] = std::max(_vector[1],v[1]);
+    _vector[2] = std::max(_vector[2],v[2]);
     return *this;
 }
 

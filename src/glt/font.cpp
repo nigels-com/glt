@@ -3,9 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: font.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: font.cpp,v 2.1 2004/05/03 03:27:06 nigels Exp $
 
     $Log: font.cpp,v $
+    Revision 2.1  2004/05/03 03:27:06  nigels
+    Migrating from MIN/MAX to std::min and std::max
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
@@ -86,7 +89,7 @@ GltFont::size(int &w,int &h,const GltString &str) const
 
         //
 
-        w = MAX(w,lWidth);
+        w = std::max(w,lWidth);
 
         //
 

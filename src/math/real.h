@@ -75,9 +75,16 @@
 #define M_DEG_PI    (180.0/M_PI)
 #define M_2PI       (2.0*M_PI)
 
+#ifdef _MSC_VER
+namespace std
+{
+    template<typename T> const T &min(const T &a,const T &b) { return a<b ? a : b }
+    template<typename T> const T &max(const T &a,const T &b) { return a>b ? a : b }
+}
+#endif
 
-#define MAX(x,y) (((x)>(y)) ? (x) : (y))
-#define MIN(x,y) (((x)<(y)) ? (x) : (y))
+//#define MAX(x,y) (((x)>(y)) ? (x) : (y))
+//#define MIN(x,y) (((x)<(y)) ? (x) : (y))
 
 /*!
     \brief   Square of two numbers: x^2

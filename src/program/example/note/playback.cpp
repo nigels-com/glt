@@ -170,7 +170,7 @@ void
 GltPlayback::copy(void *buffer,uint32 size)
 {
     memset(buffer,0,size);
-    memcpy(buffer,&_buffer[0],MIN(_buffer.size(),size-6));
+    memcpy(buffer,&_buffer[0],std::min(_buffer.size(),size-6));
 }
 
 
