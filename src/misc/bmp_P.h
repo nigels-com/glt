@@ -27,6 +27,7 @@
 #ifndef BITMAP_P_H
 #define BITMAP_P_H
 
+#include <glt/config.h>
 
 struct BitmapFileHeader
 {
