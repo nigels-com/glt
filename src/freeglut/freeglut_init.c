@@ -29,8 +29,6 @@
 #include "config.h"
 #endif
 
-#define G_LOG_DOMAIN "freeglut-init"
-
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
@@ -67,7 +65,7 @@ SFG_State fgState = { { -1, -1, GL_FALSE },  /* Position */
                       GL_FALSE,              /* UseCurrentContext */
                       GL_FALSE,              /* GLDebugSwitch */
                       GL_FALSE,              /* XSyncSwitch */
-                      GL_TRUE,               /* IgnoreKeyRepeat */
+                      GL_FALSE,              /* IgnoreKeyRepeat */
                       0xffffffff,            /* Modifiers */
                       0,                     /* FPSInterval */
                       0,                     /* SwapCount */
@@ -207,6 +205,7 @@ void fgInitialize( const char* displayName )
 #endif
 
     fgJoystickInit( 0 );
+    fgJoystickInit( 1 );
 
     fgState.Initialised = GL_TRUE;
 }
@@ -614,15 +613,9 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
     }
 
     /*
-     * Have the display created now. As I am too lazy to implement
-     * the program arguments parsing, we will have the DISPLAY
-     * environment variable used for opening the X display:
-     *
-     * XXX The above comment is rather unclear.  We have just
-     * XXX completed parsing of the program arguments for GLUT
-     * XXX parameters.  We obviously canNOT parse the application-
-     * XXX specific parameters.  Can someone re-write the above
-     * XXX more clearly?
+     * Have the display created now. If there wasn't a "-display"
+     * in the program arguments, we will use the DISPLAY environment
+     * variable for opening the X display (see code above):
      */
     fgInitialize( displayName );
 
@@ -633,15 +626,9 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
 
     if (geometry )
     {
-        int x,y;
-        unsigned int width,height;
-
-        int mask = XParseGeometry( geometry, &x, &y, &width, &height );
-
-        fgState.Position.X = x;
-        fgState.Position.Y = y;
-        fgState.Size.X = width;
-        fgState.Size.Y = height;
+        int mask = XParseGeometry( geometry,
+                                   &fgState.Position.X, &fgState.Position.Y,
+                                   &fgState.Size.X, &fgState.Size.Y );
 
         if( (mask & (WidthValue|HeightValue)) == (WidthValue|HeightValue) )
             fgState.Size.Use = GL_TRUE;

@@ -29,8 +29,6 @@
 #include "config.h"
 #endif
 
-#define  G_LOG_DOMAIN  "freeglut-main"
-
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
@@ -189,7 +187,7 @@ static void fghRedrawWindowByHandle ( SFG_WindowHandleType handle )
         );
 
         window->State.NeedToResize = GL_FALSE;
-        fgSetWindow ( current_window );
+        fgSetWindow( current_window );
     }
 
     INVOKE_WCB( *window, Display, ( ) );
@@ -214,7 +212,7 @@ static void fghcbDisplayWindow( SFG_Window *window,
         );
 
         window->State.NeedToResize = GL_FALSE;
-        fgSetWindow( current_window );
+        fgSetWindow ( current_window );
     }
 
     if( window->State.Redisplay &&
@@ -381,20 +379,12 @@ void fgWarning( const char *fmt, ... )
  * Indicates whether Joystick events are being used by ANY window.
  *
  * The current mechanism is to walk all of the windows and ask if
- * there is a joystick callback.  Certainly in some cases, maybe
- * in all cases, the joystick is attached to the system and accessed
- * from ONE point by GLUT/freeglut, so this is not the right way,
- * in general, to do this.  However, the Joystick code is segregated
- * in its own little world, so we can't access the information that
- * we need in order to do that nicely.
+ * there is a joystick callback.  We have a short-circuit early
+ * return if we find any joystick handler registered.
  *
- * Some alternatives:
- *  * Store Joystick data into freeglut global state.
- *  * Provide NON-static functions or data from Joystick *.c file.
- *
- * Basically, the RIGHT way to do this requires knowing something
- * about the Joystick.  Right now, the Joystick code is behind
- * an opaque wall.
+ * The real way to do this is to make use of the glutTimer() API
+ * to more cleanly re-implement the joystick API.  Then, this code
+ * and all other "joystick timer" code can be yanked.
  *
  */
 static void fgCheckJoystickCallback( SFG_Window* w, SFG_Enumerator* e)
@@ -462,6 +452,16 @@ static void fgSleepForEvents( void )
         msec = MIN( msec, 10 ); /* XXX Dumb; forces granularity to .01sec */
 
 #if TARGET_HOST_UNIX_X11
+    /*
+     * Possibly due to aggressive use of XFlush() and friends,
+     * it is possible to have our socket drained but still have
+     * unprocessed events.  (Or, this may just be normal with
+     * X, anyway?)  We do non-trivial processing of X events
+     * after tham in event-reading loop, in any case, so we
+     * need to allow that we may have an empty socket but non-
+     * empty event queue.
+     */
+    if( ! XPending( fgDisplay.Display ) )
     {
         fd_set fdset;
         int err;
@@ -598,6 +598,7 @@ void FGAPIENTRY glutMainLoopEvent( void )
         case DestroyNotify:
             /*
              * This is sent to confirm the XDestroyWindow call.
+             *
              * XXX WHY is this commented out?  Should we re-enable it?
              */
             /* fgAddToWindowDestroyList ( window ); */
@@ -612,12 +613,13 @@ void FGAPIENTRY glutMainLoopEvent( void )
              * XXX double-buffered does not respect viewport when we
              * XXX do a buffer-swap).
              *
-             * XXX GETWINDOW( xexpose );
-             * XXX fgSetWindow( window );
-             * XXX glutPostRedisplay( );
              */
             if( event.xexpose.count == 0 )
-                fghRedrawWindowByHandle( event.xexpose.window );
+            {
+                GETWINDOW( xexpose );
+                fgSetWindow( window );
+                glutPostRedisplay( );
+            }
             break;
 
         case MapNotify:
@@ -1053,6 +1055,8 @@ void FGAPIENTRY glutMainLoopEvent( void )
  */
 void FGAPIENTRY glutMainLoop( void )
 {
+    int action;
+
 #if TARGET_HOST_WIN32
     SFG_Window *window = (SFG_Window *)fgStructure.Windows.First ;
 #endif
@@ -1113,9 +1117,12 @@ void FGAPIENTRY glutMainLoop( void )
     /*
      * When this loop terminates, destroy the display, state and structure
      * of a freeglut session, so that another glutInit() call can happen
+     *
+     * Save the "ActionOnWindowClose" because "fgDeinitialize" resets it.
      */
+    action = fgState.ActionOnWindowClose;
     fgDeinitialize( );
-    if( fgState.ActionOnWindowClose == GLUT_ACTION_EXIT )
+    if( action == GLUT_ACTION_EXIT )
         exit( 0 );
 }
 
@@ -1226,6 +1233,7 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             window->State.Width  = LOWORD(lParam);
             window->State.Height = HIWORD(lParam);
         }
+
         break;
 #if 0
     case WM_SETFOCUS:
@@ -1387,12 +1395,12 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             break;
         }
 
-        if ( GetSystemMetrics( SM_SWAPBUTTON ) )
+        if( GetSystemMetrics( SM_SWAPBUTTON ) )
         {
-            if ( button == GLUT_LEFT_BUTTON )
+            if( button == GLUT_LEFT_BUTTON )
                 button = GLUT_RIGHT_BUTTON;
             else
-                if ( button == GLUT_RIGHT_BUTTON )
+                if( button == GLUT_RIGHT_BUTTON )
                     button = GLUT_LEFT_BUTTON;
         }
 
@@ -1557,7 +1565,7 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         int keypress = -1;
         POINT mouse_pos ;
 
-        if( fgState.IgnoreKeyRepeat && (lParam & KF_REPEAT) )
+        if( fgState.IgnoreKeyRepeat && (HIWORD(lParam) & KF_REPEAT) )
             break;
 
         /*
@@ -1706,7 +1714,7 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
     case WM_SYSCHAR:
     case WM_CHAR:
     {
-        if( fgState.IgnoreKeyRepeat && (lParam & KF_REPEAT) )
+        if( fgState.IgnoreKeyRepeat && (HIWORD(lParam) & KF_REPEAT) )
             break;
 
         fgState.Modifiers = fgGetWin32Modifiers( );
