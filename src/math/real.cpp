@@ -3,17 +3,11 @@
 /*! \file
     \ingroup Math
 
-    $Id: real.cpp,v 2.0 2004/02/08 19:44:12 nigels Exp $
+    $Id: real.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
 
     $Log: real.cpp,v $
-    Revision 2.0  2004/02/08 19:44:12  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/16 02:40:33  nigels
+    Whitespace differences
 
     Revision 1.2  2003/08/05 08:06:16  nigels
     *** empty log message ***

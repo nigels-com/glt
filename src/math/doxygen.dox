@@ -1,8 +1,8 @@
 /*! \defgroup Math GLT Math
     \brief    Mathematical Functionality for 3D Graphics
-    
+
     The math module of GLT is concerned with mathematical
     functionality such as 3D and 4D vectors, plane equations,
-    axis-aligned bounding boxes, 4x4 matricies, random number 
+    axis-aligned bounding boxes, 4x4 matricies, random number
     generation and Perlin noise.
 */

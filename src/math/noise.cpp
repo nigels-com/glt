@@ -3,9 +3,12 @@
 /*! \file
     \ingroup Math
 
-    $Id: noise.cpp,v 2.0 2004/02/08 19:44:12 nigels Exp $
+    $Id: noise.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
 
     $Log: noise.cpp,v $
+    Revision 2.1  2004/02/16 02:40:33  nigels
+    Whitespace differences
+
     Revision 2.0  2004/02/08 19:44:12  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 

@@ -3,17 +3,11 @@
 /*! \file
     \ingroup Math
 
-    $Id: umatrix.cpp,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: umatrix.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
 
     $Log: umatrix.cpp,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/16 02:40:33  nigels
+    Whitespace differences
 
     Revision 1.6  2003/03/13 11:36:27  nigels
     Fixed typo

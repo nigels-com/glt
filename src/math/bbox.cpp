@@ -3,9 +3,12 @@
 /*! \file
     \ingroup Math
 
-    $Id: bbox.cpp,v 2.0 2004/02/08 19:44:12 nigels Exp $
+    $Id: bbox.cpp,v 2.1 2004/02/16 02:45:58 nigels Exp $
 
     $Log: bbox.cpp,v $
+    Revision 2.1  2004/02/16 02:45:58  nigels
+    Whitespace differences
+
     Revision 2.0  2004/02/08 19:44:12  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
