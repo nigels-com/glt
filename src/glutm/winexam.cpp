@@ -62,8 +62,11 @@ Vector GlutWindowExaminer::axisOfRotation(const Vector &v) const
     return _viewMatrixInverse*v - _viewMatrixInverse*Vector0;
 }
 
-void GlutWindowExaminer::OnPreDisplay()
+void
+GlutWindowExaminer::OnPreDisplay()
 {
+    GlutWindow::OnPreDisplay();
+
     GLERROR
 
     glMatrixMode(GL_MODELVIEW);
@@ -73,18 +76,21 @@ void GlutWindowExaminer::OnPreDisplay()
     GLERROR
 }
 
-void GlutWindowExaminer::OnOpen()
+void
+GlutWindowExaminer::OnOpen()
 {
     GlutWindow::OnOpen();
     OnOrient(_viewMatrix,_viewMatrixInverse);
 }
 
-void GlutWindowExaminer::OnClose()
+void
+GlutWindowExaminer::OnClose()
 {
     GlutWindow::OnClose();
 }
 
-void GlutWindowExaminer::OnReshape(int w, int h)
+void
+GlutWindowExaminer::OnReshape(int w, int h)
 {
     GLERROR
 
@@ -95,7 +101,8 @@ void GlutWindowExaminer::OnReshape(int w, int h)
     GLERROR
 }
 
-void GlutWindowExaminer::OnKeyboard(unsigned char key, int x, int y)
+void
+GlutWindowExaminer::OnKeyboard(unsigned char key, int x, int y)
 {
     bool draw = true;
 

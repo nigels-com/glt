@@ -5,7 +5,11 @@
 */
 
 #include <glutm/master.h>
+
 #include <glt/buffer.h>
+#include <glt/frame.h>
+
+#include <fonts/fonts.h>
 
 #include <fstream>
 #include <cstdio>
@@ -17,6 +21,8 @@ using namespace std;
 GlutWindow::GlutWindow(const std::string &title,const int width,const int height,const int x,const int y,const unsigned int displayMode)
 : _leftButtonMenu(GLUT_LEFT_BUTTON),
   _rightButtonMenu(GLUT_RIGHT_BUTTON),
+  _frameRate(51),
+  _overlay(_fontAscii,_viewport),
   _fileIndex(0),
   _windowID(-1),
   _shiftModifier(false),
@@ -39,6 +45,13 @@ GlutWindow::GlutWindow(const std::string &title,const int width,const int height
   _windowHeight(0)
 {
     _swapBuffers = (displayMode & GLUT_DOUBLE)!=0;
+
+    _overlay.alignHorizontal() = GLT_ALIGN_RIGHT;
+    _overlay.alignVertical()   = GLT_ALIGN_BOTTOM;
+    _overlay.shadow()          = true;
+    _overlay.fadeColor()       = GltColor(0.,0.,0.,0.5);
+    _overlay.color()           = GltColor(1.,1.,1.);
+    _overlay.visible()         = false;
 }
 
 GlutWindow::~GlutWindow()
@@ -203,8 +216,13 @@ GlutWindow::OnDisplay()
 void
 GlutWindow::OnPostDisplay()
 {
+    _overlay.draw();
+
     if (_swapBuffers)
         swapBuffers();
+
+    ++_frameRate;
+    sprintf(_overlay.text(),"Frame %d, %3.0f fps",_frameRate.totalFrames(),float(_frameRate.frameRate()));
 }
 
 void GlutWindow::OnIdle()         { postRedisplay(); }
@@ -241,8 +259,27 @@ GlutWindow::OnReshape(int w, int h)
     postRedisplay();
 }
 
-void GlutWindow::OnOpen()  {}
-void GlutWindow::OnClose() {}
+void
+GlutWindow::OnPreOpen()
+{
+     _fontAscii.init(vga8Font);
+}
+
+void
+GlutWindow::OnOpen()
+{
+}
+
+void
+GlutWindow::OnPreClose()
+{
+    _fontAscii.clear();
+}
+
+void
+GlutWindow::OnClose()
+{
+}
 
 void GlutWindow::OnMotion(int x, int y)             {}
 void GlutWindow::OnMouse(int button, int state, int x, int y)   {}

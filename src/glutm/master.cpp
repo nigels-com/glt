@@ -181,6 +181,7 @@ GlutMaster::openWindow(GlutWindow *glutWindow)
         {
             // Close the GlutWindow previously front-most
             glutSetWindow(id);
+            previous->OnPreClose();
             previous->OnClose();
 
             // Insert the current GlutWindow at the front
@@ -549,6 +550,7 @@ GlutMaster::CheckOnOpen(int val)
         #endif
 
         glutSetWindow(id);
+        window->OnPreOpen();             // Do GlutMaster housekeeping first
         window->OnOpen();
         setTick(window,window->_tick);
         _toOpen.pop_front();
@@ -579,6 +581,7 @@ GlutMaster::CheckOnClose(int val)
         // Set context and notify window
 
         glutSetWindow(id);
+        window->OnPreClose();           // Do GlutMaster housekeeping first
         window->OnClose();
         _toClose.pop_front();
 

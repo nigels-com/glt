@@ -38,6 +38,10 @@
 #include <glutm/menu.h>
 
 #include <glt/viewport.h>
+#include <glt/frame.h>
+#include <glt/fontasci.h>
+
+#include <node/text.h>
 
 #include <string>
 
@@ -345,6 +349,8 @@ public:
 
 protected:
 
+    virtual void OnPreOpen();       ///< Handler for pre-open event
+    virtual void OnPreClose();      ///< Handler for pre-close event
     virtual void OnPreDisplay();    ///< Handler for pre-display event
     virtual void OnPostDisplay();   ///< Handler for post-display event
     virtual void OnPreIdle();       ///< Handler for pre-idle event
@@ -359,6 +365,10 @@ protected:
     GlutMenu    _rightButtonMenu;   ///< Pop-up menu for right mouse button
 
     bool _swapBuffers;              ///< Automatic window buffer swapping mode
+
+    GltFrameRate   _frameRate;      ///< Frame-rate information
+    GltFontAscii   _fontAscii;      ///< Overlay font
+    GltTextOverlay _overlay;        ///< Overlay text
 
     std::string nextFilename();     ///< Increment file index and determine filename
     int _fileIndex;                 ///< Current file index
