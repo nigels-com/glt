@@ -4,9 +4,12 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.4 2004/03/17 03:28:23 nigels Exp $
+    $Id: bmp.cpp,v 2.5 2004/03/17 03:53:56 nigels Exp $
 
     $Log: bmp.cpp,v $
+    Revision 2.5  2004/03/17 03:53:56  nigels
+    Resolved compile error
+
     Revision 2.4  2004/03/17 03:28:23  nigels
     Converted #define to upper case, include bmp_P.cpp directly
 
@@ -171,12 +174,10 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     if (imageCompress!=0)
         return false;
 
-    /*
     const uint32 imagePos    = littleEndian((uint32 *)(data.data()+10));
     const uint32 imagePixels = imageWidth*imageHeight;
     const uint32 lineBytes   = (imageWidth*bytesPerPixel+3)&~3;
     const uint32 imageBytes  = lineBytes*imageHeight;
-    */
 
     if (imagePos+imageBytes!=data.size())
         return false;
