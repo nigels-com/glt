@@ -204,26 +204,26 @@ static void teapot( GLint grid, GLdouble scale, GLenum type )
     glScaled(0.5 * scale, 0.5 * scale, 0.5 * scale);
     glTranslated(0.0, 0.0, -1.5);
 
-    for (i = 0; i < 10; i++)
+    for( i = 0; i < 10; i++ )
     {
-        for (j = 0; j < 4; j++)
-            for (k = 0; k < 4; k++)
-                for (l = 0; l < 3; l++)
+        for( j = 0; j < 4; j++ )
+            for( k = 0; k < 4; k++ )
+                for( l = 0; l < 3; l++ )
                 {
                     p[j][k][l] = cpdata[patchdata[i][j * 4 + k]][l];
-                    q[j][k][l] = cpdata[patchdata[i][j * 4 + (3 - k)]][l];
-                    if (l == 1)
+                    q[j][k][l] = cpdata[patchdata[i][j * 4 + ( 3 - k )]][l];
+                    if( l == 1 )
                         q[j][k][l] *= -1.0;
-                    if (i < 6)
+                    if( i < 6 )
                     {
                         r[j][k][l] =
-                            cpdata[patchdata[i][j * 4 + (3 - k)]][l];
-                        if (l == 0)
+                            cpdata[patchdata[i][j * 4 + ( 3 - k )]][l];
+                        if( l == 0 )
                             r[j][k][l] *= -1.0;
                         s[j][k][l] = cpdata[patchdata[i][j * 4 + k]][l];
-                        if (l == 0)
+                        if( l == 0 )
                             s[j][k][l] *= -1.0;
-                        if (l == 1)
+                        if( l == 1 )
                             s[j][k][l] *= -1.0;
                     }
                 }
@@ -237,7 +237,7 @@ static void teapot( GLint grid, GLdouble scale, GLenum type )
         glMap2d(GL_MAP2_VERTEX_3, 0.0, 1.0, 3, 4, 0.0, 1.0, 12, 4,
                 &q[0][0][0]);
         glEvalMesh2(type, 0, grid, 0, grid);
-        if (i < 6)
+        if( i < 6 )
         {
             glMap2d(GL_MAP2_VERTEX_3, 0.0, 1.0, 3, 4, 0.0, 1.0, 12, 4,
                     &r[0][0][0]);

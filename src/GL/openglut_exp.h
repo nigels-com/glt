@@ -54,6 +54,15 @@ extern "C"
  */
 OGAPI int glutCreateMenuWindow( int parent, int x, int y, int w, int h );
 
+OGAPI void glutSetWindowStayOnTop( int enable );
+
+/*
+ * Allow for conditional compilation of experimental features.
+ */
+
+#define OPENGLUT_MENUWINDOW
+#define OPENGLUT_STAYONTOP
+
 #ifdef __cplusplus
 }
 #endif

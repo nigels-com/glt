@@ -31,10 +31,18 @@
 #ifndef OG_INTERNAL_H
 #define OG_INTERNAL_H
 
-/* XXX Update these for each release! */
+/*
+ * It is a good habit to include our own headers to ensure that
+ * the API prototypes match the API definitions.  It also ensures
+ * that any part of OpenGLUT can call any other part with at least
+ * the same ease as a client program.
+ */
+#include <GL/openglut.h>
+#include <GL/openglut_exp.h>
+
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 6
-#define VERSION_PATCH 2
+#define VERSION_PATCH 3
 
 /*
  * OpenGLUT is meant to be available under all Unix/X11, Win32, and WINCE
@@ -58,13 +66,13 @@
 #endif
 
 /*
- * Mouse buttons 0 through {FREEGLUT_MAX_MENUS - 1} can be
+ * Mouse buttons 0 through {OPENGLUT_MAX_MENUS - 1} can be
  * mapped to OpenGLUT menus.  This really should be made
  * dynamic.  As long as we have legacy 3-button limitations
  * for menus, we might as well keep the FREEGLUT_* name as
  * a reminder of the limitation needing removal.
  */
-#define FREEGLUT_MAX_MENUS         3
+#define OPENGLUT_MAX_MENUS         3
 
 /*
  * Somehow all Win32 include headers depend on these:
@@ -147,43 +155,43 @@
 /*
  * OpenGLUT callbacks type definitions
  */
-typedef void (* OGCBDisplay       )( void );
-typedef void (* OGCBReshape       )( int, int );
-typedef void (* OGCBVisibility    )( int );
-typedef void (* OGCBKeyboard      )( unsigned char, int, int );
-typedef void (* OGCBSpecial       )( int, int, int );
-typedef void (* OGCBMouse         )( int, int, int, int );
-typedef void (* OGCBMouseWheel    )( int, int, int, int );
-typedef void (* OGCBMotion        )( int, int );
-typedef void (* OGCBPassive       )( int, int );
-typedef void (* OGCBEntry         )( int );
-typedef void (* OGCBWindowStatus  )( int );
-typedef void (* OGCBSelect        )( int, int, int );
-typedef void (* OGCBJoystick      )( unsigned int, int, int, int );
-typedef void (* OGCBKeyboardUp    )( unsigned char, int, int );
-typedef void (* OGCBSpecialUp     )( int, int, int );
-typedef void (* OGCBOverlayDisplay)( void );
-typedef void (* OGCBSpaceMotion   )( int, int, int );
-typedef void (* OGCBSpaceRotation )( int, int, int );
-typedef void (* OGCBSpaceButton   )( int, int );
-typedef void (* OGCBDials         )( int, int );
-typedef void (* OGCBButtonBox     )( int, int );
-typedef void (* OGCBTabletMotion  )( int, int );
-typedef void (* OGCBTabletButton  )( int, int, int, int );
-typedef void (* OGCBDestroy       )( void );
+typedef void( *OGCBDisplay        )( void );
+typedef void( *OGCBReshape        )( int, int );
+typedef void( *OGCBVisibility     )( int );
+typedef void( *OGCBKeyboard       )( unsigned char, int, int );
+typedef void( *OGCBSpecial        )( int, int, int );
+typedef void( *OGCBMouse          )( int, int, int, int );
+typedef void( *OGCBMouseWheel     )( int, int, int, int );
+typedef void( *OGCBMotion         )( int, int );
+typedef void( *OGCBPassive        )( int, int );
+typedef void( *OGCBEntry          )( int );
+typedef void( *OGCBWindowStatus   )( int );
+typedef void( *OGCBSelect         )( int, int, int );
+typedef void( *OGCBJoystick       )( unsigned int, int, int, int );
+typedef void( *OGCBKeyboardUp     )( unsigned char, int, int );
+typedef void( *OGCBSpecialUp      )( int, int, int );
+typedef void( *OGCBOverlayDisplay )( void );
+typedef void( *OGCBSpaceMotion    )( int, int, int );
+typedef void( *OGCBSpaceRotation  )( int, int, int );
+typedef void( *OGCBSpaceButton    )( int, int );
+typedef void( *OGCBDials          )( int, int );
+typedef void( *OGCBButtonBox      )( int, int );
+typedef void( *OGCBTabletMotion   )( int, int );
+typedef void( *OGCBTabletButton   )( int, int, int, int );
+typedef void( *OGCBDestroy        )( void );
 
 /*
  * The global callbacks type definitions
  */
-typedef void (* OGCBIdle          )( void );
-typedef void (* OGCBTimer         )( int );
-typedef void (* OGCBMenuState     )( int );
-typedef void (* OGCBMenuStatus    )( int, int, int );
+typedef void( *OGCBIdle       )( void );
+typedef void( *OGCBTimer      )( int );
+typedef void( *OGCBMenuState  )( int );
+typedef void( *OGCBMenuStatus )( int, int, int );
 
 /*
  * The callback used when creating/using menus
  */
-typedef void (* OGCBMenu          )( int );
+typedef void( *OGCBMenu )( int );
 
 
 /*
@@ -212,8 +220,8 @@ struct tagSOG_Node
 typedef struct tagSOG_XYUse SOG_XYUse;
 struct tagSOG_XYUse
 {
-    GLint           X, Y;               /* The two integers...               */
-    GLboolean       Use;                /* ...and a single boolean.          */
+    GLint     X, Y;               /* The two integers...               */
+    GLboolean Use;                /* ...and a single boolean.          */
 };
 
 /*
@@ -232,8 +240,8 @@ struct tagSOG_XYUse
 typedef struct tagSOG_Time SOG_Time;
 struct tagSOG_Time
 {
-    ogTimeType      Value;
-    GLboolean       Set;
+    ogTimeType Value;
+    GLboolean  Set;
 };
 
 /*
@@ -254,8 +262,8 @@ typedef enum
 typedef struct tagSOG_State SOG_State;
 struct tagSOG_State
 {
-    SOG_XYUse        Position;             /* The default windows' position  */
-    SOG_XYUse        Size;                 /* The default windows' size      */
+    SOG_XYUse        Position;             /* The default window position    */
+    SOG_XYUse        Size;                 /* The default window size        */
     unsigned int     DisplayMode;          /* Display mode for new windows   */
 
     GLboolean        Initialised;          /* OpenGLUT has been initialised  */
@@ -267,6 +275,8 @@ struct tagSOG_State
     GLboolean        UseCurrentContext;    /* New windows share with current */
 
     GLboolean        GLDebugSwitch;        /* OpenGL state debugging switch  */
+    GLboolean        PrintErrors;          /* Print errors to standard error */
+    GLboolean        PrintWarnings;        /* Print warnings to standard err */
     GLboolean        XSyncSwitch;          /* X11 sync protocol switch       */
 
     int              KeyRepeat;            /* Global key repeat mode.        */
@@ -293,10 +303,11 @@ struct tagSOG_State
     int              ActionOnWindowClose; /* Action when user closes window  */
 
     ogExecutionState ExecState;           /* Used for GLUT termination       */
-    char            *ProgramName;         /* Name of the invoking program    */
-    GLboolean       JoysticksInitted;     /* Only init. if we use them       */
-    jmp_buf         BackToMainLoop;       /* For our unstructured returns    */
-    int             InMainLoop;           /* Can we use BackToMainLoop?      */
+    char             *ProgramName;        /* Name of the invoking program    */
+    GLboolean        JoysticksInitted;    /* Only init. if we use them       */
+    jmp_buf          BackToMainLoop;      /* For our unstructured returns    */
+    int              InMainLoop;          /* Can we use BackToMainLoop?      */
+    unsigned         ButtonMask;          /* Currently pressed mouse buttons */
 };
 
 /*
@@ -324,13 +335,11 @@ struct tagSOG_Display
     int             DisplayViewPortY;   /* saved Y location of the viewport  */
     int             DisplayPointerX;    /* saved X location of the pointer   */
     int             DisplayPointerY;    /* saved Y location of the pointer   */
-
 #endif
 
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-    HINSTANCE        Instance;          /* The application's instance        */
+    HINSTANCE       Instance;           /* The application's instance        */
     DEVMODE         DisplayMode;        /* Desktop's display settings        */
-
 #endif
 
     int             ScreenWidth;        /* The screen's width in pixels      */
@@ -346,10 +355,10 @@ struct tagSOG_Display
 typedef struct tagSOG_Timer SOG_Timer;
 struct tagSOG_Timer
 {
-    SOG_Node        Node;
-    int             ID;                 /* The timer ID integer              */
-    OGCBTimer       Callback;           /* The timer callback                */
-    long            TriggerTime;        /* The timer trigger time            */
+    SOG_Node  Node;
+    int       ID;                 /* The timer ID integer              */
+    OGCBTimer Callback;           /* The timer callback                */
+    long      TriggerTime;        /* The timer trigger time            */
 };
 
 /*
@@ -360,8 +369,8 @@ struct tagSOG_Timer
     typedef Window     SOG_WindowHandleType;
     typedef GLXContext SOG_WindowContextType;
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-    typedef HWND    SOG_WindowHandleType;
-    typedef HGLRC   SOG_WindowContextType;
+    typedef HWND       SOG_WindowHandleType;
+    typedef HGLRC      SOG_WindowContextType;
 #endif
 
 /*
@@ -391,7 +400,7 @@ struct tagSOG_Context
 };
 
 /*
- * Window's state description. This structure should be kept portable.
+ * Window state description. This structure should be kept portable.
  */
 typedef struct tagSOG_WindowState SOG_WindowState;
 struct tagSOG_WindowState
@@ -595,24 +604,24 @@ struct tagSOG_MenuEntry
  */
 struct tagSOG_Window
 {
-    SOG_Node            Node;
-    int                 ID;                     /* Window's ID number        */
+    SOG_Node        Node;
+    int             ID;                            /* Window's ID number     */
 
-    SOG_Context         Window;                 /* Window and OpenGL context */
-    SOG_WindowState     State;                  /* The window state          */
-    void         *CallBacks[ TOTAL_CALLBACKS ]; /* Array of window callbacks */
-    void               *UserData;               /* For use by user           */
+    SOG_Context     Window;                        /* Window and OpenGL      */
+    SOG_WindowState State;                         /* The window state       */
+    void            *CallBacks[ TOTAL_CALLBACKS ]; /* Window callback array  */
+    void            *UserData;                     /* For use by user        */
 
-    SOG_Menu       *Menu[ FREEGLUT_MAX_MENUS ]; /* Menus appended to window  */
-    SOG_Menu       *ActiveMenu;                 /* The window's active menu  */
+    SOG_Menu        *Menu[ OPENGLUT_MAX_MENUS ];   /* Menus for window */
+    SOG_Menu        *ActiveMenu;                   /* Window's active menu */
 
-    SOG_Window         *Parent;                 /* The parent to this window */
-    SOG_List            Children;               /* The subwindows d.l. list  */
+    SOG_Window      *Parent;                /* The parent to this window */
+    SOG_List        Children;               /* Subwindows, menu windows  */
 
-    GLboolean           IsMenu;                 /* Set to 1 if we are a menu */
-    GLboolean           IsUnmanaged;            /* GL_TRUE: Borderless|menu  */
-    GLboolean           IsBorderless;           /* GL_TRUE: GLUT_BORDERLESS  */
-    GLboolean           IsClientMenu;           /* GL_TRUE: Menu Window      */
+    GLboolean       IsMenu;                 /* Set to 1 if we are a menu */
+    GLboolean       IsUnmanaged;            /* GL_TRUE: Borderless|menu  */
+    GLboolean       IsBorderless;           /* GL_TRUE: GLUT_BORDERLESS  */
+    GLboolean       IsClientMenu;           /* GL_TRUE: Menu Window      */
 };
 
 
@@ -730,32 +739,64 @@ extern SOG_State ogState;
 /* -- PRIVATE MACRO DEFINITIONS -------------------------------------------- */
 
 /*
- * A call to this function makes us sure that the Display and Structure
- * subsystems have been properly initialized and are ready to be used.
+ * The OPENGLUT_<condition> macros provide a single symbol
+ * that indications that OpenGLUT is in the state implied by
+ * <condition>.  The conditions are:
+ *  * READY  Display and Structure are initialized.
+ *  * WINDOW There is a current window.
+ *  * MENU   There is a current menu.
+ *
+ * The OPENGLUT_ASSERT_<condition> macros use an assert and
+ * will abort().  These should never be used to check client
+ * correctness nor to check resource allocations.  They should
+ * only be used to check our own internal sanity.
+ *
+ * The OPENGLUT_REQUIRE_<condition>("function") portions are
+ * to be placed in API entry points.  If the <condition> fails,
+ * an ogError() invocation will result, indicating the
+ * <condition> and also displaying the "function".  They should
+ * only be used in API entry points to check client behavior.
+ *
+ * Other error checking should probably be done in-line, or else
+ * use new macros.
+ *
+ * XXX No one seems to have ever used freeglut_assert_menu.
+ * XXX We could remove it, or we could attempt to find places
+ * XXX where it may be useful to substitute the OPENGLUT_*_MENU
+ * XXX macros.
  */
-#define  OPENGLUT_READY ( ogState.Initialised )
-#define  freeglut_assert_ready  assert( OPENGLUT_READY )
-#define  OPENGLUT_ASSERT_READY  assert( OPENGLUT_READY )
-#define  OPENGLUT_REQUIRE_READY(func)                          \
+#define OPENGLUT_READY ( ogState.Initialised )
+#define OPENGLUT_ASSERT_READY  assert( OPENGLUT_READY )
+#define OPENGLUT_REQUIRE_READY(func)                           \
     if( !OPENGLUT_READY )                                      \
         ogError(                                               \
             "OpenGLUT must be initialized when calling %s().", \
             func                                               \
         )
 
-/*
- * A call to those macros assures us that there is a current
- * window and menu set, respectively:
- */
-#define  freeglut_assert_window assert( ogStructure.Window )
-#define  freeglut_assert_menu   assert( ogStructure.Menu )
+#define OPENGLUT_WINDOW ( ogStructure.Window )
+#define OPENGLUT_ASSERT_WINDOW assert( OPENGLUT_WINDOW )
+#define OPENGLUT_REQUIRE_WINDOW(func)                                 \
+    if( !OPENGLUT_WINDOW )                                            \
+        ogError(                                                      \
+            "OpenGLUT must have a current window when calling %s().", \
+            func                                                      \
+        )
+
+#define OPENGLUT_MENU ( ogStructure.Menu )
+#define OPENGLUT_ASSERT_MENU assert( OPENGLUT_MENU )
+#define OPENGLUT_REQUIRE_MENU(func)                                 \
+    if( !OPENGLUT_MENU )                                            \
+        ogError(                                                    \
+            "OpenGLUT must have a current menu when calling %s().", \
+            func                                                    \
+        )
 
 /* -- PRIVATE FUNCTION DECLARATIONS ---------------------------------------- */
 
 /*
- * The initialize and deinitialize functions get called on glutInit()
- * and glutMainLoop() end respectively. They should create/clean up
- * everything inside of OpenGLUT.
+ * The deinitialize function gets called on leaving glutMainLoop().
+ * It cleans up everything inside of OpenGLUT.
  */
 void ogDeinitialize( void );
 
@@ -808,29 +849,43 @@ SOG_Window *ogCreateWindow(
     SOG_Window *parent, const char *title, int x, int y, int w, int h,
     EOG_winType winType
 );
-void        ogSetWindow ( SOG_Window *window );
-void        ogOpenWindow(
+void ogSetWindow( SOG_Window *window );
+void ogOpenWindow(
     SOG_Window *window, const char *title, int x, int y, int w, int h,
     GLboolean gameMode, GLboolean isSubWindow
 );
-void        ogCloseWindow( SOG_Window *window );
-void        ogAddToWindowDestroyList ( SOG_Window *window );
-void        ogCloseWindows( void );
-void        ogDestroyWindow( SOG_Window *window );
+void ogCloseWindow( SOG_Window *window );
+void ogAddToWindowDestroyList( SOG_Window *window );
+void ogCloseWindows( void );
+void ogDestroyWindow( SOG_Window *window );
 
 /*
  * Menu creation and destruction. Defined in og_structure.c
  */
-SOG_Menu   *ogCreateMenu( OGCBMenu menuCallback );
-void        ogDestroyMenu( SOG_Menu *menu );
+SOG_Menu *ogCreateMenu( OGCBMenu menuCallback );
+void ogDestroyMenu( SOG_Menu *menu );
 
 /*
  * Joystick device management functions, defined in og_joystick.c
  */
-void        ogJoystickInit( int ident );
-void        ogJoystickClose( void );
-void        ogJoystickPollWindow( SOG_Window *window );
-
+void ogJoystickInit( void );
+void ogJoystickShutdown( void );
+void ogJoystickOpen( int ident );
+void ogJoystickPollWindow( SOG_Window *window );
+int ogJoystickDetect( void );
+int ogGetJoystickNumAxes( int ident );
+int ogGetJoystickNumButtons( int ident );
+int ogGetJoystickNotWorking( int ident );
+float ogGetJoystickDeadBand( int ident, int axis );
+void ogSetJoystickDeadBand( int ident, int axis, float db );
+float ogGetJoystickSaturation( int ident, int axis );
+void ogSetJoystickSaturation( int ident, int axis, float st );
+void ogSetJoystickMinRange( int ident, float *axes );
+void ogSetJoystickMaxRange( int ident, float *axes );
+void ogSetJoystickCenter( int ident, float *axes );
+void ogGetJoystickMinRange( int ident, float *axes );
+void ogGetJoystickMaxRange( int ident, float *axes );
+void ogGetJoystickCenter( int ident, float *axes );
 /*
  * Helper function to enumerate through all registered windows
  * and one to enumerate all of a window's subwindows...
@@ -872,9 +927,9 @@ SOG_Menu *ogMenuByID( int menuID );
  * The menu activation and deactivation the code. This is the meat
  * of the menu user interface handling code...
  */
-void ogActivateMenu( SOG_Window* window, int button );
+void ogActivateMenu( SOG_Window *window, int button );
 void ogExecuteMenuCallback( SOG_Menu* menu );
-GLboolean ogCheckActiveMenu ( SOG_Window *window, SOG_Menu *menu );
+GLboolean ogCheckActiveMenu( SOG_Window *window, SOG_Menu *menu );
 void ogDeactivateMenu( SOG_Window *window );
 void ogDeactivateSubMenu( SOG_MenuEntry *menuEntry );
 
@@ -895,7 +950,7 @@ long ogElapsedTime( void );
 /*
  * List functions
  */
-void ogListInit(SOG_List *list);
+void ogListInit  (SOG_List *list);
 void ogListAppend(SOG_List *list, SOG_Node *node);
 void ogListRemove(SOG_List *list, SOG_Node *node);
 int ogListLength(SOG_List *list);

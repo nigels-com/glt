@@ -76,7 +76,8 @@ int OGAPIENTRY glutExtensionSupported( const char *extension )
     const char *extensions, *start;
     const int len = strlen( extension );
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutExtensionSupported" );
+
     /* Check for current window and thus a current context */
     if( !ogStructure.Window )
         return 0;
@@ -91,7 +92,7 @@ int OGAPIENTRY glutExtensionSupported( const char *extension )
     while( 1 )
     {
         const char *p = strstr( extensions, extension );
-        if (!p)
+        if( !p )
             return 0;
 
         /* Check that we matched at a word boundary */
@@ -114,9 +115,9 @@ int OGAPIENTRY glutExtensionSupported( const char *extension )
               that OpenGL remembers giving to us and which
               we have not processed.  Uses gluErrorString().
 
-              This is forcibly done by OpenGLUT periodically if
-              "-gldebug" is one of the strings passed into
-              glutInit() via \argv.
+              This is forcibly done by OpenGLUT periodically
+              if \a -gldebug is one of the strings passed into
+              glutInit() via \a argv.
 
     \see      gluErrorString(), glutInit()
 */
@@ -130,7 +131,7 @@ void OGAPIENTRY glutReportErrors( void )
 /*!
     \fn
     \brief    Set autorepeat status.
-    \ingroup  input
+    \ingroup  inputstate
     \param    ignore    Whether to ignore autorepeated keys.
 
               If \a ignore is non-zero, then auto-repeat is
@@ -141,33 +142,31 @@ void OGAPIENTRY glutReportErrors( void )
 */
 void OGAPIENTRY glutIgnoreKeyRepeat( int ignore )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
-
+    OPENGLUT_REQUIRE_READY( "glutIgnoreKeyRepeat" );
+    OPENGLUT_REQUIRE_WINDOW( "glutIgnoreKeyRepeat" );
     ogStructure.Window->State.IgnoreKeyRepeat = ignore ? GL_TRUE : GL_FALSE;
 }
 
 /*!
     \fn
     \brief    Sets autorepeat behavior for all OpenGLUT windows.
-    \ingroup  input
-    \param    repeatMode    On, Off, or Default.
+    \ingroup  inputstate
+    \param    repeatMode    On, Off or Default.
 
               glutSetKeyRepeat() is similar to glutIgnoreKeyRepeat()
               but sets the behavior
               for OpenGLUT in general, rather than for a particular
               window.  The options for \a repeatMode are:
 
-               - \a GLUT_KEY_REPEAT_OFF: Turn off repeat for all windows.
-               - \a GLUT_KEY_REPEAT_ON: Turn on repeat for all windows.
-               - \a GLUT_KEY_REPEAT_DEFAULT: Respect the window's setting.
+               - \a GLUT_KEY_REPEAT_OFF     \n Turn off repeat for all windows.
+               - \a GLUT_KEY_REPEAT_ON      \n Turn on repeat for all windows.
+               - \a GLUT_KEY_REPEAT_DEFAULT \n Respect the window's setting.
 
     \see      glutIgnoreKeyRepeat()
 */
 void OGAPIENTRY glutSetKeyRepeat( int repeatMode )
 {
-    freeglut_assert_ready;
-
+    OPENGLUT_REQUIRE_READY( "glutSetKeyRepeat" );
     switch( repeatMode )
     {
     case GLUT_KEY_REPEAT_OFF:
@@ -203,7 +202,7 @@ void OGAPIENTRY glutSetKeyRepeat( int repeatMode )
 */
 void OGAPIENTRY glutForceJoystickFunc( void )
 {
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutForceJoystickFunc" );
     if( ogStructure.Window && FETCH_WCB( *( ogStructure.Window ), Joystick ) )
         ogJoystickPollWindow( ogStructure.Window );
 }

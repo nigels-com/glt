@@ -117,10 +117,10 @@ static SOG_StrokeFont *oghStrokeByID( void *font )
               - \a font is not a valid OpenGLUT bitmap font
               - The current OpenGL raster position is invalid
 
-    \note     glutBitmapString() is generally more efficient for 
+    \note     glutBitmapString() is generally more efficient for
               strings of characters.
 
-    \see      glRasterPos(), glutBitmapString(), glutBitmapWidth(), 
+    \see      glRasterPos(), glutBitmapString(), glutBitmapWidth(),
               glutBitmapHeight(), glutStrokeCharacter()
 */
 void OGAPIENTRY glutBitmapCharacter( void *font, int character )
@@ -128,9 +128,11 @@ void OGAPIENTRY glutBitmapCharacter( void *font, int character )
     const GLubyte *face;
     SOG_Font *f = oghFontByID( font );
 
-    if( !f ||
+    if(
+        !f ||
         ( 0 > character ) ||
-        (255 < character ) )
+        (255 < character )
+    )
         return;
 
     /* Find the glyph we want to draw. */
@@ -167,8 +169,8 @@ void OGAPIENTRY glutBitmapCharacter( void *font, int character )
 
               The starting raster position is used as
               the left margin for multi-line strings.
-              Each newline character repositions the raster 
-              position at the beginning of the next line.  
+              Each newline character repositions the raster
+              position at the beginning of the next line.
 
               Nothing is drawn, and the raster position is unaffected when
               either:
@@ -207,7 +209,7 @@ void OGAPIENTRY glutBitmapString( void *font, const unsigned char *string )
     while( c = *string++ )
         if( c == '\n' )
         {
-            glBitmap( 0, 0, 0, 0, - ( float ) x, - ( float ) f->Height, NULL );
+            glBitmap( 0, 0, 0, 0, -( float )x, -( float )f->Height, NULL );
             x = 0;
         }
         else  /* Not an EOL, draw the bitmap character */
@@ -236,8 +238,8 @@ void OGAPIENTRY glutBitmapString( void *font, const unsigned char *string )
               Returns the horizontal OpenGL raster position
               offset for a \a character in a bitmapped \a font.
 
-              It is also an upper bound on the width of the bitmapped glyph 
-              for \a character, though not all letters will use their full 
+              It is also an upper bound on the width of the bitmapped glyph
+              for \a character, though not all letters will use their full
               width, especially fixed-width fonts.
 
               Returns 0 if the \a character is out of the inclusive
@@ -256,9 +258,11 @@ int OGAPIENTRY glutBitmapWidth( void *font, int character )
     int ret = 0;
     SOG_Font *f = oghFontByID( font );
 
-    if( f &&
+    if(
+        f &&
         ( 0 <= character ) &&
-        ( 256 > character ) )
+        ( 256 > character )
+    )
         ret = *( f->Characters[ character ] );
 
     return ret;
@@ -277,7 +281,7 @@ int OGAPIENTRY glutBitmapWidth( void *font, int character )
               As with glutBitmapString(), newlines are taken into
               consideration.
 
-              Returns 0 if the \a font is invalid or if the 
+              Returns 0 if the \a font is invalid or if the
               \a string is empty or \a NULL.
 
     \see      glutBitmapString(), glutBitmapWidth(), glutBitmapHeight(),
@@ -302,7 +306,7 @@ int OGAPIENTRY glutBitmapLength( void *font, const unsigned char *string )
             }
     }
 
-    if ( length < this_line_length )
+    if( length < this_line_length )
         length = this_line_length;
     return length;
 }
@@ -313,7 +317,7 @@ int OGAPIENTRY glutBitmapLength( void *font, const unsigned char *string )
     \ingroup  bitmapfont
     \param    font    A bitmapped font identifier.
 
-              Return the line-to-line vertical spacing (in pixels) 
+              Return the line-to-line vertical spacing (in pixels)
               between lines of a bitmapped \a font.
 
               Returns 0 if \a font is invalid.
@@ -367,9 +371,11 @@ void OGAPIENTRY glutStrokeCharacter( void *fontID, int character )
     int i, j;
     SOG_StrokeFont *font = oghStrokeByID( fontID );
 
-    if( !font ||
+    if(
+        !font ||
         ( 1 > character ) ||
-        ( font->Quantity < character ) )
+        ( font->Quantity < character )
+    )
         return;
 
     schar = font->Characters[ character ];
@@ -440,7 +446,7 @@ void OGAPIENTRY glutStrokeString( void *fontID, const unsigned char *string )
             if( c < font->Quantity )
                 if( c == '\n' )
                 {
-                    glTranslatef ( -length, -( float )( font->Height ), 0.0 );
+                    glTranslatef( -length, -( float )( font->Height ), 0.0 );
                     length = 0.0;
                 }
                 else  /* Not an EOL, draw the bitmap character */
@@ -504,9 +510,11 @@ float OGAPIENTRY glutStrokeWidth( void *fontID, int character )
     float ret = 0;
     SOG_StrokeFont *font = oghStrokeByID( fontID );
 
-    if( font &&
+    if(
+        font &&
         ( 0 < character ) &&
-        ( font->Quantity > character ) )
+        ( font->Quantity > character )
+    )
     {
         const SOG_StrokeChar *schar = font->Characters[ character ];
         if( schar )

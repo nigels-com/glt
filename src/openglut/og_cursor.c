@@ -131,8 +131,8 @@ static int ogGetCursorError( const Cursor cursor )
 void OGAPIENTRY glutSetCursor( int cursorID )
 {
     int error = 0;
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    OPENGLUT_REQUIRE_READY( "glutSetCursor" );
+    OPENGLUT_REQUIRE_WINDOW( "glutSetCursor" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
@@ -288,8 +288,8 @@ void OGAPIENTRY glutSetCursor( int cursorID )
 */
 void OGAPIENTRY glutWarpPointer( int x, int y )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    OPENGLUT_REQUIRE_READY( "glutWarpPointer" );
+    OPENGLUT_REQUIRE_WINDOW( "glutWarpPointer" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {

@@ -53,7 +53,7 @@
     \todo We probably shouldn't allocate a buffer that our caller has to
           deallocate.
 */
-wchar_t *oghStrToWstr( const char *str )
+static wchar_t *oghStrToWstr( const char *str )
 {
     size_t bytes = strlen( str ) + 1;
     wchar_t *ret = malloc( 2 * bytes );
@@ -386,7 +386,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
     XWMHints wmHints;
     unsigned long mask;
 
-    freeglut_assert_ready;
+    OPENGLUT_ASSERT_READY;
     /*!
       \todo ogChooseVisual() is a common part of all three.
        With a little thought, we should be able to greatly
@@ -442,25 +442,102 @@ void ogOpenWindow( SOG_Window *window, const char *title,
     window->State.IsOffscreen = GL_FALSE;
     if( ogState.DisplayMode & GLUT_OFFSCREEN )
     {
+        int have_pbuffer = 0;
         window->State.IsOffscreen = GL_TRUE;
-        window->Window.Pixmap = XCreatePixmap(
-            ogDisplay.Display, ogDisplay.RootWindow,
-            w, h,
-            window->Window.VisualInfo->depth
-        );
-        if( False != window->Window.Pixmap )
+        /* Try to create a pbuffer first */
         {
-            window->Window.Handle = glXCreateGLXPixmap(
-                ogDisplay.Display,
-                window->Window.VisualInfo,
-                window->Window.Pixmap
+            int glXattrib_list[ ] =
+            {
+                GLX_PBUFFER_WIDTH, w,
+                GLX_PBUFFER_HEIGHT, h,
+                GLX_LARGEST_PBUFFER, True,
+                None
+            };
+            GLXFBConfig glxfb_xid = False;
+            /* We must use GLX 1.3 method for pbuffers */
+            int status;
+            
+            window->Window.Pixmap=False; /* Try a pbuffer first */
+            
+            ogWarning( "Trying GLXPBuffer" );
+            window->State.IsOffscreen = GL_TRUE;
+
+            glXattrib_list[ 1 ] = w;
+            glXattrib_list[ 3 ] = h;
+
+            status = glXGetConfig(
+                ogDisplay.Display, window->Window.VisualInfo,
+                GLX_FBCONFIG_ID, ( void * )glxfb_xid
             );
-            if( False == window->Window.Handle )
-                XFreePixmap( ogDisplay.Display, window->Window.Pixmap );
+            ogWarning(
+                "Possible error codes "
+                "SUCC=%d EXT=%d SCR=%d ATTR=%d VIS=%d VAL=%d",
+                Success,
+                GLX_NO_EXTENSION, GLX_BAD_SCREEN, GLX_BAD_ATTRIBUTE,
+                GLX_BAD_VISUAL, GLX_BAD_VALUE
+            );
+            ogWarning( " status: %d\n XID of glxfb: %p", status, glxfb_xid );
+
+            if( Success != status )
+                ogWarning( "Could not get glX frame buffer config ID" );
             else
             {
-                window->State.Width = w;
-                window->State.Height = h;
+                window->Window.Handle = glXCreatePbuffer(
+                    ogDisplay.Display,
+                    glxfb_xid,
+                    glXattrib_list
+                );
+                if( False == window->Window.Handle )
+                    ogWarning( "Could not create GLX pbuffer." );
+                else
+                {
+                    ogWarning( "Have pbuffer!" );
+                    have_pbuffer = 1;
+                    if( glXattrib_list[ 5 ] == True )
+                    {
+                        /* The actual size may be smaller than requested */
+                        glXQueryDrawable(
+                            ogDisplay.Display,
+                            window->Window.Handle,
+                            GLX_WIDTH,
+                            &( window->State.Width )
+                        );
+                        glXQueryDrawable(
+                            ogDisplay.Display,
+                            window->Window.Handle,
+                            GLX_HEIGHT,
+                            &( window->State.Height )
+                        );
+                    }
+                    else
+                    {
+                        window->State.Width = w;
+                        window->State.Height = h;
+                    }
+                }
+            }
+        }
+        if( !have_pbuffer )
+        {
+            window->Window.Pixmap = XCreatePixmap(
+                ogDisplay.Display, ogDisplay.RootWindow,
+                w, h,
+                window->Window.VisualInfo->depth
+            );
+            if( False != window->Window.Pixmap )
+            {
+                window->Window.Handle = glXCreateGLXPixmap(
+                    ogDisplay.Display,
+                    window->Window.VisualInfo,
+                    window->Window.Pixmap
+                );
+                if( False == window->Window.Handle )
+                    XFreePixmap( ogDisplay.Display, window->Window.Pixmap );
+                else
+                {
+                    window->State.Width = w;
+                    window->State.Height = h;
+                }
             }
         }
     }
@@ -477,7 +554,8 @@ void ogOpenWindow( SOG_Window *window, const char *title,
         */
         winAttr.event_mask        =
             StructureNotifyMask | SubstructureNotifyMask | ExposureMask |
-            ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyRelease |
+            ButtonPressMask | ButtonReleaseMask |
+            KeyPressMask | KeyReleaseMask |
             VisibilityChangeMask | EnterWindowMask | LeaveWindowMask |
             PointerMotionMask | ButtonMotionMask;
         winAttr.background_pixmap = None;
@@ -548,7 +626,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
             window->Window.Context = glXCreateContext(
                 ogDisplay.Display, window->Window.VisualInfo,
                 NULL,
-                ( ogState.ForceDirectContext | ogState.TryDirectContext ) && 
+                ( ogState.ForceDirectContext | ogState.TryDirectContext ) &&
                 !window->Window.Pixmap
             );
     }
@@ -632,7 +710,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
     DWORD exFlags = 0;
     ATOM atom;
 
-    freeglut_assert_ready;
+    OPENGLUT_ASSERT_READY;
 
     /* Grab the window class we have registered on glutInit(): */
     atom = GetClassInfo( ogDisplay.Instance, _T( OPENGLUT_STRING ), &wc );
@@ -821,13 +899,16 @@ void ogOpenWindow( SOG_Window *window, const char *title,
  */
 void ogCloseWindow( SOG_Window *window )
 {
-    freeglut_assert_ready;
+    OPENGLUT_ASSERT_READY;
 
 #if TARGET_HOST_UNIX_X11
 
     glXDestroyContext( ogDisplay.Display, window->Window.Context );
     if( GL_FALSE == window->State.IsOffscreen )
         XDestroyWindow( ogDisplay.Display, window->Window.Handle );
+    else if( !window->Window.Pixmap )
+        /* We used a Pbuffer */
+        glXDestroyPbuffer( ogDisplay.Display, window->Window.Handle );
     else
     {
         glXDestroyGLXPixmap( ogDisplay.Display, window->Window.Handle );
@@ -978,7 +1059,7 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
         SOG_Window *window = NULL;
         SOG_Window *parent = NULL;
 
-        freeglut_assert_ready; /*! \todo This looks like an abuse of assert */
+        OPENGLUT_REQUIRE_READY( "glutCreateSubWindow" );
         parent = ogWindowByID( parentID );
         if( !parent )
             return 0;
@@ -1035,7 +1116,7 @@ int OGAPIENTRY glutCreateMenuWindow( int parentID, int x, int y, int w, int h )
         SOG_Window *window = NULL;
         SOG_Window *parent = NULL;
 
-        freeglut_assert_ready; /* XXX This looks like assert() abuse */
+        OPENGLUT_REQUIRE_READY( "glutCreateMenuWindow" );
         parent = ogWindowByID( parentID );
         if( parent )
         {
@@ -1170,7 +1251,7 @@ void OGAPIENTRY glutSetWindow( int ID )
 {
     SOG_Window *window = NULL;
 
-    freeglut_assert_ready; /*! \todo Looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutSetWindow" );
     if( ogStructure.Window )
         if( ogStructure.Window->ID == ID )
             return;
@@ -1206,10 +1287,11 @@ void OGAPIENTRY glutSetWindow( int ID )
 */
 int OGAPIENTRY glutGetWindow( void )
 {
-    freeglut_assert_ready; /*! \todo looks like an abuse of assert */
-    if( !ogStructure.Window )
-        return 0;
-    return ogStructure.Window->ID;
+    int ret = 0;
+    OPENGLUT_REQUIRE_READY( "glutGetWindow" );
+    if( ogStructure.Window )
+        ret = ogStructure.Window->ID;
+    return ret;
 }
 
 /*!
@@ -1235,8 +1317,8 @@ int OGAPIENTRY glutGetWindow( void )
 */
 void OGAPIENTRY glutShowWindow( void )
 {
-    freeglut_assert_ready;  /*! \todo Looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo Looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutShowWindow" );
+    OPENGLUT_REQUIRE_WINDOW( "glutShowWindow" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
@@ -1271,8 +1353,8 @@ void OGAPIENTRY glutShowWindow( void )
 */
 void OGAPIENTRY glutHideWindow( void )
 {
-    freeglut_assert_ready;  /*! \todo Looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo Looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutHideWindow" );
+    OPENGLUT_REQUIRE_WINDOW( "glutHideWindow" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
@@ -1327,8 +1409,8 @@ void OGAPIENTRY glutHideWindow( void )
 */
 void OGAPIENTRY glutIconifyWindow( void )
 {
-    freeglut_assert_ready;  /*! \todo Looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo Looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutIconifyWindow" );
+    OPENGLUT_REQUIRE_WINDOW( "glutIconifyWindow" );
 
     ogStructure.Window->State.Visible   = GL_FALSE;
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
@@ -1384,8 +1466,8 @@ void OGAPIENTRY glutIconifyWindow( void )
 */
 void OGAPIENTRY glutSetWindowTitle( const char* title )
 {
-    freeglut_assert_ready;  /*! \todo Looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutSetWindowTitle" );
+    OPENGLUT_REQUIRE_WINDOW( "glutSetWindowTitle" );
     if( ! ogStructure.Window->Parent &&
         ( GL_FALSE == ogStructure.Window->State.IsOffscreen ) )
     {
@@ -1449,8 +1531,8 @@ void OGAPIENTRY glutSetWindowTitle( const char* title )
 */
 void OGAPIENTRY glutSetIconTitle( const char* title )
 {
-    freeglut_assert_ready;  /*! \todo looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutSetIconTitle" );
+    OPENGLUT_REQUIRE_WINDOW( "glutSetIconTitle" );
 
     if( !ogStructure.Window->Parent &&
         GL_FALSE == ogStructure.Window->State.IsOffscreen )
@@ -1513,11 +1595,13 @@ void OGAPIENTRY glutSetIconTitle( const char* title )
 */
 void OGAPIENTRY glutReshapeWindow( int width, int height )
 {
-    freeglut_assert_ready;  /*! \todo looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutReshapeWindow" );
+    OPENGLUT_REQUIRE_WINDOW( "glutReshapeWindow" );
 
     /*! \todo Could delete/create/set-window-id for offscreen. */
-    if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
+    if( ( 1 > width ) || ( 1 > height ) )
+        ogWarning( "glutReshapeWindow() only supports positive sizes." );
+    else if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
         ogStructure.Window->State.NeedToResize = GL_TRUE;
         ogStructure.Window->State.Width  = width;
@@ -1548,16 +1632,17 @@ void OGAPIENTRY glutReshapeWindow( int width, int height )
 */
 void OGAPIENTRY glutPositionWindow( int x, int y )
 {
-    freeglut_assert_ready;  /*! \todo Looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutPositionWidow" );
+    OPENGLUT_REQUIRE_WINDOW( "glutPositionWidow" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
 #if TARGET_HOST_UNIX_X11
 
-        XMoveWindow( ogDisplay.Display, ogStructure.Window->Window.Handle,
-                     x, y );
-        XFlush( ogDisplay.Display ); /*! \todo Shouldn't need this XFlush */
+        XMoveWindow(
+            ogDisplay.Display, ogStructure.Window->Window.Handle, x, y
+        );
+        XFlush( ogDisplay.Display ); /*! \todo Shouldn't need this XFlush() */
 
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
@@ -1598,8 +1683,8 @@ void OGAPIENTRY glutPositionWindow( int x, int y )
 */
 void OGAPIENTRY glutFullScreen( void )
 {
-    freeglut_assert_ready;  /*! \todo looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutFullScreen" );
+    OPENGLUT_REQUIRE_WINDOW( "glutFullScreen" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
@@ -1646,8 +1731,8 @@ void OGAPIENTRY glutFullScreen( void )
         rect.right  = ogDisplay.ScreenWidth;
         rect.bottom = ogDisplay.ScreenHeight;
 
-        AdjustWindowRect ( &rect, WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS |
-                                  WS_CLIPCHILDREN, FALSE );
+        AdjustWindowRect( &rect, WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS |
+                          WS_CLIPCHILDREN, FALSE );
 
         /*
          * SWP_NOACTIVATE     Do not activate the window
@@ -1700,8 +1785,8 @@ void OGAPIENTRY glutFullScreen( void )
 */
 void OGAPIENTRY glutPushWindow( void )
 {
-    freeglut_assert_ready;  /*! \todo looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutPushWindow" );
+    OPENGLUT_REQUIRE_WINDOW( "glutPushWindow" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
@@ -1727,8 +1812,7 @@ void OGAPIENTRY glutPushWindow( void )
     \brief    Request to raise the current window to the top
     \ingroup  window
 
-    This function requests that the <i>current window</i> be ``popped''
-    to the fore.
+    Request that the <i>current window</i> be ``popped'' to the top.
 
     A window can be in front of or behind other windows, as determined
     by the z-order from front to back.  Top-level OpenGLUT windows
@@ -1737,7 +1821,7 @@ void OGAPIENTRY glutPushWindow( void )
 
     A z-order also applies to the subwindows of a top-level window.
     While the z-order of top-level windows can usually be
-    adjusted by the user, subwindow z-order is controlled entired
+    adjusted by the user, subwindow z-order is controlled entirely
     by the application.
 
     If this has any effect on your window's visibility, you should
@@ -1754,8 +1838,8 @@ void OGAPIENTRY glutPushWindow( void )
 */
 void OGAPIENTRY glutPopWindow( void )
 {
-    freeglut_assert_ready;  /*! \todo looks like an abuse of assert */
-    freeglut_assert_window; /*! \todo looks like an abuse of assert */
+    OPENGLUT_REQUIRE_READY( "glutPopWindow" );
+    OPENGLUT_REQUIRE_WINDOW( "glutPopWindow" );
 
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
@@ -1816,4 +1900,84 @@ void* OGAPIENTRY glutGetWindowData( void )
 void OGAPIENTRY glutSetWindowData(void* data)
 {
     ogStructure.Window->UserData = data;
+}
+
+/*!
+    \fn
+    \brief   Set stay on top mode for current window
+    \ingroup experimental
+    \param   enable Either \a GL_TRUE or \a GL_FALSE
+
+    \note    Does not work on all window managers.
+    \note    Sends the Icewm style message to all "other" window
+             managers (maybe including twm, blackbox, ratpoison,
+             amiwm, and whatever others you have).  Can we detect
+             Icewm reliably and only send the Icewm formatted
+             message for Icewm?  Possibly it is harmless as it stands,
+             but it looks wrong.
+    \todo    Can a glutGet() be defined to tell us whether
+             a window can be made to stay on top?  Or whether
+             a window has (successfully) been marked for staying
+             on top?
+    \todo    Should walk the tree of menus and glutPopWindow()
+             (or all windows that are of menu-window type?).
+    \todo    Investigate making a workalike variant using
+             glutPopWindow() to mimic the feature where not
+             directly supported.
+*/
+void OGAPIENTRY glutSetWindowStayOnTop( GLint enable )
+{
+#if TARGET_HOST_WIN32
+    SetWindowPos(
+        ogStructure.Window->Window.Handle,
+        ( GL_TRUE == enable ) ? HWND_TOPMOST : HWND_NOTOPMOST,
+        0, 0, 0, 0, 0
+    );
+#elif TARGET_HOST_UNIX_X11
+    Display *display = ogDisplay.Display;
+    Window   window  = ogStructure.Window->Window.Handle;
+    XEvent e;
+
+    /*
+     * Where this feature is supported, these seem to be common bits
+     * to set up an XEvent for requesting a top-most window.
+     */
+    e.xclient.type         = ClientMessage;
+    e.xclient.display      = display;
+    e.xclient.window       = window;
+    e.xclient.format       = 32;
+    e.xclient.data.l[ 2 ]  = 0;
+    e.xclient.data.l[ 3 ]  = 0;
+    e.xclient.data.l[ 4 ]  = 0;
+
+    /* These two are for EWMH and KDE style window managers. */
+    e.xclient.message_type = XInternAtom( display, "_NET_WM_STATE", FALSE );
+    e.xclient.data.l[ 0 ]  = ( GL_TRUE == enable ) ? 1 : 0;
+
+    if(
+        XInternAtom( display, "KWIN_RUNNING", TRUE )       &&
+        XInternAtom( display, "_KDE_NET_USER_TIME", TRUE ) &&
+        XInternAtom( display, "_DT_SM_WINDOW_INFO", TRUE )
+    )
+        e.xclient.data.l[ 1 ]  = XInternAtom( /* KDE */
+            display, "_NET_WM_STATE_STAYS_ON_TOP", FALSE
+        );
+    else if(
+        XInternAtom( display, "_NET_SUPPORTING_WM_CHECK", TRUE ) &&
+        XInternAtom( display, "_NET_WORKAREA", TRUE )            &&
+        !XInternAtom( display, "_ICEWM_WINOPTHINT", TRUE )
+    )
+        e.xclient.data.l[ 1 ]  = XInternAtom( /* EWMH */
+            display, "_NET_WM_STATE_ABOVE", FALSE
+        );
+    else if( XInternAtom( display, "_ICEWM_WINOPTHINT", TRUE ) )
+    {
+        /* IceWM compatible */
+        e.xclient.message_type = XInternAtom( display, "_WIN_LAYER", FALSE );
+        e.xclient.data.l[ 0 ]  = ( GL_TRUE == enable ) ? 10 : 4;
+        e.xclient.data.l[ 1 ]  = 0;
+    }
+
+    XSendEvent( display, window, TRUE, SubstructureRedirectMask, &e );
+#endif
 }

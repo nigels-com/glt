@@ -241,7 +241,7 @@
                  else if( errno == EACCES )
                      if( !protection_warned )
                      {
-                         ogWarning( "Can't open %s for read!\n", buf );
+                         ogWarning( "Can't open %s for read!", buf );
                          protection_warned = 1;
                      }
              }
@@ -339,9 +339,9 @@
                          if( *num_axes + 1 < _JS_MAX_AXES )
                          {
                              os->axes_usage[ *num_axes ] = usage;
-                             (*num_axes)++;
+                             ( *num_axes )++;
                              os->axes_usage[ *num_axes ] = usage;
-                             (*num_axes)++;
+                             ( *num_axes )++;
                          }
                          break;
                      default:
@@ -542,7 +542,9 @@ static void oghJoystickRawRead( SOG_Joystick *joy, int *buttons, float *axes )
         for( i = 0; i < joy->num_buttons; i++ )
         {
             IOHIDEventStruct hidEvent;
-            (*(joy->hidDev))->getElementValue( joy->hidDev, buttonCookies[i], &hidEvent );
+            ( *(joy->hidDev ) )->getElementValue(
+                joy->hidDev, buttonCookies[i], &hidEvent
+            );
             if( hidEvent.value )
                 *buttons |= 1 << i;
         }
@@ -553,8 +555,10 @@ static void oghJoystickRawRead( SOG_Joystick *joy, int *buttons, float *axes )
         for( i = 0; i < joy->num_axes; i++ )
         {
             IOHIDEventStruct hidEvent;
-            (*(joy->hidDev))->getElementValue( joy->hidDev, axisCookies[i], &hidEvent );
-            axes[i] = hidEvent.value;
+            ( *(joy->hidDev) )->getElementValue(
+                joy->hidDev, axisCookies[i], &hidEvent
+            );
+            axes[ i ] = hidEvent.value;
         }
     }
 #endif
@@ -745,7 +749,7 @@ static void oghJoystickRawRead( SOG_Joystick *joy, int *buttons, float *axes )
             break;
 
         default:
-            ogWarning( "%s", "PLIB_JS: Unrecognised /dev/js return!?!" );
+            ogWarning( "PLIB_JS: Unrecognised /dev/js return!?!" );
 
             /* use the old values */
 
@@ -874,33 +878,41 @@ static int oghJoystickFindDevices( SOG_Joystick *joy, mach_port_t masterPort )
 
     rv = IOServiceGetMatchingServices(masterPort, hidMatch, &hidIterator);
     if( rv != kIOReturnSuccess || !hidIterator) {
-      ogWarning( "%s", "no joystick (HID) devices found" );
+      ogWarning( "no joystick (HID) devices found" );
       return;
     }
 
     /* iterate */
-    while( (ioDev = IOIteratorNext(hidIterator))) {
+    while( ( ioDev = IOIteratorNext( hidIterator ) ) )
+    {
         /* filter out keyboard and mouse devices */
         CFDictionaryRef properties = getCFProperties(ioDev);
         long usage, page;
 
-        CFTypeRef refPage = CFDictionaryGetValue( properties, CFSTR(kIOHIDPrimaryUsagePageKey));
-        CFTypeRef refUsage = CFDictionaryGetValue( properties, CFSTR(kIOHIDPrimaryUsageKey));
-        CFNumberGetValue((CFNumberRef) refUsage, kCFNumberLongType, &usage);
-        CFNumberGetValue((CFNumberRef) refPage, kCFNumberLongType, &page);
+        CFTypeRef refPage = CFDictionaryGetValue(
+            properties, CFSTR( kIOHIDPrimaryUsagePageKey )
+        );
+        CFTypeRef refUsage = CFDictionaryGetValue(
+            properties, CFSTR( kIOHIDPrimaryUsageKey )
+        );
+        CFNumberGetValue( ( CFNumberRef )refUsage, kCFNumberLongType, &usage );
+        CFNumberGetValue( ( CFNumberRef )refPage,  kCFNumberLongType, &page );
 
         /* keep only joystick devices */
-        if( ( page == kHIDPage_GenericDesktop ) && (
-                            (usage == kHIDUsage_GD_Joystick)
-                         || (usage == kHIDUsage_GD_GamePad)
-                         || (usage == kHIDUsage_GD_MultiAxisController)
-                         || (usage == kHIDUsage_GD_Hatswitch)
-                            /* last two necessary ? */
+        if(
+            ( page == kHIDPage_GenericDesktop ) && (
+                ( usage == kHIDUsage_GD_Joystick )
+                || ( usage == kHIDUsage_GD_GamePad)
+                || ( usage == kHIDUsage_GD_MultiAxisController)
+                || ( usage == kHIDUsage_GD_Hatswitch )
+                /* last two necessary ? */
+            ) /* XXX added to make syntactically valid */
+        )     /* XXX added to make syntactically valid */
             /* add it to the array */
-            ioDevices[numDevices++] = ioDev;
+            ioDevices[ numDevices++ ] = ioDev;
     }
 
-    IOObjectRelease(hidIterator);
+    IOObjectRelease( hidIterator );
 }
 
 static CFDictionaryRef oghJoystickGetCFProperties(
@@ -921,17 +933,17 @@ static CFDictionaryRef oghJoystickGetCFProperties(
 
     io_registry_entry_t parent1, parent2;
 
-    rv = IORegistryEntryGetParentEntry( ioDev, kIOServicePlane, &parent1);
-    if( rv != kIOReturnSuccess)
+    rv = IORegistryEntryGetParentEntry( ioDev, kIOServicePlane, &parent1 );
+    if( rv != kIOReturnSuccess )
     {
-        ogWarning( "%s", "error getting device entry parent");
+        ogWarning( "error getting device entry parent" );
         return NULL;
     }
 
-    rv = IORegistryEntryGetParentEntry( parent1, kIOServicePlane, &parent2);
+    rv = IORegistryEntryGetParentEntry( parent1, kIOServicePlane, &parent2) ;
     if( rv != kIOReturnSuccess)
     {
-        ogWarning( "%s", "error getting device entry parent 2");
+        ogWarning( "error getting device entry parent 2" );
         return NULL;
     }
 #endif
@@ -940,7 +952,7 @@ static CFDictionaryRef oghJoystickGetCFProperties(
         &cfProperties, kCFAllocatorDefault, kNilOptions);
     if( rv != kIOReturnSuccess || !cfProperties)
     {
-        ogWarning( "%s", "error getting device properties");
+        ogWarning( "error getting device properties" );
         return NULL;
     }
 
@@ -951,10 +963,10 @@ static void oghJoystickElementEnumerator(
     SOG_Joystick *joy, void *element, void *vjs
 )
 {
-    if( CFGetTypeID((CFTypeRef) element) != CFDictionaryGetTypeID())
+    if( CFGetTypeID( ( CFTypeRef ) element) != CFDictionaryGetTypeID( ) )
     {
-        ogError( "%s", "element enumerator passed non-dictionary value");
-        return;
+        ogError( "element enumerator passed non-dictionary value" );
+        return; /* XXX ogError() exit()s, so we never get here */
     }
 
     static_cast<jsJoystick*>(vjs)->parseElement( (CFDictionaryRef) element );
@@ -1310,9 +1322,7 @@ static void oghJoystickOpen( SOG_Joystick *joy )
 #   if TARGET_HOST_MAC_OSX
         if( joy->id >= numDevices )
         {
-            ogWarning( "%s",
-                       "device index out of range in oghJoystickOpen()"
-            );
+            ogWarning( "device index out of range in oghJoystickOpen()" );
             return;
         }
 
@@ -1326,7 +1336,7 @@ static void oghJoystickOpen( SOG_Joystick *joy )
 
         if( rv != kIOReturnSuccess )
         {
-            ogWarning( "%s", "error creating plugin for io device" );
+            ogWarning( "error creating plugin for io device" );
             return;
         }
 
@@ -1337,9 +1347,7 @@ static void oghJoystickOpen( SOG_Joystick *joy )
         );
 
         if( pluginResult != S_OK )
-            ogWarning(
-                "%s", "QI-ing IO plugin to HID Device interface failed"
-            );
+            ogWarning( "QI-ing IO plugin to HID Device interface failed" );
 
         ( *plugin )->Release( plugin ); /* don't leak a ref */
         if( joy->hidDev == NULL )
@@ -1349,7 +1357,7 @@ static void oghJoystickOpen( SOG_Joystick *joy )
         rv = ( *( joy->hidDev ) )->open( joy->hidDev, 0 );
         if( rv != kIOReturnSuccess )
         {
-            ogWarning( "error opening device interface");
+            ogWarning( "error opening device interface" );
             return;
         }
 
@@ -1584,10 +1592,12 @@ static void oghJoystickOpen( SOG_Joystick *joy )
                 {
                     oghJoystickRawRead( joy, NULL, joy->center );
                     counter++;
-                } while( !joy->error &&
-                         counter < 100 &&
-                         joy->center[ 0 ] == 512.0f &&
-                         joy->center[ 1 ] == 512.0f );
+                } while(
+                    !joy->error &&
+                    counter < 100 &&
+                    joy->center[ 0 ] == 512.0f &&
+                    joy->center[ 1 ] == 512.0f
+                );
 
                 if( counter >= 100 )
                     joy->error = GL_TRUE;
@@ -1610,124 +1620,28 @@ static void oghJoystickOpen( SOG_Joystick *joy )
 }
 
 /*
- * This function replaces the constructor method in the JS library.
+ *
  */
-void ogJoystickInit( int ident )
+void ogJoystickInit( void )
 {
-    if( ident >= MAX_NUM_JOYSTICKS )
-        ogError( "Too large of a joystick number: %d.", ident );
-
-    if( ogJoystick[ ident ] )
-        ogError( "Illegal attempt to multiple-initialize a joystick device" );
-
-    ogJoystick[ ident ] =
-        ( SOG_Joystick * )calloc( sizeof( SOG_Joystick ), 1 );
-
-    /* Set defaults */
-    ogJoystick[ ident ]->num_axes = ogJoystick[ ident ]->num_buttons = 0;
-    ogJoystick[ ident ]->error = GL_TRUE;
-
-#if TARGET_HOST_MACINTOSH
-    ogJoystick[ ident ]->id = ident;
-    sprintf( ogJoystick[ ident ]->fname, "/dev/js%d", ident ); /* FIXME */
-    ogJoystick[ ident ]->error = GL_FALSE;
-#endif
-
-#if TARGET_HOST_MAC_OSX
-    ogJoystick[ ident ]->id = ident;
-    ogJoystick[ ident ]->error = GL_FALSE;
-    ogJoystick[ ident ]->num_axes = 0;
-    ogJoystick[ ident ]->num_buttons = 0;
-
-    if( numDevices < 0 )
+    if( !ogState.JoysticksInitted )
     {
-        /* do first-time init (since we can't over-ride jsInit, hmm */
-        numDevices = 0;
-
-        mach_port_t masterPort;
-        IOReturn rv = IOMasterPort( bootstrap_port, &masterPort );
-        if( rv != kIOReturnSuccess )
-        {
-            ogWarning( "%s", "error getting master Mach port" );
-            return;
-        }
-        oghJoystickFindDevices( masterPort );
+        ogJoystickOpen( 0 );
+        ogJoystickOpen( 1 );
+        ogState.JoysticksInitted = GL_TRUE;
     }
-
-    if( ident >= numDevices )
-    {
-        ogJoystick[ ident ]->error = GL_TRUE;
-        return;
-    }
-
-    /* get the name now too */
-    CFDictionaryRef properties = getCFProperties( ioDevices[ ident ] );
-    CFTypeRef ref = CFDictionaryGetValue( properties,
-                                          CFSTR( kIOHIDProductKey ) );
-    if (!ref)
-        ref = CFDictionaryGetValue(properties, CFSTR( "USB Product Name" ) );
-
-    if( !ref ||
-        !CFStringGetCString( ( CFStringRef )ref, name, 128,
-                             CFStringGetSystemEncoding( ) ) )
-    {
-        ogWarning( "%s", "error getting device name" );
-        name[ 0 ] = '\0';
-    }
-#endif
-
-#if TARGET_HOST_WIN32
-    switch( ident )
-    {
-    case 0:
-        ogJoystick[ ident ]->js_id = JOYSTICKID1;
-        ogJoystick[ ident ]->error = GL_FALSE;
-        break;
-    case 1:
-        ogJoystick[ ident ]->js_id = JOYSTICKID2;
-        ogJoystick[ ident ]->error = GL_FALSE;
-        break;
-    default:
-        ogJoystick[ ident ]->num_axes = 0;
-        ogJoystick[ ident ]->error = GL_TRUE;
-        return;
-    }
-#endif
-
-#if TARGET_HOST_UNIX_X11
-#    if defined( __FreeBSD__ ) || defined( __NetBSD__ )
-    ogJoystick[ ident ]->id = ident;
-    ogJoystick[ ident ]->error = GL_FALSE;
-
-    ogJoystick[ ident ]->os = calloc( 1, sizeof( struct os_specific_s ) );
-    memset( ogJoystick[ ident ]->os, 0, sizeof( struct os_specific_s ) );
-    if( ident < USB_IDENT_OFFSET )
-        ogJoystick[ ident ]->os->is_analog = 1;
-    if( ogJoystick[ ident ]->os->is_analog )
-        sprintf( ogJoystick[ ident ]->os->fname, "%s%d", AJSDEV, ident );
-    else
-        sprintf( ogJoystick[ ident ]->os->fname, "%s%d", UHIDDEV,
-                 ident - USB_IDENT_OFFSET );
-#    elif defined( __linux__ )
-    ogJoystick[ ident ]->id = ident;
-    ogJoystick[ ident ]->error = GL_FALSE;
-
-    sprintf( ogJoystick[ident]->fname, "/dev/input/js%d", ident );
-
-    if( access( ogJoystick[ ident ]->fname, F_OK ) != 0 )
-        sprintf( ogJoystick[ ident ]->fname, "/dev/js%d", ident );
-#    endif
-#endif
-
-    oghJoystickOpen( ogJoystick[ ident  ] );
 }
 
 /*
  *
  */
-void ogJoystickClose( void )
+void ogJoystickShutdown( void )
 {
     int ident ;
+
+    if( !ogState.JoysticksInitted )
+        return;
+
     for( ident = 0; ident < MAX_NUM_JOYSTICKS; ident++ )
         if( ogJoystick[ ident ] )
         {
@@ -1771,6 +1685,127 @@ void ogJoystickClose( void )
             ogJoystick[ ident ] = NULL;
             /* show joystick has been deinitialized */
         }
+
+    ogState.JoysticksInitted = GL_FALSE;
+}
+
+/*
+ * This function replaces the constructor method in the JS library.
+ */
+void ogJoystickOpen( int ident )
+{
+    if( ident >= MAX_NUM_JOYSTICKS )
+        ogError( "Too large of a joystick number: %d.", ident );
+
+    if( ogJoystick[ ident ] )
+        ogError( "Illegal attempt to multiple-initialize a joystick device" );
+
+    ogJoystick[ ident ] =
+        ( SOG_Joystick * )calloc( sizeof( SOG_Joystick ), 1 );
+
+    /* Set defaults */
+    ogJoystick[ ident ]->num_axes = ogJoystick[ ident ]->num_buttons = 0;
+    ogJoystick[ ident ]->error = GL_TRUE;
+
+#if TARGET_HOST_MACINTOSH
+    ogJoystick[ ident ]->id = ident;
+    sprintf( ogJoystick[ ident ]->fname, "/dev/js%d", ident ); /* FIXME */
+    ogJoystick[ ident ]->error = GL_FALSE;
+#endif
+
+#if TARGET_HOST_MAC_OSX
+    ogJoystick[ ident ]->id = ident;
+    ogJoystick[ ident ]->error = GL_FALSE;
+    ogJoystick[ ident ]->num_axes = 0;
+    ogJoystick[ ident ]->num_buttons = 0;
+
+    if( numDevices < 0 )
+    {
+        /* do first-time init (since we can't over-ride jsInit, hmm */
+        numDevices = 0;
+
+        mach_port_t masterPort;
+        IOReturn rv = IOMasterPort( bootstrap_port, &masterPort );
+        if( rv != kIOReturnSuccess )
+        {
+            ogWarning( "error getting master Mach port" );
+            return;
+        }
+        oghJoystickFindDevices( masterPort );
+    }
+
+    if( ident >= numDevices )
+    {
+        ogJoystick[ ident ]->error = GL_TRUE;
+        return;
+    }
+
+    /* get the name now too */
+    CFDictionaryRef properties = getCFProperties( ioDevices[ ident ] );
+    CFTypeRef ref = CFDictionaryGetValue(
+        properties, CFSTR( kIOHIDProductKey )
+    );
+    if( !ref )
+        ref = CFDictionaryGetValue(properties, CFSTR( "USB Product Name" ) );
+
+    if(
+        !ref ||
+        !CFStringGetCString(
+            ( CFStringRef )ref, name, 128, CFStringGetSystemEncoding( )
+        )
+    )
+    {
+        ogWarning( "error getting device name" );
+        name[ 0 ] = '\0';
+    }
+#endif
+
+#if TARGET_HOST_WIN32
+    switch( ident )
+    {
+    case 0:
+        ogJoystick[ ident ]->js_id = JOYSTICKID1;
+        ogJoystick[ ident ]->error = GL_FALSE;
+        break;
+    case 1:
+        ogJoystick[ ident ]->js_id = JOYSTICKID2;
+        ogJoystick[ ident ]->error = GL_FALSE;
+        break;
+    default:
+        ogJoystick[ ident ]->num_axes = 0;
+        ogJoystick[ ident ]->error = GL_TRUE;
+        return;
+    }
+#endif
+
+#if TARGET_HOST_UNIX_X11
+#    if defined( __FreeBSD__ ) || defined( __NetBSD__ )
+         ogJoystick[ ident ]->id = ident;
+         ogJoystick[ ident ]->error = GL_FALSE;
+
+         ogJoystick[ ident ]->os = calloc( 1, sizeof( struct os_specific_s ) );
+         memset( ogJoystick[ ident ]->os, 0, sizeof( struct os_specific_s ) );
+         if( ident < USB_IDENT_OFFSET )
+             ogJoystick[ ident ]->os->is_analog = 1;
+         if( ogJoystick[ ident ]->os->is_analog )
+             sprintf( ogJoystick[ ident ]->os->fname, "%s%d", AJSDEV, ident );
+         else
+             sprintf(
+                 ogJoystick[ ident ]->os->fname, "%s%d", UHIDDEV,
+                 ident - USB_IDENT_OFFSET
+             );
+#    elif defined( __linux__ )
+         ogJoystick[ ident ]->id = ident;
+         ogJoystick[ ident ]->error = GL_FALSE;
+
+         sprintf( ogJoystick[ident]->fname, "/dev/input/js%d", ident );
+
+         if( access( ogJoystick[ ident ]->fname, F_OK ) != 0 )
+             sprintf( ogJoystick[ ident ]->fname, "/dev/js%d", ident );
+#    endif
+#endif
+
+    oghJoystickOpen( ogJoystick[ ident  ] );
 }
 
 /*
@@ -1800,66 +1835,96 @@ void ogJoystickPollWindow( SOG_Window *window )
 }
 
 /*
- * PWO: These jsJoystick class methods have not been implemented.
- *      We might consider adding such functions later.
- *
- * XXX They obviously HAVE been implemented.  Keep them?
+ * Implementation for glutDeviceGet(GLUT_HAS_JOYSTICK)
  */
-int  glutJoystickGetNumAxes( int ident )
+int ogJoystickDetect( void )
+{
+    int i;
+    int ret = 0;
+
+    ogJoystickInit( );
+    if( ogJoystick && ogState.JoysticksInitted )
+        for( i = 0; i < MAX_NUM_JOYSTICKS; i++ )
+            if( ogJoystick[ i ] && !ogJoystick[ i ]->error)
+                ret = 1;
+
+    return ret;
+}
+
+/*
+ * XXX These are not tested.
+ */
+int ogGetJoystickNumAxes( int ident )
 {
     return ogJoystick[ ident ]->num_axes;
 }
-int  glutJoystickNotWorking( int ident )
+int ogGetJoystickNumButtons( int ident )
+{
+    return ogJoystick[ ident ]->num_buttons;
+}
+int ogGetJoystickNotWorking( int ident )
 {
     return ogJoystick[ ident ]->error;
 }
 
-float glutJoystickGetDeadBand( int ident, int axis )
+float ogGetJoystickDeadBand( int ident, int axis )
 {
     return ogJoystick[ ident ]->dead_band [ axis ];
 }
-void  glutJoystickSetDeadBand( int ident, int axis, float db )
+void ogSetJoystickDeadBand( int ident, int axis, float db )
 {
     ogJoystick[ ident ]->dead_band[ axis ] = db;
 }
 
-float glutJoystickGetSaturation( int ident, int axis )
+float ogGetJoystickSaturation( int ident, int axis )
 {
     return ogJoystick[ ident ]->saturate[ axis ];
 }
-void  glutJoystickSetSaturation( int ident, int axis, float st )
+void ogSetJoystickSaturation( int ident, int axis, float st )
 {
     ogJoystick[ ident ]->saturate [ axis ] = st;
 }
 
-void glutJoystickSetMinRange( int ident, float *axes )
+void ogSetJoystickMinRange( int ident, float *axes )
 {
-    memcpy( ogJoystick[ ident ]->min, axes,
-            ogJoystick[ ident ]->num_axes * sizeof( float ) );
+    memcpy(
+        ogJoystick[ ident ]->min, axes,
+        ogJoystick[ ident ]->num_axes * sizeof( float )
+    );
 }
-void glutJoystickSetMaxRange( int ident, float *axes )
+void ogSetJoystickMaxRange( int ident, float *axes )
 {
-    memcpy( ogJoystick[ ident ]->max, axes,
-            ogJoystick[ ident ]->num_axes * sizeof( float ) );
+    memcpy(
+        ogJoystick[ ident ]->max, axes,
+        ogJoystick[ ident ]->num_axes * sizeof( float )
+    );
 }
-void glutJoystickSetCenter( int ident, float *axes )
+void ogSetJoystickCenter( int ident, float *axes )
 {
-    memcpy( ogJoystick[ ident ]->center, axes,
-            ogJoystick[ ident ]->num_axes * sizeof( float ) );
+    memcpy(
+        ogJoystick[ ident ]->center, axes,
+        ogJoystick[ ident ]->num_axes * sizeof( float )
+    );
 }
 
-void glutJoystickGetMinRange( int ident, float *axes )
+void ogGetJoystickMinRange( int ident, float *axes )
 {
-    memcpy( axes, ogJoystick[ ident ]->min,
-            ogJoystick[ ident ]->num_axes * sizeof( float ) );
+    memcpy(
+        axes, ogJoystick[ ident ]->min,
+        ogJoystick[ ident ]->num_axes * sizeof( float )
+    );
 }
-void glutJoystickGetMaxRange( int ident, float *axes )
+void ogGetJoystickMaxRange( int ident, float *axes )
 {
-    memcpy( axes, ogJoystick[ ident ]->max,
-            ogJoystick[ ident ]->num_axes * sizeof( float ) );
+    memcpy(
+        axes, ogJoystick[ ident ]->max,
+        ogJoystick[ ident ]->num_axes * sizeof( float )
+    );
 }
-void glutJoystickGetCenter( int ident, float *axes )
+void ogGetJoystickCenter( int ident, float *axes )
 {
-    memcpy( axes, ogJoystick[ ident ]->center,
-            ogJoystick[ ident ]->num_axes * sizeof( float ) );
+    memcpy(
+        axes, ogJoystick[ ident ]->center,
+        ogJoystick[ ident ]->num_axes * sizeof( float )
+    );
 }

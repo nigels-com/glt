@@ -69,8 +69,10 @@ SOG_State ogState =
     GL_FALSE,               /* ForceIconic */
     GL_FALSE,               /* UseCurrentContext */
     GL_FALSE,               /* GLDebugSwitch */
+    GL_TRUE,                /* PrintErrors */
+    GL_FALSE,               /* PrintWarnings */
     GL_FALSE,               /* XSyncSwitch */
-    GL_TRUE,                /* KeyRepeat */
+    GLUT_KEY_REPEAT_ON,     /* KeyRepeat */
     0xffffffff,             /* Modifiers */
     0,                      /* FPSInterval */
     0,                      /* SwapCount */
@@ -113,10 +115,10 @@ static void ogInitializeDisplay( const char *displayName )
     ogDisplay.Display = XOpenDisplay( displayName );
 
     if( ogDisplay.Display == NULL )
-        ogError( "failed to open display '%s'", XDisplayName( displayName ) );
+        ogError( "Failed to open display '%s'.", XDisplayName( displayName ) );
 
     if( !glXQueryExtension( ogDisplay.Display, NULL, NULL ) )
-        ogError( "OpenGL GLX extension not supported by display '%s'",
+        ogError( "OpenGL GLX extension not supported by display '%s'.",
             XDisplayName( displayName ) );
 
     ogDisplay.Screen = DefaultScreen( ogDisplay.Display );
@@ -223,8 +225,10 @@ void ogDeinitialize( void )
 
     if( !ogState.Initialised )
     {
-        ogWarning( "ogDeinitialize(): "
-                   "no valid initialization has been performed" );
+        ogWarning(
+            "ogDeinitialize(): "
+            "No valid initialization has been performed."
+        );
         return;
     }
 
@@ -249,9 +253,7 @@ void ogDeinitialize( void )
         free( timer );
     }
 
-    if( ogState.JoysticksInitted )
-        ogJoystickClose( );
-    ogState.JoysticksInitted = GL_FALSE;
+    ogJoystickShutdown();
 
     ogState.Initialised = GL_FALSE;
 
@@ -270,11 +272,13 @@ void ogDeinitialize( void )
     ogState.ForceIconic         = GL_FALSE;
     ogState.UseCurrentContext   = GL_FALSE;
     ogState.GLDebugSwitch       = GL_FALSE;
+    ogState.PrintErrors         = GL_TRUE;
+    ogState.PrintWarnings       = GL_FALSE;
     ogState.XSyncSwitch         = GL_FALSE;
     ogState.ActionOnWindowClose = GLUT_ACTION_EXIT;
     ogState.ExecState           = GLUT_EXEC_STATE_INIT;
 
-    ogState.KeyRepeat       = GL_FALSE;  /* XXX Was staticly set GL_TRUE? */
+    ogState.KeyRepeat       = GLUT_KEY_REPEAT_ON;
     ogState.Modifiers       = 0xffffffff;
 
     ogState.GameModeSize.X  = 640;
@@ -550,6 +554,8 @@ static int XParseGeometry(
                - \a -gldebug Print any detected OpenGL errors via
                  glutReportErrors().  Presently
                  done at the bottom of glutMainLoopEvent().
+               - \a -warnings Print OpenGLUT warning messages to
+                 standard error.  Warnings are disabled by default.
                - \a -sync Synchronize the window system communications
                  heavily.
 
@@ -591,7 +597,10 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
     int i, j, argc = *pargc;
 
     if( ogState.Initialised )
-        ogError( "illegal glutInit() reinitialization attempt" );
+    {
+        ogWarning( "glutInit() reinitialization attempt." );
+        return;
+    }
 
     if( pargc && *pargc && argv && *argv && **argv )
     {
@@ -628,7 +637,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         if( strcmp( argv[ i ], "-display" ) == 0 )
         {
             if( ++i >= argc )
-                ogError( "-display option must be followed by display name" );
+                ogError( "-display option must be followed by display name." );
 
             displayName = argv[ i ];
 
@@ -641,7 +650,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
             if( ++i >= argc )
                 ogError(
                     "-geometry option must be followed by window "
-                    "geometry settings"
+                    "geometry settings."
                 );
 
             geometry = argv[ i ];
@@ -655,7 +664,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
             if( ! ogState.TryDirectContext )
                 ogError(
                     "option ambiguity, -direct and -indirect "
-                    "cannot be both specified"
+                    "cannot be both specified."
                 );
 
             ogState.ForceDirectContext = GL_TRUE;
@@ -667,7 +676,7 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
             if( ogState.ForceDirectContext )
                 ogError(
                     "option ambiguity, -direct and -indirect "
-                    "cannot be both specified"
+                    "cannot be both specified."
                 );
 
             ogState.TryDirectContext = GL_FALSE;
@@ -686,6 +695,12 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
             argv[ i ] = NULL;
             ( *pargc )--;
         }
+        else if( strcmp( argv[ i ], "-warning" ) == 0 )
+        {
+            ogState.PrintWarnings = GL_TRUE;
+            argv[ i ] = NULL;
+            ( *pargc )--;
+        }
         else if( strcmp( argv[ i ], "-sync" ) == 0 )
         {
             ogState.XSyncSwitch = GL_TRUE;
@@ -695,15 +710,14 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
     }
 
     /* Compact {argv}. */
-    j = 2;
-    for( i = 1; i < *pargc; i++, j++ )
-        if( argv[ i ] == NULL )
-        {
-            /* Guaranteed to end because there are {*pargc} arguments left */
-            while( argv[ j ] == NULL )
-                j++;
+    for( i = j = 1; i < *pargc; i++, j++ )
+    {
+        /* Guaranteed to end because there are {*pargc} arguments left */
+        while( argv[ j ] == NULL )
+            j++;
+        if( i != j )
             argv[ i ] = argv[ j ];
-        }
+    }
 #endif
 
     /*
@@ -794,89 +808,90 @@ void OGAPIENTRY glutInitWindowSize( int width, int height )
 
 /*!
     \fn
-    \brief    Requests future windows to open with a given display mode.
+    \brief    Set the window creation display mode.
     \ingroup  window
-    \param    displayMode    Requested display mode.
+    \param    displayMode    Requested display mode bitmask.
 
-              When opening a new window, OpenGLUT permits you to set
-              several options which will affect the window's behavior
-              throughout the program's life.  For partial compatibility,
-              freeglut defined some unsupported features and ignored
-              applications' requests for them; OpenGLUT presently inherits
-              those.  However, as OpenGLUT's goal is to rationalize and
-              cleanse the GLUT API, it is likely that those features will
-              either be removed or fully supported.
+              glutInitDisplayMode() allows you to control
+              the mode for subsequent OpenGLUT windows.
 
-              OpenGLUT also may experimentally or permamently add to
-              the supported display modes.
+              Allowable \a displayMode is a combination of:
 
-              The various requestable display modes are packed into a
-              bitmask.  The symbolic names for the bits are as follows:
+              - \a GLUT_RGB \n
+                   Red, green, blue framebuffer.
 
-               - \a GLUT_RGB selects a Red-Green-Blue window type.
-               - \a GLUT_RGBA is a synonym for \a GLUT_RGB.
-               - \a GLUT_INDEX Use an indexed color mode rather than
-                 RGB.  \a GLUT_INDEX takes precedence over both
-                 \a GLUT_RGB and \a GLUT_RGBA.
-               - \a GLUT_SINGLE Use a single-buffered display.  If specified,
-                 graphics appears directly on the window and it is not
-                 necessary to call glutSwapBuffers().
-               - \a GLUT_DOUBLE Double-buffered rather than single-buffered.
-                 glutSwapBuffers() is required to see the resulting
-                 graphics.  Overrides \a GLUT_SINGLE if both are requested.
-               - \a GLUT_ACCUM Requests an accumulation buffer be initialized.
-               - \a GLUT_ALPHA Requests that we really get an alpha channel.
-               - \a GLUT_DEPTH Requests a depth-buffer for the window.
-               - \a GLUT_STENCIL Requests a stencil buffer.
-               - \a GLUT_MULTISAMPLE Requests a multisampling window.
-                 Unlike most display mode options, multitasmpling may be
-                 silently ignored if the feature is not available or if
-                 OpenGLUT does not know how to use it.
-               - \a GLUT_STEREO Requests a stereovision window.
-               - \a GLUT_LUMINANCE Requests a luminance-only window.
+              - \a GLUT_RGBA \n
+                   Red, green, blue, alpha framebuffer.
+
+              - \a GLUT_INDEX \n
+                   Indexed color framebuffer.
+
+              - \a GLUT_SINGLE \n
+                   Single-buffered mode.
+
+              - \a GLUT_DOUBLE \n
+                   Double-buffered mode.
+
+              - \a GLUT_ACCUM \n
+                   Accumulation buffer.
+
+              - \a GLUT_ALPHA \n
+                   Alpha channel.
+
+              - \a GLUT_DEPTH \n
+                   Depth buffering.
+
+              - \a GLUT_STENCIL \n
+                   Stencil buffering.
+
+              - \a GLUT_MULTISAMPLE \n
+                   Multisampling mode. (not always available)
+
+              - \a GLUT_STEREO \n
+                   Left and right framebuffers.
+
+              - \a GLUT_LUMINANCE \n
+                   Greyscale color mode.
 
               Additionally, the following <i>experimental</i> features
               are implemented:
 
-               - \a GLUT_OFFSCREEN Offscreen windows are very much
-                 like onscreen windows that have been dragged off of the
-                 edge of the screen.  The biggest issue is that offscreen
-                 windows do not support subwindows.  Other than that,
-                 onscreen windows that are dragged off of the edge may not
-                 store graphics that you render (while \a GLUT_OFFSCREEN
-                 windows do), and there is no way to drag an offscreen
-                 window onscreen for user interaction.
-               - \a GLUT_BORDERLESS Borderless windows are very experimental,
-                 and their precise behavior is not set in stone.
-                 See also glutCreateMenuWindow().
+              - \a GLUT_OFFSCREEN \n
+                   Offscreen windows are very much
+                   like onscreen windows that have been dragged off of the
+                   edge of the screen.  The biggest issue is that offscreen
+                   windows do not support subwindows.  Other than that,
+                   onscreen windows that are dragged off of the edge may not
+                   store graphics that you render (while \a GLUT_OFFSCREEN
+                   windows do), and there is no way to drag an offscreen
+                   window onscreen for user interaction.
+
+              - \a GLUT_BORDERLESS \n
+                   Borderless windows are very experimental,
+                   and their precise behavior is not set in stone.
+                   See also glutCreateMenuWindow().
 
               The following are <i>defaults</i>:
 
-               - \a GLUT_RGB
-               - \a GLUT_SINGLE
+              - \a GLUT_RGB
+              - \a GLUT_SINGLE
 
-    \bug      \a GLUT_OFFSCREEN windows do not work on some nVidia
-              cards/drivers.  (No other known cases at this time, but
-              seems to apply to both WIN32 and UNIX_X11 systems.)
+    \bug      \a GLUT_OFFSCREEN windows do not work with nVidia
+              cards/drivers.  (Both Win32 and X11)
+
     \bug      \a GLUT_BORDERLESS seems to vary by the window manager on X11,
               though twm (for example) performs very similarly to WIN32.
               But KDE's window manager (for example) does not let you send
               keystrokes to borderless windows without OpenGLUT hacks.
-    \todo     The \a GLUT_RGBA symbol should probably not be used.
-              The flag's name is misleading (there is no Alpha component),
-              and it is a duplicate of \a GLUT_RGB.  If you want a window
-              with an Alpha channel, include the \a GLUT_ALPHA flag.
-    \note     Arguably, offscreen and borderless support have less to
-              do with the display mode than with the window system.  Perhaps
-              they should not be bundled into the \a displayMode mask?
-    \note     I do not think that \a GLUT_MULTISAMPLE is supported by
+
+    \note     Some display mode features were introduced by
               OpenGLUT.
-    \note     I do not recall ever seeing stereovision support in the
-              code, and someone was complaining that it does not work
-              with freeglut.
+
+    \note     Not all features or combinations of features are
+              valid for all platforms.
+
     \note     There is no way to change the display mode of an open window.
-    \note     If a window opened, you may (and must) assume that it is
-              in the requested display mode.
+
     \see      glutCreateMenuWindow(),
               glutInit(), glutInitWindowSize(),
               glutInitWindowPosition(), glutInitDisplayString(),
@@ -890,265 +905,334 @@ void OGAPIENTRY glutInitDisplayMode( unsigned int displayMode )
 
 /* -- INIT DISPLAY STRING PARSING ------------------------------------------ */
 
-static const char *Tokens[ ] =
+/*
+ * A handy macro for counting items in arrays.
+ */
+#define NUMBEROF(a)  (sizeof(a)/sizeof(*a))
+
+/*
+ * To add a new element, simply add its og_* symbol in this enum list,
+ * then add an ENTRY() line in the array below, and finally add a
+ * handling case statement in the switch() for glutInitDisplayString().
+ * The order does not matter at this point.
+ */
+enum
 {
-    "alpha", "acca", "acc", "blue", "buffer", "conformant", "depth", "double",
-    "green", "index", "num", "red", "rgba", "rgb", "luminance", "stencil",
-    "single", "stereo", "samples", "slow", "win32pdf", "win32pfd", "xvisual",
-    "xstaticgray", "xgrayscale", "xstaticcolor", "xpseudocolor",
-    "xtruecolor", "xdirectcolor"
+    og_alpha,
+    og_acca,
+    og_acc,
+    og_blue,
+    og_buffer,
+    og_conformant,
+    og_depth,
+    og_double,
+    og_green,
+    og_index,
+    og_num,
+    og_red,
+    og_rgba,
+    og_rgb,
+    og_luminance,
+    og_stencil,
+    og_single,
+    og_stereo,
+    og_samples,
+    og_slow,
+    og_win32pdf,
+    og_win32pfd,
+    og_xvisual,
+    og_xstaticgray,
+    og_xgrayscale,
+    og_xstaticcolor,
+    og_xpseudocolor,
+    og_xtruecolor,
+    og_xdirectcolor
 };
-#define NUM_TOKENS             (sizeof(Tokens)/sizeof(*Tokens))
+
+/*
+ * A simple name:value association.  Make an array out of them
+ * for a dictionary.
+ */
+struct disp_tags
+{
+    int tag;
+    char *name;
+};
+
+#define ENTRY(t) {og_ ## t, #t}
+static struct disp_tags tags[ ] =
+{
+    ENTRY( alpha ),
+    ENTRY( acca ),
+    ENTRY( acc ),
+    ENTRY( blue ),
+    ENTRY( buffer ),
+    ENTRY( conformant ),
+    ENTRY( depth ),
+    ENTRY( double ),
+    ENTRY( green ),
+    ENTRY( index ),
+    ENTRY( num ),
+    ENTRY( red ),
+    ENTRY( rgba ),
+    ENTRY( rgb ),
+    ENTRY( luminance ),
+    ENTRY( stencil ),
+    ENTRY( single ),
+    ENTRY( stereo ),
+    ENTRY( samples ),
+    ENTRY( slow ),
+    ENTRY( win32pdf ),
+    ENTRY( win32pfd ),
+    ENTRY( xvisual ),
+    ENTRY( xstaticgray ),
+    ENTRY( xgrayscale ),
+    ENTRY( xstaticcolor ),
+    ENTRY( xpseudocolor ),
+    ENTRY( xtruecolor ),
+    ENTRY( xdirectcolor )
+};
+#undef ENTRY
+
+/*
+ * We do some processing of the array the first time we are invoked,
+ * so we need a record of whether we have been invoked.
+ */
+static int tags_initialized;
+
+/*
+ * A comparator for our {disp_tags} structure.  This comparator
+ * uses the string {name} fields with a conventional strcmp().
+ */
+static int oghCompareTags( const void *_a, const void *_b )
+{
+    const struct disp_tags *a = _a, *b = _b;
+    return strcmp( a->name, b->name );
+}
 
 /*!
     \fn
-    \brief    String-based display mode control.
+    \brief    Set the window creation display mode.
     \ingroup  window
-    \param    displayMode    The mode string.
+    \param    displayMode    Requested display mode string.
 
-              This provides a string-based mechanism for defining
-              display mode options.  Because we are not stuck with
-              a handful of bits in a 32-bit integer, finer control
-              is offered.  The following, case-sensitive options
-              are provided.  Generally, they either map in an
-              obvious way to a glutInitDisplayMode() flag (or a
-              sub-feature), or else they are unimplemented or even
-              undocumented.
+              glutInitDisplayString() permits you to define a display
+              mode for subsequent windows that you open.  In most
+              regards, control is at least as fine as with
+              glutInitDisplaymode().
 
-               - \a alpha        Sets number of bits in the alpha channel.
-                                 Enables \a GLUT_ALPHA.
-               - \a acca         Sets number of \a RGBA accumulation bits.
-               - \a acc          Sets number of \a RGB accumulation bits.
-                                 Enables \a GLUT_ACCUM.
-               - \a blue         Sets number of Blue bits.
-               - \a buffer       Sets bits in index mode?
-               - \a conformant   Conformant with what?
-               - \a depth        Sets number of bits in depth buffer.
-                                 Enables \a GLUT_DEPTH.
-               - \a double       Enables \a GLUT_DOUBLE.
-               - \a green        Sets number of Green bits.
-               - \a index        Enables \a GLUT_INDEX.
-               - \a num          Appears to select a frame-buffer configuration
-                                 by number from an unspecified list.  Probably
-                                 very non-portable.
-               - \a red          sets number of Red bits.
-               - \a rgba         Sets number of \a RGBA bits.
-                                 Enables \a GLUT_RGBA.
-               - \a rgb          Sets number of \a RGB bits;
-                                 sets Alpha bits to 0.
-                                 Enables \a GLUT_RGB.
-               - \a luminance    Sets number of Red bits;
-                                 sets \a GBA bits to 0.
-                                 Enables \a GLUT_LUMINANCE.
-               - \a stencil      Sets number of stencil bits.
-                                 Enables \a GLUT_STENCIL.
-               - \a single       Enables \a GLUT_SINGLE.
-               - \a stereo       Enables \a GLUT_STERO.
-               - \a samples      Number of samples for \a SGIS_Multisample.
-                                 Enables \a GLUT_MULTISAMPLE.
-               - \a slow         Indicates if a frame-buffer is slow.
-               - \a win32pdf     Requests a WIN32 Pixel Format Descriptor
-                                 by number (compare \a num).  Non-portable.
-               - \a win32pfd     The original GLUT term; freeglut typoed
-                                 this as \a win32pdf and so we support
-                                 both for now.
-               - \a xvisual      Requests an X configuration by number.
-                                 See \a win32pdf.
-               - \a xstaticgray  Selects X-specific "staticgray" mode.
-               - \a xgrayscale   Selects X-specific "grayscale" mode.
-               - \a xstaticcolor Selects X-specific "staticcolor" mode.
-               - \a xpseudocolor Selects X-specific "pseudocolor" mode.
-               - \a xtruecolor   Selects X-specific "trueolor" mode.
-               - \a xdirectcolor Selects X-specific "directcolor" mode.
+              The \a displayMode parameter is case-sensitive, and
+              tokens are separated by ASCII TABs (\\t) and SPACEs.
 
-    \note     Only the common U.S. spellings of gray[sic] and color[sic]
-              are supported.  If you write ``grey'' or ``colour'', beware!
+              - \a index \n
+                   Enables \a GLUT_INDEX.
+
+              - \a luminance \n
+                   Enables \a GLUT_LUMINANCE.
+                   Enables \a GLUT_STENCIL.
+
+              - \a red \n
+                   Number of red channel bits.
+
+              - \a green \n
+                   Number of green channel bits.
+
+              - \a blue \n
+                   Number of blue channel bits.
+
+              - \a alpha \n
+                   Number of alpha channel bits.
+                   Enables \a GLUT_ALPHA.
+
+              - \a rgb \n
+                   Number of \a RGB channel bits, no aplha bits.
+                   Enables \a GLUT_RGB.
+
+              - \a rgba \n
+                   Number of \a RGBA channel bits.
+                   Enables \a GLUT_RGBA.
+
+              - \a depth \n
+                   Number of depth buffer bits.
+
+              - \a stencil \n
+                   Number of stencil buffer bits.
+
+              - \a double \n
+                   Enables \a GLUT_DOUBLE.
+
+              - \a single \n
+                   Enables \a GLUT_SINGLE.
+
+              - \a stereo \n
+                   Enables \a GLUT_STERO.
+
+              - \a acca \n
+                   Number of \a RGBA accumulation bits.
+                   Enables \a GLUT_ACCUM.
+
+              - \a acc \n
+                   Number of \a RGB accumulation bits.
+                   Enables \a GLUT_ACCUM.
+
+              - \a samples \n
+                   Number of samples for GLX's \a SGIS_Multisample.
+                   Enables \a GLUT_MULTISAMPLE.
+
+              - \a buffer \n
+                   [TODO] Sets bits in index mode?
+
+              - \a conformant \n
+                   [TODO] Conformant with what?
+                   Enables \a GLUT_DEPTH.
+
+              - \a slow \n
+                   [TODO] Indicates if a frame-buffer is slow.
+
+              - \a num \n
+                   [TODO] Appears to select a frame-buffer configuration
+                   by number from an unspecified list.  Probably
+                   very non-portable.
+
+                   A special capability  name indicating where the
+                   value represents the Nth frame buffer configuration
+                   matching the description string
+
+
+              - \a win32pdf \n
+                   Win32 specific: Pixel Format Descriptor
+
+              - \a win32pfd \n
+                   Win32 specific: Pixel Format Descriptor
+
+              - \a xvisual \n
+                   X11 specific: X Visual
+
+              - \a xstaticgray \n
+                   X11 specific: "staticgray" mode.
+
+              - \a xgrayscale \n
+                   X11 specific: "grayscale" mode.
+
+              - \a xstaticcolor \n
+                   X11 specific: "staticcolor" mode.
+
+              - \a xpseudocolor \n
+                   X11 specific: "pseudocolor" mode.
+
+              - \a xtruecolor \n
+                   X11 specific: "trueolor" mode.
+
+              - \a xdirectcolor \n
+                   X11 specific: "directcolor" mode.
+
     \note     Conflicting modes, such as \a single and \a double
               have the same interaction as for glutInitDisplayMode().
-    \todo     Maybe deprecate glutInitDisplayMode() in favor of this
-              string-based mechanism?
-    \todo     Maybe a tag-value list of pairs would be even better?
-    \bug      The underlying structure is fragile and needs to be reworked.
-    \bug      \a GLUT_BORDERLESS and \a GLUT_OFFSCREEN are not represented.
-    \bug      Some features are WIN32-only, some are X only.  Some appear
-              to simply be unimplemented.
+
+    \todo     \a GLUT_BORDERLESS and \a GLUT_OFFSCREEN are not represented.
+
+    \todo     Not all features appear to be implemented.  In particular,
+              numeric parameters and comparator specifications are lacking.
+              See GLUT 3.7 sources for example.
+
+    \todo     PyOpenGL
+              <a href="http://pyopengl.sourceforge.net/documentation/manual/glutInitDisplayString.3GLUT.html">
+              glutInitDisplayString</a> documentation.
+
     \see      glutInit(), glutInitWindowPosition(), glutInitWindowSize(),
               glutInitDisplayMode()
 */
 void OGAPIENTRY glutInitDisplayString( const char *displayMode )
 {
     int glut_state_flag = 0;
-    /*
-     * Unpack a lot of options from a character string.  The options are
-     * delimited by blanks or tabs.
-     */
     char *token;
-    int len = strlen ( displayMode );
-    char *buffer = ( char * )malloc( ( len + 1 ) * sizeof( char ) );
-    memcpy( buffer, displayMode, len );
-    buffer[ len ] = '\0';
+    char *buffer = NULL;
 
+    /*
+      We need to sort the {tags} array so that we can pass it off
+      to bsearch().  bsearch() is used more because of convenience
+      than speed, but we don't turn our nose up at speed.
+
+      The list is sorted on first use so that we don't have to
+      manually maintain the sort order.
+     */
+    if( !tags_initialized )
+        qsort( tags, NUMBEROF( tags ), sizeof *tags, oghCompareTags );
+    tags_initialized = 1;
+
+    if( !displayMode )
+        ogError( "glutInitDisplayString() was passed a NULL pointer." );
+    buffer = ogStrDup( displayMode );
+    if( !buffer )
+        ogError( "glutInitDisplayString() was unable to allocate a buffer." );
     token = strtok( buffer, " \t" );
     while( token )
     {
-        /* Process this token */
-        unsigned i;
-        for( i = 0; i < NUM_TOKENS; i++ )
-            if( strcmp( token, Tokens[ i ] ) == 0 )
+        struct disp_tags *tag = NULL;
+        struct disp_tags target;
+
+        target.name = token;
+        tag = bsearch(
+            &target, tags, NUMBEROF( tags ), sizeof *tags,  oghCompareTags
+        );
+        if( !tag )
+            ogWarning( "display token not recognized: %s.", token );
+        else
+            switch( tag->tag )
+            {
+            case og_alpha:     glut_state_flag |= GLUT_ALPHA;       break;
+            case og_acc:       glut_state_flag |= GLUT_ACCUM;       break;
+            case og_depth:     glut_state_flag |= GLUT_DEPTH;       break;
+            case og_double:    glut_state_flag |= GLUT_DOUBLE;      break;
+            case og_index:     glut_state_flag |= GLUT_INDEX;       break;
+            case og_rgba:      glut_state_flag |= GLUT_RGBA;        break;
+            case og_rgb:       glut_state_flag |= GLUT_RGB;         break;
+            case og_luminance: glut_state_flag |= GLUT_LUMINANCE;   break;
+            case og_stencil:   glut_state_flag |= GLUT_STENCIL;     break;
+            case og_single:    glut_state_flag |= GLUT_SINGLE;      break;
+            case og_stereo:    glut_state_flag |= GLUT_STEREO;      break;
+            case og_samples:   glut_state_flag |= GLUT_MULTISAMPLE; break;
+
+                /*
+                  The rest of these are unimplemented at this time.
+                */
+            case og_acca:       case og_blue:  case og_buffer:
+            case og_conformant: case og_green: case og_num:
+            case og_red:        case og_slow:
                 break;
 
-        switch( i )
-        {
-        case 0:  /* "alpha":  Alpha color buffer precision in bits */
-            glut_state_flag |= GLUT_ALPHA;  /* Somebody fix this for me! */
-            break;
+                /*
+                  WIN32-only options.  If we ever implement these, we
+                  should add #if brackets.
+                */
+            case og_win32pdf: case og_win32pfd:
+                break;
 
-        case 1:  /* "acca":  Red, green, blue, and alpha accumulation buffer
-                     precision in bits */
-            break;
+                /*
+                  UNIX_X11 options.  If we ever implement these, we
+                  should add #if brackets.
+                */
+            case og_xvisual:      case og_xstaticgray:  case og_xgrayscale:
+            case og_xstaticcolor: case og_xpseudocolor: case og_xtruecolor:
+            case og_xdirectcolor:
+                break;
 
-        case 2:  /* "acc":  Red, green, and blue accumulation buffer precision
-                     in bits with zero bits alpha */
-            glut_state_flag |= GLUT_ACCUM;  /* Somebody fix this for me! */
-            break;
-
-        case 3:  /* "blue":  Blue color buffer precision in bits */
-            break;
-
-        case 4:  /* "buffer":  Number of bits in the color index color buffer
-                   */
-            break;
-
-        case 5:  /* "conformant":  Boolean indicating if the frame buffer
-                     configuration is conformant or not */
-            break;
-
-        case 6: /* "depth":  Number of bits of precsion in the depth buffer */
-            glut_state_flag |= GLUT_DEPTH;  /* Somebody fix this for me! */
-            break;
-
-        case 7:  /* "double":  Boolean indicating if the color buffer is
-                     double buffered */
-            glut_state_flag |= GLUT_DOUBLE;
-            break;
-
-        case 8:  /* "green":  Green color buffer precision in bits */
-            break;
-
-        case 9:  /* "index":  Boolean if the color model is color index or not
-                   */
-            glut_state_flag |= GLUT_INDEX;
-            break;
-
-        case 10:  /* "num":  A special capability  name indicating where the
-                      value represents the Nth frame buffer configuration
-                      matching the description string */
-            break;
-
-        case 11:  /* "red":  Red color buffer precision in bits */
-            break;
-
-        case 12:  /* "rgba":  Number of bits of red, green, blue, and alpha in
-                      the RGBA color buffer */
-            glut_state_flag |= GLUT_RGBA;  /* Somebody fix this for me! */
-            break;
-
-        case 13:  /* "rgb":  Number of bits of red, green, and blue in the
-                      RGBA color buffer with zero bits alpha */
-            glut_state_flag |= GLUT_RGB;  /* Somebody fix this for me! */
-            break;
-
-        case 14:  /* "luminance":  Number of bits of red in the RGBA and zero
-                      bits of green, blue (alpha not specified) of color buffer
-                      precision */
-            glut_state_flag |= GLUT_LUMINANCE; /* Somebody fix this for me! */
-            break;
-
-        case 15:  /* "stencil":  Number of bits in the stencil buffer */
-            glut_state_flag |= GLUT_STENCIL;  /* Somebody fix this for me! */
-            break;
-
-        case 16:  /* "single":  Boolean indicate the color buffer is single
-                      buffered */
-            glut_state_flag |= GLUT_SINGLE;
-            break;
-
-        case 17:  /* "stereo":  Boolean indicating the color buffer supports
-                      OpenGL-style stereo */
-            glut_state_flag |= GLUT_STEREO;
-            break;
-
-        case 18:  /* "samples":  Indicates the number of multisamples to use
-                      based on GLX's SGIS_multisample extension (for
-                      antialiasing) */
-            glut_state_flag |= GLUT_MULTISAMPLE; /*Somebody fix this for me!*/
-            break;
-
-        case 19:  /* "slow":  Boolean indicating if the frame buffer
-                      configuration is slow or not */
-            break;
-
-        case 20:  /* "win32pdf":  matches the Win32 Pixel Format Descriptor by
-                      number */
-        case 21: /* "win32pfd" is the proper name; alias for freeglut typo */
-#if TARGET_HOST_WIN32
-#endif
-            break;
-
-        case 22:  /* "xvisual":  matches the X visual ID by number */
-#if TARGET_HOST_UNIX_X11
-#endif
-            break;
-
-        case 23:  /* "xstaticgray":  boolean indicating if the frame buffer
-                      configuration's X visual is of type StaticGray */
-#if TARGET_HOST_UNIX_X11
-#endif
-            break;
-
-        case 24:  /* "xgrayscale":  boolean indicating if the frame buffer
-                      configuration's X visual is of type GrayScale */
-#if TARGET_HOST_UNIX_X11
-#endif
-            break;
-
-        case 25:  /* "xstaticcolor":  boolean indicating if the frame buffer
-                      configuration's X visual is of type StaticColor */
-#if TARGET_HOST_UNIX_X11
-#endif
-            break;
-
-        case 26:  /* "xpseudocolor":  boolean indicating if the frame buffer
-                      configuration's X visual is of type PseudoColor */
-#if TARGET_HOST_UNIX_X11
-#endif
-            break;
-
-        case 27:  /* "xtruecolor":  boolean indicating if the frame buffer
-                      configuration's X visual is of type TrueColor */
-#if TARGET_HOST_UNIX_X11
-#endif
-            break;
-
-        case 28:  /* "xdirectcolor":  boolean indicating if the frame buffer
-                      configuration's X visual is of type DirectColor */
-#if TARGET_HOST_UNIX_X11
-#endif
-            break;
-
-        case 29:  /* Unrecognized */
-            ogWarning(
-                "Display string token not recognized:  %s\n",
-                token
-            );
-            break;
-        }
+            default:
+                assert(
+                    0 &&
+                    "If you see this, OpenGLUT has defined a DisplayMode\n"
+                    "string, but has not even implemented a stub for it.\n"
+                    "Please report this BUG to the OpenGLUT project.\n"
+                );
+                break;
+            }
 
         token = strtok( NULL, " \t" );
     }
 
     free( buffer );
 
-    /* We will make use of this value when creating a new OpenGL context... */
+    /* The display mode will be used when creating a new OpenGL context... */
     ogState.DisplayMode = glut_state_flag;
 }
+

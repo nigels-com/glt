@@ -1,6 +1,6 @@
 /*!
     \file  og_menu.c
-    \brief Pull-down menu creation and handling.
+    \brief Pop-up menu creation and handling
 */
 /*
  * Portions copyright (C) 2004, the OpenGLUT project contributors.
@@ -38,7 +38,7 @@
 /* -- DEFINITIONS ---------------------------------------------------------- */
 
 /*
- * FREEGLUT_MENU_FONT can be any freeglut/OpenGLUT bitmapped font.
+ * OPENGLUT_MENU_FONT can be any freeglut/OpenGLUT bitmapped font.
  * (Stroked fonts would not be out of the question, but we'd need to alter
  *  code, since OpenGLUT does not quite unify stroked and
  *  bitmapped font handling.)
@@ -48,7 +48,7 @@
  * GLUT apparently uses host-system menus rather than building its own.
  * OpenGLUT is building its own menus from scratch.)
  *
- * FREEGLUT_MENU_HEIGHT gives the height of ONE menu box.  This should be
+ * OPENGLUT_MENU_HEIGHT gives the height of ONE menu box.  This should be
  * the distances between two adjacent menu entries.  It should scale
  * automatically with the font choice, so you needn't alter it---unless you
  * use a stroked font.
@@ -61,15 +61,17 @@
  */
 /*! \todo Stuff these into global state variables */
 /*! \todo Maybe support runtime selection between bitmapped and stroked? */
+
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
-#define  FREEGLUT_MENU_FONT    GLUT_BITMAP_8_BY_13
+#define  OPENGLUT_MENU_FONT    GLUT_BITMAP_8_BY_13
 #else
-#define  FREEGLUT_MENU_FONT    GLUT_BITMAP_HELVETICA_18
+#define  OPENGLUT_MENU_FONT    GLUT_BITMAP_HELVETICA_18
 #endif
 
-#define  FREEGLUT_MENU_HEIGHT  (glutBitmapHeight(FREEGLUT_MENU_FONT) + \
-                                FREEGLUT_MENU_BORDER)
-#define  FREEGLUT_MENU_BORDER   2
+#define  OPENGLUT_MENU_HEIGHT  (                                  \
+    glutBitmapHeight( OPENGLUT_MENU_FONT ) + OPENGLUT_MENU_BORDER \
+)
+#define  OPENGLUT_MENU_BORDER   2
 
 
 /*
@@ -79,7 +81,11 @@
  * Old GLUT appeared to be system-dependant for its colors (sigh) so we are
  * too.
  */
-/*! \todo Stuff these variables into global state; init via glutInit*() */
+
+/*! \todo Stuff these variables into global state; init via glutInit*()
+    \todo On Win32, read the colors from the system.
+ */
+
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 static float menu_pen_fore  [4] = {0.0f,  0.0f,  0.0f,  1.0f};
 static float menu_pen_back  [4] = {0.85f, 0.85f, 0.85f, 1.0f};
@@ -95,7 +101,7 @@ static float menu_pen_hback [4] = {1.0f,  1.0f,  1.0f,  1.0f};
 /* -- PRIVATE FUNCTIONS ---------------------------------------------------- */
 
 /*
- * Private function to find a menu entry by index
+ * Find a menu entry by index
  */
 static SOG_MenuEntry *oghFindMenuEntry( SOG_Menu *menu, const int index )
 {
@@ -107,11 +113,12 @@ static SOG_MenuEntry *oghFindMenuEntry( SOG_Menu *menu, const int index )
         ++i;
         entry = ( SOG_MenuEntry * )entry->Node.Next;
     }
+
     return entry;
 }
 
 /*
- * Private function to check for the current menu/sub menu activity state
+ * Check for the current menu/sub menu activity state
  */
 static GLboolean oghCheckMenuStatus( SOG_Window *window, SOG_Menu *menu )
 {
@@ -139,7 +146,7 @@ static GLboolean oghCheckMenuStatus( SOG_Window *window, SOG_Menu *menu )
              * it off if the mouse is in its parent menu entry.
              */
             menuEntry->SubMenu->IsActive = GL_TRUE;
-            if ( return_status )
+            if( return_status )
                 return GL_TRUE;
         }
 
@@ -147,22 +154,22 @@ static GLboolean oghCheckMenuStatus( SOG_Window *window, SOG_Menu *menu )
     x = window->State.MouseX;
     y = window->State.MouseY;
 
-    for( menuEntry = (SOG_MenuEntry *)menu->Entries.First;
+    for( menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
          menuEntry;
-         menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next )
+         menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
         menuEntry->IsActive = GL_FALSE;
 
     menu->IsActive = GL_FALSE;
 
     /* Check if the mouse cursor is within the current menu box */
-    if( ( x >= FREEGLUT_MENU_BORDER ) &&
-        ( x < menu->Width  - FREEGLUT_MENU_BORDER ) &&
-        ( y >= FREEGLUT_MENU_BORDER ) &&
-        ( y < menu->Height - FREEGLUT_MENU_BORDER ) &&
+    if( ( x >= OPENGLUT_MENU_BORDER ) &&
+        ( x < menu->Width  - OPENGLUT_MENU_BORDER ) &&
+        ( y >= OPENGLUT_MENU_BORDER ) &&
+        ( y < menu->Height - OPENGLUT_MENU_BORDER ) &&
         ( window == menu->Window )
     )
     {
-        int menuID = ( y - FREEGLUT_MENU_BORDER ) / FREEGLUT_MENU_HEIGHT;
+        int menuID = ( y - OPENGLUT_MENU_BORDER ) / OPENGLUT_MENU_HEIGHT;
 
         /* The mouse cursor is somewhere over our box, check it out. */
         menuEntry = oghFindMenuEntry( menu, menuID + 1 );
@@ -184,7 +191,7 @@ static GLboolean oghCheckMenuStatus( SOG_Window *window, SOG_Menu *menu )
         menu->IsActive = GL_TRUE;
 
         /*
-         * OKi, we have marked that entry as active, but it would be also
+         * OK, we have marked that entry as active, but it would be also
          * nice to have its contents updated, in case it's a sub menu.
          * Also, ignore the return value of the check function:
          */
@@ -200,7 +207,7 @@ static GLboolean oghCheckMenuStatus( SOG_Window *window, SOG_Menu *menu )
                 /* Set up the initial submenu position now: */
                 menuEntry->SubMenu->X = menu->X + menu->Width;
                 menuEntry->SubMenu->Y = menu->Y +
-                    menuEntry->Ordinal * FREEGLUT_MENU_HEIGHT;
+                    menuEntry->Ordinal * OPENGLUT_MENU_HEIGHT;
 
                 if( menuEntry->SubMenu->X + menuEntry->SubMenu->Width >
                     glutGet( GLUT_SCREEN_WIDTH ) )
@@ -210,8 +217,8 @@ static GLboolean oghCheckMenuStatus( SOG_Window *window, SOG_Menu *menu )
                 if( menuEntry->SubMenu->Y + menuEntry->SubMenu->Height >
                     glutGet( GLUT_SCREEN_HEIGHT ) )
                     menuEntry->SubMenu->Y -= ( menuEntry->SubMenu->Height -
-                                               FREEGLUT_MENU_HEIGHT -
-                                               2 * FREEGLUT_MENU_BORDER );
+                                               OPENGLUT_MENU_HEIGHT -
+                                               2 * OPENGLUT_MENU_BORDER );
 
                 ogSetWindow( menuEntry->SubMenu->Window );
                 glutPositionWindow( menuEntry->SubMenu->X,
@@ -235,18 +242,19 @@ static GLboolean oghCheckMenuStatus( SOG_Window *window, SOG_Menu *menu )
 }
 
 /*
- * Displays a menu box and all of its submenus (if they are active)
+ * Draw a menu box and all of its submenus (if they are active)
  */
 static void oghDisplayMenuBox( SOG_Menu *menu )
 {
     SOG_MenuEntry *menuEntry;
     int i;
-    int border = FREEGLUT_MENU_BORDER;
+    int border = OPENGLUT_MENU_BORDER;
 
     /*
      * Have the menu box drawn first. The +- values are
      * here just to make it more nice-looking...
      */
+
     /* a non-black dark version of the below. */
     glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
     glBegin( GL_QUAD_STRIP );
@@ -278,9 +286,9 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
     glEnd( );
 
     /* Check if any of the submenus is currently active... */
-    for( menuEntry = (SOG_MenuEntry *)menu->Entries.First;
+    for( menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
          menuEntry;
-         menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next )
+         menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
         /* Has the menu been marked as active, maybe? */
         if( menuEntry->IsActive )
         {
@@ -295,21 +303,21 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
             glColor4fv( menu_pen_hback );
             glBegin( GL_QUADS );
                 glVertex2i( border,
-                            (menuID + 0)*FREEGLUT_MENU_HEIGHT + border );
+                            ( menuID + 0 ) * OPENGLUT_MENU_HEIGHT + border );
                 glVertex2i( menu->Width - border,
-                            (menuID + 0)*FREEGLUT_MENU_HEIGHT + border );
+                            ( menuID + 0 ) * OPENGLUT_MENU_HEIGHT + border );
                 glVertex2i( menu->Width - border,
-                            (menuID + 1)*FREEGLUT_MENU_HEIGHT + border );
+                            ( menuID + 1 ) * OPENGLUT_MENU_HEIGHT + border );
                 glVertex2i( border,
-                            (menuID + 1)*FREEGLUT_MENU_HEIGHT + border );
+                            ( menuID + 1 ) * OPENGLUT_MENU_HEIGHT + border );
             glEnd( );
         }
 
     /* Print the menu entries now... */
     glColor4fv( menu_pen_fore );
-    for( menuEntry = (SOG_MenuEntry *)menu->Entries.First, i = 0;
+    for( menuEntry = ( SOG_MenuEntry * )menu->Entries.First, i = 0;
          menuEntry;
-         menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next, ++i )
+         menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next, ++i )
     {
         /* If the menu entry is active, set the color to white */
         if( menuEntry->IsActive )
@@ -319,25 +327,25 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
         /* Try to center the text - JCJ 31 July 2003*/
         glRasterPos2i(
             2 * border,
-            ( i + 1 )*FREEGLUT_MENU_HEIGHT -
-            ( int )( FREEGLUT_MENU_HEIGHT*0.3 - border )
+            ( i + 1 ) * OPENGLUT_MENU_HEIGHT -
+            ( int )( OPENGLUT_MENU_HEIGHT * 0.3 - border )
         );
 
         /* Have the label drawn, character after character: */
-        glutBitmapString( FREEGLUT_MENU_FONT,
+        glutBitmapString( OPENGLUT_MENU_FONT,
                           ( unsigned char * )menuEntry->Text );
 
         /* If it's a submenu, draw a right arrow */
         if( menuEntry->SubMenu )
         {
-            int width = glutBitmapWidth( FREEGLUT_MENU_FONT, '_' );
+            int width = glutBitmapWidth( OPENGLUT_MENU_FONT, '_' );
             int x_base = menu->Width - 2 - width;
-            int y_base = i*FREEGLUT_MENU_HEIGHT + border;
+            int y_base = i*OPENGLUT_MENU_HEIGHT + border;
             glBegin( GL_TRIANGLES );
                 glVertex2i( x_base, y_base + 2*border);
                 glVertex2i( menu->Width - 2, y_base +
-                            ( FREEGLUT_MENU_HEIGHT + border) / 2 );
-                glVertex2i( x_base, y_base + FREEGLUT_MENU_HEIGHT - border );
+                            ( OPENGLUT_MENU_HEIGHT + border) / 2 );
+                glVertex2i( x_base, y_base + OPENGLUT_MENU_HEIGHT - border );
             glEnd( );
         }
 
@@ -352,7 +360,6 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
          menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
         if( menuEntry->SubMenu && menuEntry->IsActive )
         {
-            /* Yeah, indeed. Have it redrawn now: */
             ogSetWindow( menuEntry->SubMenu->Window );
             oghDisplayMenuBox( menuEntry->SubMenu );
             ogSetWindow( menu->Window );
@@ -360,8 +367,7 @@ static void oghDisplayMenuBox( SOG_Menu *menu )
 }
 
 /*
- * Private static function to set the parent window of a submenu and all
- * of its submenus
+ * Set the parent window of a submenu and all of its submenus
  */
 static void oghSetSubmenuParentWindow( SOG_Window *window, SOG_Menu *menu )
 {
@@ -378,14 +384,14 @@ static void oghSetSubmenuParentWindow( SOG_Window *window, SOG_Menu *menu )
 
 
 /*
- * Displays the currently active menu for the current window
+ * Display the currently active menu for the current window
  */
 void ogDisplayMenu( void )
 {
     SOG_Window *window = ogStructure.Window;
     SOG_Menu *menu = NULL;
 
-    freeglut_assert_window;
+    OPENGLUT_ASSERT_READY;
 
     /* Check if there is an active menu attached to this window... */
     menu = window->ActiveMenu;
@@ -428,32 +434,30 @@ void ogDisplayMenu( void )
 
         glutSwapBuffers( );
 
-        ogSetWindow ( window );
+        ogSetWindow( window );
     }
 }
 
 /*
- * Activates a menu pointed by the function argument
+ * Activate a menu pointed by the function argument
  */
 void ogActivateMenu( SOG_Window *window, int button )
 {
-    /* We'll be referencing this menu a lot, so remember its address: */
+    /* Cache for convenience */
     SOG_Menu *menu = window->Menu[ button ];
 
-    /* Mark the menu as active, so that it gets displayed: */
     window->ActiveMenu = menu;
     menu->IsActive = GL_TRUE;
     ogState.ActiveMenus++;
 
-    /* Set up the initial menu position now: */
     menu->X = window->State.MouseX + glutGet( GLUT_WINDOW_X );
     menu->Y = window->State.MouseY + glutGet( GLUT_WINDOW_Y );
 
-    if( menu->X + menu->Width > glutGet ( GLUT_SCREEN_WIDTH ) )
-        menu->X -=menu->Width;
+    if( menu->X + menu->Width > glutGet( GLUT_SCREEN_WIDTH ) )
+        menu->X -= menu->Width;
 
-    if( menu->Y + menu->Height > glutGet ( GLUT_SCREEN_HEIGHT ) )
-        menu->Y -=menu->Height;
+    if( menu->Y + menu->Height > glutGet( GLUT_SCREEN_HEIGHT ) )
+        menu->Y -= menu->Height;
 
     ogSetWindow( menu->Window );
     glutPositionWindow( menu->X, menu->Y );
@@ -466,7 +470,7 @@ void ogActivateMenu( SOG_Window *window, int button )
 /*
  * Check whether an active menu absorbs a mouse click
  */
-GLboolean ogCheckActiveMenu ( SOG_Window *window, SOG_Menu *menu )
+GLboolean ogCheckActiveMenu( SOG_Window *window, SOG_Menu *menu )
 {
     /* XXX See the Menu module discussion for the button policy re. menus. */
     /* Since menus can have submenus, we need to check this recursively. */
@@ -481,9 +485,11 @@ void ogExecuteMenuCallback( SOG_Menu *menu )
     SOG_MenuEntry *menuEntry;
 
     /* First of all check any of the active sub menus... */
-    for( menuEntry = (SOG_MenuEntry *)menu->Entries.First;
-         menuEntry;
-         menuEntry = (SOG_MenuEntry *)menuEntry->Node.Next)
+    for(
+        menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
+        menuEntry;
+        menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next
+    )
         if( menuEntry->IsActive )
         {
             if( menuEntry->SubMenu )
@@ -501,15 +507,12 @@ void ogExecuteMenuCallback( SOG_Menu *menu )
 void ogDeactivateMenu( SOG_Window *window )
 {
     SOG_Window *current_window = ogStructure.Window;
-
-    /* Check if there is an active menu attached to this window... */
     SOG_Menu *menu = window->ActiveMenu;
-    SOG_MenuEntry *menuEntry;
 
-    /* Did we find an active window? */
     if( menu )
     {
-        /* Hide the present menu's window */
+        SOG_MenuEntry *menuEntry;
+
         ogSetWindow( menu->Window );
         glutHideWindow( );
 
@@ -521,9 +524,11 @@ void ogDeactivateMenu( SOG_Window *window )
         ogState.ActiveMenus--;
 
         /* Hide all submenu windows, and the root menu's window. */
-        for( menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
-             menuEntry;
-             menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
+        for(
+            menuEntry = ( SOG_MenuEntry * )menu->Entries.First;
+            menuEntry;
+            menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next
+        )
             /* Is that an active submenu by any case? */
             if( menuEntry->SubMenu )
                 ogDeactivateSubMenu( menuEntry );
@@ -533,13 +538,13 @@ void ogDeactivateMenu( SOG_Window *window )
 }
 
 /*
- * Deactivates a menu pointed by the function argument.
+ * Deactivate a menu pointed by the function argument.
  */
 void ogDeactivateSubMenu( SOG_MenuEntry *menuEntry )
 {
     SOG_Window *current_window = ogStructure.Window;
     SOG_MenuEntry *subMenuIter;
-    /* Hide the present menu's window */
+
     ogSetWindow( menuEntry->SubMenu->Window );
     glutHideWindow( );
 
@@ -548,9 +553,11 @@ void ogDeactivateSubMenu( SOG_MenuEntry *menuEntry )
     menuEntry->SubMenu->IsActive = GL_FALSE;
 
     /* Hide all submenu windows, and the root menu's window. */
-    for ( subMenuIter = (SOG_MenuEntry *)menuEntry->SubMenu->Entries.First;
-          subMenuIter;
-          subMenuIter = (SOG_MenuEntry *)subMenuIter->Node.Next )
+    for(
+        subMenuIter = ( SOG_MenuEntry * )menuEntry->SubMenu->Entries.First;
+        subMenuIter;
+        subMenuIter = ( SOG_MenuEntry * )subMenuIter->Node.Next
+    )
         /* Is that an active submenu by any case? */
         if( subMenuIter->SubMenu )
             ogDeactivateSubMenu( subMenuIter );
@@ -559,48 +566,49 @@ void ogDeactivateSubMenu( SOG_MenuEntry *menuEntry )
 }
 
 /*
- * Recalculates current menu's box size
+ * Recalculate current menu's box size
  */
 void oghCalculateMenuBoxSize( void )
 {
     SOG_MenuEntry *menuEntry;
     int width = 0, height = 0;
 
-    /* Make sure there is a current menu set */
-    freeglut_assert_ready;
+    OPENGLUT_ASSERT_READY;
     if( ogStructure.Menu )
     {
         /* The menu's box size depends on the menu entries: */
-        for( menuEntry = ( SOG_MenuEntry * )ogStructure.Menu->Entries.First;
-             menuEntry;
-             menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next )
+        for(
+            menuEntry = ( SOG_MenuEntry * )ogStructure.Menu->Entries.First;
+            menuEntry;
+            menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next
+        )
         {
             /* Update the menu entry's width value */
             menuEntry->Width = glutBitmapLength(
-                FREEGLUT_MENU_FONT,
-                (unsigned char *)menuEntry->Text
+                OPENGLUT_MENU_FONT,
+                ( unsigned char * )menuEntry->Text
             );
 
             /*
              * If the entry is a submenu, then it needs to be wider to
              * accomodate the arrow. JCJ 31 July 2003
              */
-            if (menuEntry->SubMenu )
+            if( menuEntry->SubMenu )
                 menuEntry->Width += glutBitmapLength(
-                    FREEGLUT_MENU_FONT,
-                    (unsigned char *)"_"
+                    OPENGLUT_MENU_FONT,
+                    ( unsigned char * )"_"
                 );
 
             /* Check if it's the biggest we've found */
             if( menuEntry->Width > width )
                 width = menuEntry->Width;
 
-            height += FREEGLUT_MENU_HEIGHT;
+            height += OPENGLUT_MENU_HEIGHT;
         }
 
         /* Store the menu's box size now: */
-        ogStructure.Menu->Height = height + 2 * FREEGLUT_MENU_BORDER;
-        ogStructure.Menu->Width  = width  + 4 * FREEGLUT_MENU_BORDER;
+        ogStructure.Menu->Height = height + 2 * OPENGLUT_MENU_BORDER;
+        ogStructure.Menu->Width  = width  + 4 * OPENGLUT_MENU_BORDER;
     }
 }
 
@@ -609,70 +617,56 @@ void oghCalculateMenuBoxSize( void )
 
 /*!
     \fn
-    \brief    Creates a new menu object.
+    \brief    Create a new menu.
     \ingroup  menus
     \param    callback    Client hook for the new menu.
 
-              Creates a menu with a callback bound to \a callback, and
-              returns the menu's integer id.
+              Create a menu with a callback bound to \a callback, and
+              return the menu's integer id.
 
               When the user makes a selection from this menu,
               \a callback is invoked with the parameter \a value,
               which comes from the (\a label, \a value) pair that
-              you define with glutAddMenuEntry().
+              is defined with glutAddMenuEntry().
 
-    \see      glutDestroyMenu(), glutGetMenu(), glutSetMenu(),
-              glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutAddMenuEntry(), glutAddSubMenu(), glutDestroyMenu()
 */
 int OGAPIENTRY glutCreateMenu( void( *callback )( int value ) )
 {
-    /* The menu object creation code resides in og_structure.c */
     return ogCreateMenu( callback )->ID;
 }
 
 /*!
     \fn
-    \brief    Destroys menu object.
+    \brief    Destroy a menu.
     \ingroup  menus
     \param    menuID    The menu to destroy.
 
               Destroys a given menu object by its ID.
 
-    \see      glutCreateMenu(), glutGetMenu(), glutSetMenu(),
-              glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutCreateMenu()
 */
 void OGAPIENTRY glutDestroyMenu( int menuID )
 {
     SOG_Menu *menu = ogMenuByID( menuID );
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutDestroyMenu" );
     if( menu )
-        /* The menu object destruction code resides in og_structure.c */
         ogDestroyMenu( menu );
 }
 
 /*!
     \fn
-    \brief    Gets current menu ID.
+    \brief    Get the current menu ID.
     \ingroup  menus
 
               Returns the integer ID of the current menu.
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutSetMenu(),
-              glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutSetMenu()
 */
 int OGAPIENTRY glutGetMenu( void )
 {
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutGetMenu" );
 
     if( ogStructure.Menu )
         return ogStructure.Menu->ID;
@@ -682,88 +676,71 @@ int OGAPIENTRY glutGetMenu( void )
 
 /*!
     \fn
-    \brief    Sets current menu ID.
+    \brief    Set the current menu ID.
     \ingroup  menus
-    \param    menuID    Selected menu.
+    \param    menuID    Selected menu
 
-              Tells OpenGLUT to set the <i>current menu</i>
-              to the menu given by the \a menuID.
+              Set the <i>current menu</i> to the specified \a menuID.
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutGetMenu()
 */
 void OGAPIENTRY glutSetMenu( int menuID )
 {
     SOG_Menu *menu = ogMenuByID( menuID );
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutSetMenu" );
     if( menu )
         ogStructure.Menu = menu;
 }
 
 /*!
     \fn
-    \brief    Appends an item to the current menu.
+    \brief    Append an item to the current menu.
     \ingroup  menus
-    \param    label    Text of the menu item.
-    \param    value    Integer to bind to the menu item.
+    \param    label    Menu item text
+    \param    value    Menu item callback value
 
               Inserts a given (\a label, \a value) pair
-              into the current menu.  \a label is the text used for
-              the item in the menu; \a value is what your program will
-              receive (via the menu's registered callback)
-              whenever the user selects this item.
+              into the current menu.  \a label is the text displayed
+              in the menu; \a value is the identifier received
+              by the callback when the item is selected.
 
-              The new entry is added at the bottem of the menu.
+              The new entry is added to the end of the menu.
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutSetMenu(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutAddSubMenu(), glutChangeToMenuEntry(), glutChangeToSubMenu(),
+              glutRemoveMenuItem()
 */
 void OGAPIENTRY glutAddMenuEntry( const char *label, int value )
 {
     SOG_MenuEntry *menuEntry =
         ( SOG_MenuEntry * )calloc( sizeof( SOG_MenuEntry ), 1 );
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutAddMenuEntry" );
     if( ogStructure.Menu )
     {
         menuEntry->Text = ogStrDup( label );
         menuEntry->ID   = value;
 
-        /* Have the new menu entry attached to the current menu */
         ogListAppend( &ogStructure.Menu->Entries, &menuEntry->Node );
-
         oghCalculateMenuBoxSize( );
     }
 }
 
 /*!
     \fn
-    \brief    Attaches a submenu to the current menu.
+    \brief    Append a submenu to the current menu.
     \ingroup  menus
-    \param    label     Text of the submenu.
-    \param    subMenuID The menuID of the submenu.
+    \param    label     Submenu item text
+    \param    subMenuID Submenu identifier
 
-              Attaches a previously defined menu as a submenu
-              to the current menu.  \a label is the text used for the
-              item in the menu.  \a subMenuID is the menu ID returned
-              by a previous call to glutCreateMenu() for the attached
-              menu.
+              Attaches an existing menu as a submenu of the current menu.
+              \a label is the text used for the item in the menu.
+              \a subMenuID is the identifier of an existing menu to be
+              appended as a submenu.
 
-              The submenu is attached just as a non-submenu item
-              is added: At the current bottom of the list.
+              The submenu is added to the end of the menu.
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutSetMenu(), glutAddMenuEntry(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutCreateMenu(), glutAddMenuEntry()
 */
 void OGAPIENTRY glutAddSubMenu( const char *label, int subMenuID )
 {
@@ -771,7 +748,7 @@ void OGAPIENTRY glutAddSubMenu( const char *label, int subMenuID )
         ( SOG_MenuEntry * )calloc( sizeof( SOG_MenuEntry ), 1 );
     SOG_Menu *subMenu = ogMenuByID( subMenuID );
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutAddSubMenu" );
     if( ogStructure.Menu && subMenu )
     {
         menuEntry->Text    = ogStrDup( label );
@@ -788,11 +765,11 @@ void OGAPIENTRY glutAddSubMenu( const char *label, int subMenuID )
 
 /*!
     \fn
-    \brief    Replaces a given menu entry with an item.
+    \brief    Replace a menu entry with an item.
     \ingroup  menus
-    \param    item    Integer position down the list.
-    \param    label   Text of the submenu.
-    \param    value   The menuID of the submenu.
+    \param    item    Integer position down the list
+    \param    label   Menu item text
+    \param    value   Menu item callback value
 
               Walks the list of the menu items and replaces
               the numbered \a item in the list with the
@@ -800,24 +777,21 @@ void OGAPIENTRY glutAddSubMenu( const char *label, int subMenuID )
               pre-existing \a item, this function is much like
               glutAddMenuEntry().
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutSetMenu(), glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToSubMenu(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutAddMenuEntry(), glutAddSubMenu(),
+              glutChangeToSubMenu(), glutRemoveMenuItem()
 */
 void OGAPIENTRY glutChangeToMenuEntry( int item, const char *label, int value )
 {
     SOG_MenuEntry *menuEntry = NULL;
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutChangeToMenuEntry" );
     if( ogStructure.Menu )
     {
         /* Get n-th menu entry in the current menu, starting from one: */
         menuEntry = oghFindMenuEntry( ogStructure.Menu, item );
         if( menuEntry )
         {
-            
+
             /* We want it to become a normal menu entry, so: */
             if( menuEntry->Text )
                 free( menuEntry->Text );
@@ -832,21 +806,18 @@ void OGAPIENTRY glutChangeToMenuEntry( int item, const char *label, int value )
 
 /*!
     \fn
-    \brief    Replaces a given menu entry with a submenu.
+    \brief    Replace a menu entry with a submenu.
     \ingroup  menus
-    \param    item      Integer position down the list.
-    \param    label     Text of the submenu.
-    \param    subMenuID The menuID of the submenu.
+    \param    item      Integer position down the list
+    \param    label     Submenu item text
+    \param    subMenuID Submenu identifier
 
               Walks the list of the menu items and replaces
               the numbered \a item in the list with the
               given submenu.
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutSetMenu(), glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(),
-              glutRemoveMenuItem(), glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutAddMenuEntry(), glutAddSubMenu(),
+              glutChangeToMenuEntry(), glutRemoveMenuItem()
 */
 void OGAPIENTRY glutChangeToSubMenu( int item, const char *label,
                                      int subMenuID )
@@ -854,7 +825,7 @@ void OGAPIENTRY glutChangeToSubMenu( int item, const char *label,
     SOG_Menu        *subMenu = ogMenuByID( subMenuID );
     SOG_MenuEntry *menuEntry = NULL;
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutChangeToSubMenu" );
     if( ogStructure.Menu && subMenu )
     {
         /* Get n-th menu entry in the current menu, starting from one: */
@@ -875,24 +846,21 @@ void OGAPIENTRY glutChangeToSubMenu( int item, const char *label,
 
 /*!
     \fn
-    \brief    Removes a given menu entry.
+    \brief    Remove a given menu item.
     \ingroup  menus
-    \param    item    Integer position down the list.
+    \param    item    Integer position down the list
 
               Walks the list of the menu items and deletes
               the numbered \a item in the list.
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutSetMenu(), glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutAddMenuEntry(), glutAddSubMenu(),
+              glutChangeToMenuEntry(), glutChangeToSubMenu()
 */
 void OGAPIENTRY glutRemoveMenuItem( int item )
 {
     SOG_MenuEntry *menuEntry;
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutRemoveMenuItem" );
     if( ogStructure.Menu )
     {
         /* Get n-th menu entry in the current menu, starting from one: */
@@ -900,7 +868,7 @@ void OGAPIENTRY glutRemoveMenuItem( int item )
         if( menuEntry )
         {
             ogListRemove( &ogStructure.Menu->Entries, &menuEntry->Node );
-            if ( menuEntry->Text )
+            if( menuEntry->Text )
                 free( menuEntry->Text );
 
             free( menuEntry );
@@ -911,32 +879,29 @@ void OGAPIENTRY glutRemoveMenuItem( int item )
 
 /*!
     \fn
-    \brief    Attaches the current menu to the current window.
+    \brief    Attach the current menu to the current window.
     \ingroup  menus
-    \param    button    Binds the menu to this mouse button.
+    \param    button    Mouse button to bind to
 
               Associates the \a button with the current menu
               in the current window.
 
-    \bug      Assumes 3 mouse buttons.  (Actually \a FREEGLUT_MAX_MENUS
+    \todo     Assumes 3 mouse buttons.  (Actually \a OPENGLUT_MAX_MENUS
               holds the assumed number of buttons.)  Cannot bind to more
               buttons.  Will not issue any warnings or errors if the user
               does not have enough buttons to reach your menu.
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutSetMenu(), glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutDetachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+
+    \see      glutCreateMenu(), glutSetMenu(), glutDetachMenu(),
 */
 void OGAPIENTRY glutAttachMenu( int button )
 {
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutAttachMenu" );
 
     if(
         ogStructure.Window &&
         ogStructure.Menu &&
         ( button >= 0 ) &&
-        ( button < FREEGLUT_MAX_MENUS )
+        ( button < OPENGLUT_MAX_MENUS )
     )
     {
         ogStructure.Window->Menu[ button ] = ogStructure.Menu;
@@ -955,38 +920,33 @@ void OGAPIENTRY glutAttachMenu( int button )
 
 /*!
     \fn
-    \brief    Detaches from menu from the current window.
+    \brief    Detach menu from the current window.
     \ingroup  menus
-    \param    button    Unbinds the menu on this mouse button.
+    \param    button    Mouse button to unbind from.
 
               If the given \a button has a menu bound to it,
               this breaks the assocation.
 
-    \see      glutCreateMenu(), glutDestroyMenu(), glutGetMenu(),
-              glutSetMenu(), glutAddMenuEntry(), glutAddSubMenu(),
-              glutChangeToMenuEntry(), glutChangeToSubMenu(),
-              glutAttachMenu(),
-              glutSetMenuData(), glutGetMenuData()
+    \see      glutCreateMenu, glutDestroyMenu(), glutAttachMenu()
 */
 void OGAPIENTRY glutDetachMenu( int button )
 {
-    freeglut_assert_ready;
-
+    OPENGLUT_REQUIRE_READY( "glutDetachMenu" );
     if(
         ogStructure.Window &&
         ogStructure.Menu &&
         ( button >= 0 ) &&
-        ( button < FREEGLUT_MAX_MENUS )
+        ( button < OPENGLUT_MAX_MENUS )
     )
         ogStructure.Window->Menu[ button ] = NULL;
 }
 
 /*!
     \fn
-    \brief    Rerieves user data from a menu.
+    \brief    Retrieve menu user data pointer
     \ingroup  menus
 
-              Retrieves a previously stored arbitrary user
+              Retrieve a previously stored user
               data pointer from the current menu.
 
     \see      glutSetMenuData()
@@ -998,9 +958,9 @@ void *OGAPIENTRY glutGetMenuData( void )
 
 /*!
     \fn
-    \brief    Store user data in a menu.
+    \brief    Store menu user data pointer
     \ingroup  menus
-    \param    data    An arbitrary client pointer.
+    \param    data    Client pointer data
 
               glutSetMenuData() associates an arbitrary user
               data pointer, \a data, with the <i>current menu</i>.
@@ -1012,5 +972,5 @@ void *OGAPIENTRY glutGetMenuData( void )
 */
 void OGAPIENTRY glutSetMenuData(void *data)
 {
-    ogStructure.Menu->UserData=data;
+    ogStructure.Menu->UserData = data;
 }

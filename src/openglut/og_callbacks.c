@@ -44,7 +44,7 @@ static void oghVisibility( const int status )
 {
     int glut_status = GLUT_VISIBLE;
 
-    freeglut_assert_ready;
+    OPENGLUT_ASSERT_READY;
     if( !ogStructure.Window )
         return;
 
@@ -95,7 +95,7 @@ void OGAPIENTRY glutDisplayFunc( void( *callback )( void ) )
         ogError(
             "Fatal error in program.  NULL display callback not "
             "permitted in GLUT 3.0+, freeglut 2.0.1+, "
-            "or any version of OpenGLUT.\n"
+            "or any version of OpenGLUT."
         );
     SET_CALLBACK( Display );
 }
@@ -241,7 +241,7 @@ void OGAPIENTRY glutSpecialFunc( void( *callback )( int key, int x, int y ) )
 */
 void OGAPIENTRY glutIdleFunc( void( *callback )( void ) )
 {
-    OPENGLUT_REQUIRE_READY ("glutIdleFunc");
+    OPENGLUT_REQUIRE_READY( "glutIdleFunc" );
     ogState.IdleCallback = callback;
 }
 
@@ -273,7 +273,7 @@ void OGAPIENTRY glutTimerFunc(
 {
     SOG_Timer *timer, *node;
 
-    OPENGLUT_REQUIRE_READY ("glutTimerFunc");
+    OPENGLUT_REQUIRE_READY( "glutTimerFunc" );
 
     if( ( timer = ogState.FreeTimers.Last ) )
         ogListRemove( &ogState.FreeTimers, &timer->Node );
@@ -297,7 +297,7 @@ void OGAPIENTRY glutTimerFunc(
 /*!
     \fn
     \brief    Sets the Visibility callback for the current window.
-    \ingroup  windowcallback
+    \ingroup  deprecated
     \param    callback    Client hook for visibility changes.
 
               OpenGLUT may call this function when your window's
@@ -320,6 +320,7 @@ void OGAPIENTRY glutVisibilityFunc( void( *callback )( int status ) )
 {
     SET_CALLBACK( Visibility );
 
+    ogWarning( "glutVisibilityFunc() is deprecated; see the documentation" );
     if( callback )
         glutWindowStatusFunc( oghVisibility );
     else
@@ -380,33 +381,29 @@ void OGAPIENTRY glutSpecialUpFunc(
 
 /*!
     \fn
-    \brief    Sets the joystick callback and poll rate for the current window.
+    \brief    Reports joystick state for the current window.
     \ingroup  input
-    \param    callback      Client hook for joystick events.
-    \param    pollInterval  Approx. (minimum) millisecond interval
+    \param    callback      Client function for joystick events
+    \param    pollInterval  Approximate (minimum) millisecond interval
 
-              Each window can have a single joystick callback registered.
-              If registered, then roughly every \a pollinterval milliseconds
-              OpenGLUT will tell you the joystick status.
+              The callback is called roughly every \a pollinterval
+              milliseconds, and will give the joystick status.
 
-              This callback is bound to the <i>current window</i>.
+              The \a buttons bitmask is a bit-wise \a OR of:
+              - GLUT_JOYSTICK_BUTTON_A
+              - GLUT_JOYSTICK_BUTTON_B
+              - GLUT_JOYSTICK_BUTTON_C
+              - GLUT_JOYSTICK_BUTTON_D
 
-    \note     There is a proposal afoot to replace the joystick API with
-              a more general, better designed mechanism.  That has not
-              been sorted out in principle, much less implemented.
-              However, joystick usage may eventually change.
+              The axis values are in the range [-1000,1000].
+
 */
 void OGAPIENTRY glutJoystickFunc(
-    void( *callback )( unsigned int, int, int, int ),
+    void( *callback )( unsigned int buttons, int xaxis, int yaxis, int zaxis ),
     int pollInterval
 )
 {
-    if( !ogState.JoysticksInitted )
-    {
-        ogJoystickInit( 0 );
-        ogJoystickInit( 1 );
-        ogState.JoysticksInitted = GL_TRUE;
-    }
+    ogJoystickInit( );
 
     SET_CALLBACK( Joystick );
     ogStructure.Window->State.JoystickPollRate = pollInterval;
@@ -584,14 +581,14 @@ void OGAPIENTRY glutEntryFunc( void( *callback )( int state ) )
 
               This callback is bound to the <i>current window</i>.
 
-    \todo     Instead of hacking the window-close state machine,
-              perhaps we should have the \a callback return
-              zero or non-zero to indicate whether to continue
-              functioning?  That would be a little cleaner, perhaps.
     \note     This function is <b>exactly</b> the same as
-              glutWMCloseFunc().  In fact, that function
-              is just a call to this function, with the same
-              parameter.  You should only need one or the other.
+              glutWMCloseFunc(), which has been deprecated.
+              This function should be used instead.
+
+    \todo     There needs to be some work to rationalize the
+              behavior when a window is closed.  Presently,
+              the handling is ad-hoc and sloppy.
+
     \see      glutDestroyWindow(), glutWMCloseFunc()
 */
 void OGAPIENTRY glutCloseFunc( void( *callback )( void ) )
@@ -602,8 +599,10 @@ void OGAPIENTRY glutCloseFunc( void( *callback )( void ) )
 /*!
     \fn
     \brief    Window destruction callback.
-    \ingroup  windowcallback
+    \ingroup  deprecated
     \param    callback    Client window destruction hook.
+
+              Deprecated - use glutCloseFunc instead.
 
               When a window is destroyed by user-action in
               traditional GLUT, the application terminates.
@@ -611,25 +610,18 @@ void OGAPIENTRY glutCloseFunc( void( *callback )( void ) )
               choose to persist and treat the window close
               event as a normal event.  This callback is
               how that event is transmitted to the application.
-
               This callback is bound to the <i>current window</i>.
 
-    \todo     Instead of hacking the window-close state machine,
-              perhaps we should have the \a callback return
-              zero or non-zero to indicate whether to continue
-              functioning?  That would be a little cleaner, perhaps.
-    \todo     This function is absolutely redundant of glutCloseFunc(),
-              but is less well-named.  This function should probably
-              be deprecated, whether or not we make other changes to
-              the OpenGLUT window-close API.
     \note     This function is <b>exactly</b> the same as
               glutCloseFunc().  In fact, this function
               is just a call to the other function, with the same
-              parameter.  You should only need one or the other.
+              parameter.
+
     \see      glutDestroyWindow(), glutCloseFunc()
 */
 void OGAPIENTRY glutWMCloseFunc( void( *callback )( void ) )
 {
+    ogWarning( "glutWMCloseFunc() is depecated; see the documentation" );
     glutCloseFunc( callback );
 }
 
@@ -666,7 +658,7 @@ void OGAPIENTRY glutMenuDestroyFunc( void( *callback )( void ) )
 /*!
     \fn
     \brief    Deprecated variant of glutMenuStatusFunc()
-    \ingroup  menucallback
+    \ingroup  deprecated
     \param    callback    Client menu status hook.
 
               Broadly, OpenGLUT operates in two modes.  At any
@@ -691,7 +683,8 @@ void OGAPIENTRY glutMenuDestroyFunc( void( *callback )( void ) )
 */
 void OGAPIENTRY glutMenuStateFunc( void( *callback )( int status ) )
 {
-    OPENGLUT_REQUIRE_READY ("glutMenuStatusFunc");
+    OPENGLUT_REQUIRE_READY( "glutMenuStateFunc" );
+    ogWarning( "glutMenuStateFunc() is deprecated; see the documentation" );
     ogState.MenuStateCallback = callback;
 }
 
@@ -729,7 +722,7 @@ void OGAPIENTRY glutMenuStatusFunc(
     void( *callback )( int status, int x, int y )
 )
 {
-    OPENGLUT_REQUIRE_READY ("glutMenuStatusFunc");
+    OPENGLUT_REQUIRE_READY( "glutMenuStatusFunc" );
     ogState.MenuStatusCallback = callback;
 }
 

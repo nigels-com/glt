@@ -282,13 +282,16 @@ static void oghDisplayAll( void )
 /*
  * Window enumerator callback to check for the joystick polling code
  */
-static void oghcbCheckJoystickPolls( SOG_Window *window,
-                                     SOG_Enumerator *enumerator )
+static void oghcbCheckJoystickPolls(
+    SOG_Window *window, SOG_Enumerator *enumerator
+)
 {
     long int checkTime = ogElapsedTime( );
 
-    if( window->State.JoystickLastPoll + window->State.JoystickPollRate <=
-        checkTime )
+    if(
+        window->State.JoystickLastPoll + window->State.JoystickPollRate <=
+        checkTime
+    )
     {
         ogJoystickPollWindow( window );
         window->State.JoystickLastPoll = checkTime;
@@ -381,17 +384,20 @@ long ogElapsedTime( void )
  */
 void ogError( const char *fmt, ... )
 {
-    va_list ap;
+    if( ogState.PrintErrors )
+    {
+        va_list ap;
 
-    va_start( ap, fmt );
+        va_start( ap, fmt );
 
-    fprintf( stderr, "OpenGLUT " );
-    if( ogState.ProgramName )
-        fprintf( stderr, "(%s): ", ogState.ProgramName );
-    vfprintf( stderr, fmt, ap );
-    fprintf( stderr, "\n" );
+        fprintf( stderr, "OpenGLUT Error " );
+        if( ogState.ProgramName )
+            fprintf( stderr, "(%s): ", ogState.ProgramName );
+        vfprintf( stderr, fmt, ap );
+        fprintf( stderr, "\n" );
 
-    va_end( ap );
+        va_end( ap );
+    }
 
     if( ogState.Initialised )
         ogDeinitialize( );
@@ -401,17 +407,20 @@ void ogError( const char *fmt, ... )
 
 void ogWarning( const char *fmt, ... )
 {
-    va_list ap;
+    if( ogState.PrintWarnings )
+    {
+        va_list ap;
 
-    va_start( ap, fmt );
+        va_start( ap, fmt );
 
-    fprintf( stderr, "OpenGLUT " );
-    if( ogState.ProgramName )
-        fprintf( stderr, "(%s): ", ogState.ProgramName );
-    vfprintf( stderr, fmt, ap );
-    fprintf( stderr, "\n" );
+        fprintf( stderr, "OpenGLUT Warning " );
+        if( ogState.ProgramName )
+            fprintf( stderr, "(%s): ", ogState.ProgramName );
+        vfprintf( stderr, fmt, ap );
+        fprintf( stderr, "\n" );
 
-    va_end( ap );
+        va_end( ap );
+    }
 }
 
 /*
@@ -500,7 +509,7 @@ static void ogSleepForEvents( void )
      * need to allow that we may have an empty socket but non-
      * empty event queue.
      */
-    if( ! XPending( ogDisplay.Display ) )
+    if( !XPending( ogDisplay.Display ) )
     {
         fd_set fdset;
         int err;
@@ -515,7 +524,8 @@ static void ogSleepForEvents( void )
         err = select( socket+1, &fdset, NULL, NULL, &wait );
 
         if( -1 == err )
-            ogWarning( "OpenGLUT select() error: %d\n", errno );
+	    if( EINTR != errno )
+		ogWarning( "ogSleepForEvents(): select() error: %d", errno );
     }
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
     MsgWaitForMultipleObjects( 0, NULL, FALSE, msec, QS_ALLEVENTS );
@@ -563,10 +573,10 @@ static void oghTakeActionOnWindowClose( void )
     case GLUT_ACTION_CONTINUE_EXECUTION:
         /* NOP */
         break;
-        
+
     default:
         ogError(
-            "Unknown action on window close: %d\n",
+            "Unknown action on window close: %d",
             ogState.ActionOnWindowClose
         );
         break;
@@ -643,7 +653,11 @@ void oghDispatchEvent( SOG_Event *ev )
         break;
 #define GETMOUSE(a)                               \
     window->State.MouseX = event->a.x;            \
-    window->State.MouseY = event->a.y;
+    window->State.MouseY = event->a.y;            \
+    if( 32767 < window->State.MouseX )            \
+        window->State.MouseX -= 65536;            \
+    if( 32767 < window->State.MouseY )            \
+        window->State.MouseY -= 65536;
 
     switch( event->type )
     {
@@ -696,9 +710,9 @@ void oghDispatchEvent( SOG_Event *ev )
                     unsigned udummy;
                     unsigned uwidth, uheight;
                     Window root;
-                    
+
                     Status status;
-                    
+
                     status = XGetGeometry(
                         ogDisplay.Display, window->Window.Handle,
                         &root,
@@ -709,15 +723,17 @@ void oghDispatchEvent( SOG_Event *ev )
                     width = ( int )uwidth;
                     height = ( int )uheight;
                 }
-                        
+
                 break;
             default:
-                ogError( "Impossible code has been reached.\n");
+                ogError( "Impossible code has been reached.");
                 break;
             }
 
-            if( ( width != window->State.OldWidth ) ||
-                ( height != window->State.OldHeight ) )
+            if(
+                ( width != window->State.OldWidth ) ||
+                ( height != window->State.OldHeight )
+            )
             {
                 window->State.OldWidth = width;
                 window->State.OldHeight = height;
@@ -730,6 +746,8 @@ void oghDispatchEvent( SOG_Event *ev )
                 }
                 glutPostRedisplay( );
             }
+            if( ( window->IsMenu ) || ( window->IsClientMenu ) )
+                glutSetWindowStayOnTop( GL_TRUE );
         }
         break;
 
@@ -772,7 +790,7 @@ void oghDispatchEvent( SOG_Event *ev )
     case LeaveNotify:
         GETWINDOW( xcrossing );
         GETMOUSE( xcrossing );  /* XXX Why do we need the mouse info? */
-            
+
         /*
          * XXX This hack allows borderless windows to be used
          * XXX as main windows.  We should find
@@ -843,11 +861,13 @@ void oghDispatchEvent( SOG_Event *ev )
 #define BUTTON_MASK \
   ( Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask )
         if( event->xmotion.state & BUTTON_MASK )
-            INVOKE_WCB( *window, Motion, ( event->xmotion.x,
-                                           event->xmotion.y ) );
+            INVOKE_WCB(
+                *window, Motion, ( event->xmotion.x, event->xmotion.y )
+            );
         else
-            INVOKE_WCB( *window, Passive, ( event->xmotion.x,
-                                            event->xmotion.y ) );
+            INVOKE_WCB(
+                *window, Passive, ( event->xmotion.x, event->xmotion.y )
+            );
         break;
 
     case ButtonRelease:
@@ -933,11 +953,9 @@ void oghDispatchEvent( SOG_Event *ev )
                 break;
             }
 
-            /*
-             * No active menu, let's check whether we need to activate one.
-             */
+            /* No active menu, let's check whether we need to activate one. */
             if( ( 0 <= button ) &&
-                ( FREEGLUT_MAX_MENUS > button ) &&
+                ( OPENGLUT_MAX_MENUS > button ) &&
                 ( window->Menu[ button ] ) &&
                 pressed )
             {
@@ -955,19 +973,24 @@ void oghDispatchEvent( SOG_Event *ev )
              * XXX The callback invocation should do this check for us.
              * XXX Why are we redundantly doing it ourselves?
              */
-            if( ! FETCH_WCB( *window, Mouse ) &&
-                ! FETCH_WCB( *window, MouseWheel ) )
+            if(
+                !FETCH_WCB( *window, Mouse ) &&
+                !FETCH_WCB( *window, MouseWheel )
+            )
                 break;
 
             ogState.Modifiers = ogGetXModifiers( event );
 
             /* Choose between mouse-button or mouse-wheel reporting. */
-            if( ( glutDeviceGet( GLUT_NUM_MOUSE_BUTTONS ) > button ) ||
-                ( !FETCH_WCB( *window, MouseWheel ) ) )
-                INVOKE_WCB( *window, Mouse, ( button,
-                                              pressed ? GLUT_DOWN : GLUT_UP,
-                                              event->xbutton.x,
-                                              event->xbutton.y )
+            if(
+                ( glutDeviceGet( GLUT_NUM_MOUSE_BUTTONS ) > button ) ||
+                ( !FETCH_WCB( *window, MouseWheel ) )
+            )
+                INVOKE_WCB(
+                    *window, Mouse, (
+                        button, pressed ? GLUT_DOWN : GLUT_UP,
+                        event->xbutton.x, event->xbutton.y
+                    )
                 );
             else
             {
@@ -990,10 +1013,13 @@ void oghDispatchEvent( SOG_Event *ev )
                     direction = 1;
 
                 if( pressed )
-                    INVOKE_WCB( *window, MouseWheel, ( wheel_number,
-                                                       direction,
-                                                       event->xbutton.x,
-                                                       event->xbutton.y )
+                    INVOKE_WCB(
+                        *window, MouseWheel, (
+                            wheel_number,
+                            direction,
+                            event->xbutton.x,
+                            event->xbutton.y
+                        )
                     );
             }
 
@@ -1065,9 +1091,10 @@ void oghDispatchEvent( SOG_Event *ev )
                 int len;
 
                 /* Check for the key codes associated with the event: */
-                len = XLookupString( &( event->xkey ), asciiCode,
-                                     sizeof( asciiCode ), &keySym,
-                                     &composeStatus
+                len = XLookupString(
+                    &( event->xkey ), asciiCode,
+                    sizeof( asciiCode ), &keySym,
+                    &composeStatus
                 );
 
                 /* GLUT API tells us to have two separate callbacks... */
@@ -1078,8 +1105,9 @@ void oghDispatchEvent( SOG_Event *ev )
                     {
                         ogSetWindow( window );
                         ogState.Modifiers = ogGetXModifiers( event );
-                        keyboard_cb( asciiCode[ 0 ],
-                                     event->xkey.x, event->xkey.y
+                        keyboard_cb(
+                            asciiCode[ 0 ],
+                            event->xkey.x, event->xkey.y
                         );
                         ogState.Modifiers = 0xffffffff;
                     }
@@ -1091,6 +1119,11 @@ void oghDispatchEvent( SOG_Event *ev )
                     /*
                      * ...and one for all the others, which need to be
                      * translated to GLUT_KEY_Xs...
+                     *
+                     * XXX This is a very ugly bit of code, especially
+                     * XXX the way that multiple statements get stacked
+                     * XXX onto single lines.  We should use a lookup
+                     * XXX table, instead.
                      */
                     switch( keySym )
                     {
@@ -1128,7 +1161,7 @@ void oghDispatchEvent( SOG_Event *ev )
                      * Execute the callback (if one has been specified),
                      * given that the special code seems to be valid...
                      */
-                    if( special_cb && (special != -1) )
+                    if( special_cb && ( -1 != special ) )
                     {
                         ogSetWindow( window );
                         ogState.Modifiers = ogGetXModifiers( event );
@@ -1168,8 +1201,9 @@ void oghDispatchEvent( SOG_Event *ev )
             break;
 
         case VisibilityPartiallyObscured:
-            INVOKE_WCB( *window, WindowStatus,
-                        ( GLUT_PARTIALLY_RETAINED ) );
+            INVOKE_WCB(
+                *window, WindowStatus, ( GLUT_PARTIALLY_RETAINED )
+            );
             window->State.Visible = GL_TRUE;
             break;
 
@@ -1179,8 +1213,9 @@ void oghDispatchEvent( SOG_Event *ev )
             break;
 
         default:
-            ogWarning( "Unknown X visibility state: %d",
-                       event->xvisibility.state );
+            ogWarning(
+                "Unknown X visibility state: %d", event->xvisibility.state
+            );
             break;
         }
         break;
@@ -1223,7 +1258,7 @@ void oghDispatchEvent( SOG_Event *ev )
 void OGAPIENTRY glutMainLoopEvent( void )
 {
     SOG_Event event;
-    freeglut_assert_ready; /* XXX Looks like assert() abuse... */
+    OPENGLUT_REQUIRE_READY( "glutMainLoopEvent" );
 
     while( oghPendingWindowEvents( &event ) )
     {
@@ -1275,7 +1310,7 @@ void OGAPIENTRY glutMainLoop( void )
     SOG_Window *window = ( SOG_Window * )ogStructure.Windows.First;
 #endif
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutMainLoop" );
 
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
     /*
@@ -1430,13 +1465,13 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             ogState.DisplayMode = current_DisplayMode;
 
             if( ogStructure.MenuContext )
-                wglMakeCurrent( window->Window.Device,
-                                ogStructure.MenuContext->Context
+                wglMakeCurrent(
+                    window->Window.Device, ogStructure.MenuContext->Context
                 );
             else
             {
                 ogStructure.MenuContext =
-                    (SOG_MenuContext *)malloc( sizeof( SOG_MenuContext ) );
+                    ( SOG_MenuContext * )malloc( sizeof( SOG_MenuContext ) );
                 ogStructure.MenuContext->Context =
                     wglCreateContext( window->Window.Device );
             }
@@ -1461,6 +1496,9 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
                         wglCreateContext( window->Window.Device );
             }
         }
+        if( ( window->IsMenu ) || ( window->IsClientMenu ) )
+            glutSetWindowStayOnTop( GL_TRUE );
+
         /*
          * XXX These do not seem to really be required.  I had to
          * XXX remove them to keep glutCreateMenuWindow() windows
@@ -1471,7 +1509,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          */
          window->State.Width  = ogState.Size.X;
          window->State.Height = ogState.Size.Y;
-         
+
         ReleaseDC( window->Window.Handle, window->Window.Device );
 #if TARGET_HOST_WINCE
         /* Take over button handling */
@@ -1482,7 +1520,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
                 GXGetDefaultKeys_ = ( GXGETDEFAULTKEYS )GetProcAddress(
                     dxDllLib, _T( "?GXGetDefaultKeys@@YA?AUGXKeyList@@H@Z" )
                 );
-                GXOpenInput_ = (GXOPENINPUT )GetProcAddress(
+                GXOpenInput_ = ( GXOPENINPUT )GetProcAddress(
                     dxDllLib, _T( "?GXOpenInput@@YAHXZ" )
                 );
             }
@@ -1619,14 +1657,19 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
         ogState.Modifiers = ogGetWin32Modifiers( );
 
-        if( ( wParam & MK_LBUTTON ) ||
+        if(
+            ( wParam & MK_LBUTTON ) ||
             ( wParam & MK_MBUTTON ) ||
-            ( wParam & MK_RBUTTON ) )
-            INVOKE_WCB( *window, Motion, ( window->State.MouseX,
-                                           window->State.MouseY ) );
+            ( wParam & MK_RBUTTON )
+        )
+            INVOKE_WCB(
+                *window, Motion, ( window->State.MouseX, window->State.MouseY )
+            );
         else
-            INVOKE_WCB( *window, Passive, ( window->State.MouseX,
-                                            window->State.MouseY ) );
+            INVOKE_WCB(
+                *window, Passive,
+                ( window->State.MouseX, window->State.MouseY )
+            );
 
         ogState.Modifiers = 0xffffffff;
     }
@@ -1682,11 +1725,27 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             break;
         }
 
+        /*
+         * XXX Perhaps should do the capture BEFORE callback (here),
+         * XXX and release AFTER callback.
+         */
+        if( pressed )
+        {
+            SetCapture( window->Window.Handle );
+            ogState.ButtonMask |= ( 1U << button );
+        }
+        else
+        {
+            ogState.ButtonMask &= ~( 1U << button );
+            if( !ogState.ButtonMask )
+                ReleaseCapture( );
+        }
+
 #if !TARGET_HOST_WINCE
         if( GetSystemMetrics( SM_SWAPBUTTON ) )
             if( button == GLUT_LEFT_BUTTON )
                 button = GLUT_RIGHT_BUTTON;
-            else 
+            else
                 if( button == GLUT_RIGHT_BUTTON )
                     button = GLUT_LEFT_BUTTON;
 #endif
@@ -1732,7 +1791,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
              * Let's make the window redraw as a result of the mouse
              * click and menu activity.
              */
-            if( ! window->IsMenu )
+            if( !window->IsMenu )
                 window->State.Redisplay = GL_TRUE;
 
             break;
@@ -1747,18 +1806,16 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             break;
         }
 
-        if( ! FETCH_WCB( *window, Mouse ) )
+        if( !FETCH_WCB( *window, Mouse ) )
             break;
 
         ogSetWindow( window );
         ogState.Modifiers = ogGetWin32Modifiers( );
 
         INVOKE_WCB(
-            *window, Mouse,
-            ( button,
-              pressed ? GLUT_DOWN : GLUT_UP,
-              window->State.MouseX,
-              window->State.MouseY
+            *window, Mouse, (
+                button, pressed ? GLUT_DOWN : GLUT_UP,
+                window->State.MouseX, window->State.MouseY
             )
         );
 
@@ -1791,8 +1848,10 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         /*        window->State.MouseY = HIWORD( lParam ); */
         /* change "lParam" to other parameter */
 
-        if( ! FETCH_WCB( *window, MouseWheel ) &&
-            ! FETCH_WCB( *window, Mouse ) )
+        if(
+            !FETCH_WCB( *window, MouseWheel ) &&
+            !FETCH_WCB( *window, Mouse )
+        )
             break;
 
         ogSetWindow( window );
@@ -1800,12 +1859,11 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
         while( ticks-- )
             if( FETCH_WCB( *window, MouseWheel ) )
-                INVOKE_WCB( *window, MouseWheel,
-                            ( wheel_number,
-                              direction,
-                              window->State.MouseX,
-                              window->State.MouseY
-                            )
+                INVOKE_WCB(
+                    *window, MouseWheel, (
+                        wheel_number, direction,
+                        window->State.MouseX, window->State.MouseY
+                    )
                 );
             else  /* No mouse wheel, call the mouse button callback twice */
             {
@@ -1817,13 +1875,17 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
                     glutDeviceGet( GLUT_NUM_MOUSE_BUTTONS );
                 if( direction > 0 )
                     ++button;
-                INVOKE_WCB( *window, Mouse,
-                            ( button, GLUT_DOWN,
-                              window->State.MouseX, window->State.MouseY )
+                INVOKE_WCB(
+                    *window, Mouse, (
+                        button, GLUT_DOWN,
+                        window->State.MouseX, window->State.MouseY
+                    )
                 );
-                INVOKE_WCB( *window, Mouse,
-                            ( button, GLUT_UP,
-                              window->State.MouseX, window->State.MouseX )
+                INVOKE_WCB(
+                    *window, Mouse, (
+                        button, GLUT_UP,
+                        window->State.MouseX, window->State.MouseX
+                    )
                 );
             }
 
@@ -1837,9 +1899,11 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         int keypress = -1;
         POINT mouse_pos;
 
-        if( ( ogState.KeyRepeat == GLUT_KEY_REPEAT_OFF ||
+        if(
+            ( ogState.KeyRepeat == GLUT_KEY_REPEAT_OFF ||
               window->State.IgnoreKeyRepeat == GL_TRUE ) &&
-            ( HIWORD( lParam ) & KF_REPEAT ) )
+            ( HIWORD( lParam ) & KF_REPEAT )
+        )
             break;
 
         /*
@@ -1883,37 +1947,38 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
         case VK_DELETE:
             /* The delete key is ASCII DEL */
-            INVOKE_WCB( *window, Keyboard,
-                        ( 127, window->State.MouseX, window->State.MouseY )
+            INVOKE_WCB(
+                *window, Keyboard,
+                ( 127, window->State.MouseX, window->State.MouseY )
             );
         }
 
 #if TARGET_HOST_WINCE
         if(!(lParam & 0x40000000)) /* Prevent auto-repeat */
         {
-            if(wParam==(unsigned)gxKeyList.vkRight)
+            if( wParam == ( unsigned )gxKeyList.vkRight )
                 keypress = GLUT_KEY_RIGHT;
-            else if(wParam==(unsigned)gxKeyList.vkLeft)
+            else if( wParam == ( unsigned )gxKeyList.vkLeft )
                 keypress = GLUT_KEY_LEFT;
-            else if(wParam==(unsigned)gxKeyList.vkUp)
+            else if( wParam == ( unsigned )gxKeyList.vkUp )
                 keypress = GLUT_KEY_UP;
-            else if(wParam==(unsigned)gxKeyList.vkDown)
+            else if( wParam == ( unsigned )gxKeyList.vkDown )
                 keypress = GLUT_KEY_DOWN;
-            else if(wParam==(unsigned)gxKeyList.vkA)
+            else if( wParam == ( unsigned )gxKeyList.vkA )
                 keypress = GLUT_KEY_F1;
-            else if(wParam==(unsigned)gxKeyList.vkB)
+            else if( wParam == ( unsigned )gxKeyList.vkB )
                 keypress = GLUT_KEY_F2;
-            else if(wParam==(unsigned)gxKeyList.vkC)
+            else if( wParam == ( unsigned )gxKeyList.vkC )
                 keypress = GLUT_KEY_F3;
-            else if(wParam==(unsigned)gxKeyList.vkStart)
+            else if( wParam == ( unsigned )gxKeyList.vkStart )
                 keypress = GLUT_KEY_F4;
         }
 #endif
 
         if( keypress != -1 )
-            INVOKE_WCB( *window, Special,
-                        ( keypress,
-                          window->State.MouseX, window->State.MouseY )
+            INVOKE_WCB(
+                *window, Special,
+                ( keypress, window->State.MouseX, window->State.MouseY )
             );
 
         ogState.Modifiers = 0xffffffff;
@@ -1969,8 +2034,9 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
           case VK_DELETE:
               /* The delete key is ASCII DEL. */
-              INVOKE_WCB( *window, KeyboardUp,
-                          ( 127, window->State.MouseX, window->State.MouseY )
+              INVOKE_WCB(
+                  *window, KeyboardUp,
+                  ( 127, window->State.MouseX, window->State.MouseY )
               );
               break;
 
@@ -1985,18 +2051,18 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             if( ToAscii( wParam, 0, state, code, 0 ) == 1 )
                 wParam=code[ 0 ];
 
-            INVOKE_WCB( *window, KeyboardUp,
-                        ( ( char )wParam,
-                          window->State.MouseX, window->State.MouseY )
+            INVOKE_WCB(
+                *window, KeyboardUp,
+                ( ( char )wParam, window->State.MouseX, window->State.MouseY )
             );
 #endif
         }
         }
 
         if( keypress != -1 )
-            INVOKE_WCB( *window, SpecialUp,
-                        ( keypress,
-                          window->State.MouseX, window->State.MouseY )
+            INVOKE_WCB(
+                *window, SpecialUp,
+                ( keypress, window->State.MouseX, window->State.MouseY )
             );
 
         ogState.Modifiers = 0xffffffff;
@@ -2006,15 +2072,17 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
     case WM_SYSCHAR:
     case WM_CHAR:
     {
-        if( ( ogState.KeyRepeat==GLUT_KEY_REPEAT_OFF ||
+        if(
+            ( ogState.KeyRepeat==GLUT_KEY_REPEAT_OFF ||
               window->State.IgnoreKeyRepeat==GL_TRUE ) &&
-            ( HIWORD( lParam ) & KF_REPEAT ) )
+            ( HIWORD( lParam ) & KF_REPEAT )
+        )
             break;
 
         ogState.Modifiers = ogGetWin32Modifiers( );
-        INVOKE_WCB( *window, Keyboard,
-                    ( ( char )wParam,
-                      window->State.MouseX, window->State.MouseY )
+        INVOKE_WCB(
+            *window, Keyboard,
+            ( ( char )wParam, window->State.MouseX, window->State.MouseY )
         );
         ogState.Modifiers = 0xffffffff;
     }
@@ -2040,8 +2108,10 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
     case WM_GETTEXT:  /* 0x000d */
         /* Ideally we would copy the title of the window into "lParam" */
-        /* strncpy ( (char *)lParam, "Window Title", wParam );
-           lRet = ( wParam > 12 ) ? 12 : wParam;  */
+        /*
+         *  strncpy( (char * )lParam, "Window Title", wParam );
+         *  lRet = ( wParam > 12 ) ? 12 : wParam;
+         */
         /* the number of characters copied */
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
         break;
@@ -2097,13 +2167,13 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
              *
              * SC_MOVE has low-order bit setting of 2 if you click in the
              * title bar.  No idea what this means or what other bits
-             * might be set.  
+             * might be set.
              *
              * SC_MOUSEMENU has sub-class event bits 3, at least.  No idea
              * what those mean.  0xf090 appears to be for the menu you can
              * bring down from the upper left.
              */
-            switch ( wParam & ~0xf )
+            switch( wParam & ~0xf )
             {
             case SC_SIZE: case SC_MOVE:
                 break;
@@ -2129,7 +2199,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
             default:
                 ogWarning(
-                    "Unknown wParam type %d (0x%x)\n", wParam, wParam
+                    "Unknown wParam type %d (0x%x)", wParam, wParam
                 );
                 break;
             }

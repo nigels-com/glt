@@ -59,10 +59,12 @@ static int oghGetConfig( int attribute )
     int returnValue = 0;
 
     if( ogStructure.Window )
-        glXGetConfig( ogDisplay.Display, ogStructure.Window->Window.VisualInfo,
-                      attribute, &returnValue );
+        glXGetConfig(
+            ogDisplay.Display, ogStructure.Window->Window.VisualInfo,
+            attribute, &returnValue
+        );
 
-  return returnValue;
+    return returnValue;
 }
 #endif
 
@@ -81,12 +83,17 @@ static int oghGetConfig( int attribute )
               Allowable \a eWhat IDs are:
 
               - \a GLUT_ACTION_ON_WINDOW_CLOSE \n
-                   Controls what OpenGLUT will do if the user (or system) 
-                   closes an OpenGLUT window that you did not ask to have 
-                   closed.
+                   Controls what happens when a window is closed by the
+                   user or system.
+                   \a GLUT_ACTION_EXIT
+                   will immediately exit the application (default).
+                   \a GLUT_ACTION_GLUTMAINLOOP_RETURNS
+                   will immediately return from the main loop.
+                   \a GLUT_ACTION_CONTINUE_EXECUTION
+                   will contine execution of remaining windows.
 
               - \a GLUT_INIT_DISPLAY_MODE \n
-                   An alternate way to set the display mode for a 
+                   An alternate way to set the display mode for a
                    new window.
 
               - \a GLUT_INIT_WINDOW_HEIGHT \n
@@ -96,16 +103,16 @@ static int oghGetConfig( int attribute )
                    An alternate way to set the width of new windows.
 
               - \a GLUT_INIT_WINDOW_X \n
-                   An alternate way to set the initial horizontal position 
+                   An alternate way to set the initial horizontal position
                    of new windows.
 
               - \a GLUT_INIT_WINDOW_Y \n
-                   An alternate way to set the initial vertical position 
+                   An alternate way to set the initial vertical position
                    of new windows.
 
               - \a GLUT_RENDERING_CONTEXT \n
                    Set to either \a GLUT_CREATE_NEW_CONTEXT or
-                   \a GUT_USE_CURRENT_CONTEXT to indicate 
+                   \a GUT_USE_CURRENT_CONTEXT to indicate
                    whether to share the current OpenGL rendering context
                    with new windows.
 
@@ -120,8 +127,7 @@ static int oghGetConfig( int attribute )
 */
 void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
 {
-    freeglut_assert_ready;
-
+    OPENGLUT_REQUIRE_READY( "glutSetOption" );
     switch( eWhat )
     {
     case GLUT_ACTION_ON_WINDOW_CLOSE:
@@ -156,7 +162,7 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
         else
             ogWarning(
                 "glutSetOption(): "
-                "Unknown GLUT_RENDERING_CONTEXT parameter: %d\n",
+                "Unknown GLUT_RENDERING_CONTEXT parameter: %d",
                 value
             );
         break;
@@ -168,7 +174,7 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
         break;
 
     default:
-        ogWarning( "glutSetOption(): missing enum handle %i\n", eWhat );
+        ogWarning( "glutSetOption(): missing enum handle %i", eWhat );
         break;
     }
 }
@@ -206,7 +212,7 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
               - \a GLUT_MENU_NUM_ITEMS \n
 
               - \a GLUT_RENDERING_CONTEXT \n
-                   Allows you to specify context-sharing when you 
+                   Allows you to specify context-sharing when you
                    open new windows.
 
               - \a GLUT_SCREEN_HEIGHT \n
@@ -220,7 +226,7 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
                    Width in millimeters.
 
               - \a GLUT_VERSION \n
-                    
+
               - \a GLUT_WINDOW_ACCUM_ALPHA_SIZE \n
 
               - \a GLUT_WINDOW_ACCUM_BLUE_SIZE \n
@@ -315,7 +321,7 @@ int OGAPIENTRY glutGet( GLenum eWhat )
         return ogElapsedTime( );
     }
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutGet" );
 
     /* XXX In no meaningful or useful order */
     switch( eWhat )
@@ -398,7 +404,7 @@ int OGAPIENTRY glutGet( GLenum eWhat )
         case GLUT_WINDOW_Y: return y;
         }
 
-        if ( w == 0 )
+        if( w == 0 )
             return 0;
         XTranslateCoordinates(
             ogDisplay.Display,
@@ -532,9 +538,9 @@ int OGAPIENTRY glutGet( GLenum eWhat )
 
             /* we must correct the results we've just received */
 #if !TARGET_HOST_WINCE
-            if ( ( ogStructure.GameMode != ogStructure.Window ) &&
-                 ( ogStructure.Window->Parent == NULL ) &&
-                 ( ! ogStructure.Window->IsUnmanaged ) )
+            if( ( ogStructure.GameMode != ogStructure.Window ) &&
+                ( ogStructure.Window->Parent == NULL ) &&
+                ( ! ogStructure.Window->IsUnmanaged ) )
             {
                 winRect.left   += GetSystemMetrics( SM_CXSIZEFRAME );
                 winRect.right  -= GetSystemMetrics( SM_CXSIZEFRAME );
@@ -621,7 +627,7 @@ int OGAPIENTRY glutGet( GLenum eWhat )
             GLUT_CREATE_NEW_CONTEXT;
 
     default:
-        ogWarning( "glutGet(): missing enum handler %d\n", eWhat );
+        ogWarning( "glutGet(): missing enum handler %d", eWhat );
         break;
     }
     return ret;
@@ -652,11 +658,12 @@ int OGAPIENTRY glutGet( GLenum eWhat )
                    Return the number of axes for the joystick.
 
               - \a GLUT_JOYSTICK_POLL_RATE \n
-                   Return the rate (in GLUT timer ticks?) at 
-                   which the joystick is polled.
+                   Return the rate (in GLUT timer ticks?) at
+                   which the joystick is polled.  Requires a
+                   current window to be set.
 
               - \a GLUT_NUM_MOUSE_BUTTONS \n
-                   Return the number of buttons that the user's 
+                   Return the number of buttons that the user's
                    mouse has.
 
               - \a GLUT_OWNS_JOYSTICK \n
@@ -668,11 +675,11 @@ int OGAPIENTRY glutGet( GLenum eWhat )
                    set to disable key repeating.
 
               - \a GLUT_DEVICE_KEY_REPEAT \n
-                   Described as returning the key repeat rate in 
+                   Described as returning the key repeat rate in
                    one place, but actually returns a key repeat mode.
 
               - \a GLUT_HAS_DIAL_AND_BUTTON_BOX \n
-                   Return non-zero if a dials-and-buttons box is 
+                   Return non-zero if a dials-and-buttons box is
                    present.
 
               - \a GLUT_HAS_TABLET \n
@@ -698,16 +705,10 @@ int OGAPIENTRY glutGet( GLenum eWhat )
               for them under WIN32.
     \bug      Mice can have a varying number of buttons, but OpenGLUT
               assumes exactly 3 on UNIX_X11.
-    \bug      Joystick queries are just hard-coded guesses, as are the
-              SGI device queries.
-    \bug      Only supports querying for one joystick.
+    \todo     Only supports querying for one joystick.
     \bug      \a GLUT_DEVICE_KEY_REPEAT returns the key repeat mode,
               but the comment says it returns the <i>rate</i>.
-    \bug      Some things, like joystick poll rates, seem to have
-              insufficient context.  Which joystick?  Which window?
-              Maybe we assume the <i>current window</i> and the
-              current joystick (or the first one)?
-    \bug      \a GLUT_DEVICE_KEY_REPEAT should probably return
+              \a GLUT_DEVICE_KEY_REPEAT should probably return
               \a ogState.KeyRepeat.
     \todo     Consider moving to a table-based approach rather than a
               switch(), letting us move to modular functions.
@@ -718,7 +719,7 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
 {
     int ret = -1;
 
-    freeglut_assert_ready;
+    OPENGLUT_REQUIRE_READY( "glutDeviceGet" );
     switch( eWhat )
     {
     case GLUT_HAS_KEYBOARD:
@@ -736,11 +737,11 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
          * Return the number of mouse buttons available. This is a big guess.
          *
          * The present heuristic is to assume that all mice ever
-         * produced (future, present, and past) have exactly 3
-         * buttons.  This is obviously wrong.  There is no better
-         * alternative proposed at this time.  (But since this part
-         * is X-specific, we might use an env-var, command-line param,
-         * or even X-server- or OS-specific inquiry.
+         * produced (future, present, and past) have exactly
+         * 3 buttons.  This is obviously wrong.
+         * There is no better alternative proposed at this time.
+         * (But since this part is X-specific, we might use an env-var,
+         *  command-line param, or even X-server- or OS-specific inquiry.
          */
         ret = 3;
         break;
@@ -754,24 +755,28 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
     case GLUT_NUM_MOUSE_BUTTONS:
 #if TARGET_HOST_WINCE
         ret = 1;
-        break;
 #else
         ret = GetSystemMetrics( SM_CMOUSEBUTTONS );
-        break;
 #endif
+        break;
 
 #endif
 
     case GLUT_HAS_JOYSTICK:
-        ret = 1;
+        ret = ogJoystickDetect();
         break;
     case GLUT_OWNS_JOYSTICK:
         ret = ogState.JoysticksInitted;
         break;
     case GLUT_JOYSTICK_POLL_RATE:
+        OPENGLUT_REQUIRE_WINDOW( "glutDeviceGet" );
+        ret = ogStructure.Window->State.JoystickPollRate;
+        break;
     case GLUT_JOYSTICK_BUTTONS:
+        ret = ogGetJoystickNumButtons( 0 );
+        break;
     case GLUT_JOYSTICK_AXES:
-        ret = 0;
+        ret = ogGetJoystickNumAxes( 0 );
         break;
 
     case GLUT_HAS_SPACEBALL:
@@ -800,7 +805,7 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
         break;
 
     default:
-        ogWarning( "glutDeviceGet(): missing enum handle %i\n", eWhat );
+        ogWarning( "glutDeviceGet(): Unknown request type %d", eWhat );
         break;
     }
 
@@ -831,13 +836,14 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
 */
 int OGAPIENTRY glutGetModifiers( void )
 {
-    if( ogState.Modifiers == 0xffffffff )
-    {
-        ogWarning( "glutGetModifiers() called outside an input callback" );
-        return 0;
-    }
+    int ret = 0;
 
-    return ogState.Modifiers;
+    if( ogState.Modifiers == 0xffffffff )
+        ogWarning( "glutGetModifiers() called outside an input callback" );
+    else
+        ret = ogState.Modifiers;
+
+    return ret;
 }
 
 /*!
@@ -860,12 +866,12 @@ int OGAPIENTRY glutGetModifiers( void )
                  does not affect this).
 
               - \a GLUT_OVERLAY_DAMAGED \n
-                -1 if no layer in use.
+                Returns -1 if no layer in use.
 
               - \a GLUT_OVERLAY_POSSIBLE \n
 
               - \a GLUT_TRANSPARENT_INDEX \n
-                 -1 if no layer in use.
+                Returns -1 if no layer in use.
 
               All information relates to the <i>current window</i>
               and any overlay that it may have.
@@ -874,7 +880,8 @@ int OGAPIENTRY glutGetModifiers( void )
 */
 int OGAPIENTRY glutLayerGet( GLenum eWhat )
 {
-    freeglut_assert_ready;
+    int ret = -1;
+    OPENGLUT_REQUIRE_READY( "glutLayerGet" );
 
     /*!
         \todo  Probably we should merge the below sections unless
@@ -886,19 +893,20 @@ int OGAPIENTRY glutLayerGet( GLenum eWhat )
 #if TARGET_HOST_UNIX_X11
 
     case GLUT_OVERLAY_POSSIBLE:
-        return FALSE;
+        ret = FALSE;
+        break;
 
     case GLUT_LAYER_IN_USE:
-        return GLUT_NORMAL;
+        ret = GLUT_NORMAL;
+        break;
 
     case GLUT_HAS_OVERLAY:
-        return FALSE;
+        ret = FALSE;
+        break;
 
     case GLUT_TRANSPARENT_INDEX:
-        return -1;
-
     case GLUT_OVERLAY_DAMAGED:
-        return -1;
+        break;
 
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
@@ -909,19 +917,21 @@ int OGAPIENTRY glutLayerGet( GLenum eWhat )
               PFD_OVERLAY_PLANE
           );
         */
-      return FALSE;
+        ret = FALSE;
+        break;
 
     case GLUT_LAYER_IN_USE:
-        return GLUT_NORMAL;
+        ret = GLUT_NORMAL;
+        break;
 
     case GLUT_HAS_OVERLAY:
-        return FALSE;
+        ret = FALSE;
+        break;
 
     case GLUT_TRANSPARENT_INDEX:
-        return -1;     /* Must return -1 unless we have a real layer */
-
     case GLUT_OVERLAY_DAMAGED:
-        return -1;
+        break;
+
 #endif
 
     case GLUT_NORMAL_DAMAGED:
@@ -929,13 +939,13 @@ int OGAPIENTRY glutLayerGet( GLenum eWhat )
             \todo Should be set when the window is damaged;
                   should not be set just for glutPostRedisplay().
         */
-        return FALSE;
+        ret = FALSE;
+        break;
 
     default:
-        ogWarning( "glutLayerGet(): missing enum handle %i\n", eWhat );
+        ogWarning( "glutLayerGet(): missing enum handle %i", eWhat );
         break;
     }
 
-    /* And fail. That's good. Programs do love failing. */
-    return -1;
+    return ret;
 }

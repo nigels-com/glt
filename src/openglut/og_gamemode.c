@@ -91,7 +91,7 @@ static void oghRememberState( void )
         );
 
     if( !ogDisplay.DisplayModeValid )
-        ogWarning( "Runtime use of XF86VidModeGetModeLine failed.\n" );
+        ogWarning( "Runtime use of XF86VidModeGetModeLine failed." );
 
 #   else
     /*
@@ -439,7 +439,7 @@ void OGAPIENTRY glutGameModeString( const char *string )
                         if( sscanf( string, ":%i", &depth ) != 1 )
                             if( sscanf( string, "@%i", &refresh ) != 1 )
                                 ogWarning(
-                                    "unable to parse game mode string `%s'",
+                                    "Unable to parse game mode string `%s'.",
                                     string
                                 );
 
@@ -470,7 +470,7 @@ void OGAPIENTRY glutGameModeString( const char *string )
     \note     Varies in behavior; X users can disable the resolution
               change by an OpenGLUT compile-time option.
     \todo     Documentation
-    \todo     OpenGLUT may be unable to restore the original settings 
+    \todo     OpenGLUT may be unable to restore the original settings
               (this has been observed on WIN32).
 
     \see      glutGameModeString(), glutEnterGameMode(), glutLeaveGameMode(),
@@ -485,7 +485,7 @@ int OGAPIENTRY glutEnterGameMode( void )
 
     if( ! oghChangeDisplayMode( GL_FALSE ) )
     {
-        ogWarning( "failed to change screen settings" );
+        ogWarning( "Failed to change screen settings." );
         return FALSE;
     }
 
@@ -494,7 +494,10 @@ int OGAPIENTRY glutEnterGameMode( void )
         ogState.GameModeSize.X, ogState.GameModeSize.Y, OG_CW_GAMEMODE
     );
 
-    ogStructure.GameMode->State.IsGameMode = GL_TRUE;
+    ogStructure.GameMode->State.IsGameMode   = GL_TRUE;
+    ogStructure.GameMode->State.NeedToResize = GL_TRUE;
+    ogStructure.GameMode->State.Width        = ogState.GameModeSize.X;
+    ogStructure.GameMode->State.Height       = ogState.GameModeSize.Y;
 
 #if TARGET_HOST_UNIX_X11
 
@@ -629,7 +632,7 @@ void OGAPIENTRY glutLeaveGameMode( void )
                    Return non-zero if we are presently in gamemode.
 
               - \a GLUT_GAME_MODE_POSSIBLE \n
-                   Return whether the requested gamemode settings are viable.  
+                   Return whether the requested gamemode settings are viable.
                    (May also actually change the mode?)  Does not necessarily
                    tell you whether entering gamemode will have any effect.
 
@@ -647,7 +650,10 @@ void OGAPIENTRY glutLeaveGameMode( void )
 
               - \a GLUT_GAME_MODE_DISPLAY_CHANGED \n
                    Return non-zero if we are presently in gamemode.
-                   (Same as \a GLUT_GAME_MODE_ACTIVE.)  
+                   (Same as \a GLUT_GAME_MODE_ACTIVE.)
+
+              If \a pname is unknown, a warning is printed and a value of
+              -1 is returned.
 
     \todo     Documentation
     \todo     OpenGLUT intrepretation of GLUT_GAME_MODE_DISPLAY_CHANGED
@@ -657,7 +663,7 @@ void OGAPIENTRY glutLeaveGameMode( void )
 
 int OGAPIENTRY glutGameModeGet( GLenum pname )
 {
-    int ret = 0;
+    int ret = -1;
 
     switch( pname )
     {
@@ -691,7 +697,7 @@ int OGAPIENTRY glutGameModeGet( GLenum pname )
         break;
 
     default:
-        ogError( "Unknown gamemode get: %d\n", pname );
+        ogWarning( "Unknown gamemode get: %d", pname );
         break;
     }
 

@@ -186,6 +186,8 @@ static struct name_address_pair glut_functions[] =
    { "glutGetProcAddress", ( void * )glutGetProcAddress },
    { "glutMouseWheelFunc", ( void * )glutMouseWheelFunc },
    /* OpenGLUT extensions */
+   { "glutCreateMenuWindow", ( void * )glutCreateMenuWindow },
+   { "glutSetWindowStayOnTop", ( void * )glutSetWindowStayOnTop },
    /* Array terminator */
    { NULL, NULL }
 };

@@ -105,7 +105,7 @@ extern "C" {
 /* #define FREEGLUT             1 */
 /* #define FREEGLUT_VERSION_2_0 1 */
 #define OPENGLUT
-#define OPENGLUT_VERSION_0_6_2
+#define OPENGLUT_VERSION_0_6_3
 
 /*
  * Always include OpenGL and GLU headers
