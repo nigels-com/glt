@@ -4,9 +4,9 @@
 /*
 
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2003 Nigel Stewart
+  Copyright (C) 2000-2004 Nigel Stewart
 
-  Email:  nigels@nigels.com
+
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -30,9 +30,12 @@
     \brief   OpenGL Projection Classes
     \ingroup GLT
 
-    $Id: project.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: project.h,v 2.1 2004/08/11 05:20:18 nigels Exp $
 
     $Log: project.h,v $
+    Revision 2.1  2004/08/11 05:20:18  nigels
+    Updated copyright and removed email address from headers
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 

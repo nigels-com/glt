@@ -4,9 +4,9 @@
 /*
 
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2003 Nigel Stewart
+  Copyright (C) 2000-2004 Nigel Stewart
 
-  Email:  nigels@nigels.com
+
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -31,9 +31,12 @@
     \ingroup GLT
     \author  Steve Anger (70714.3113@compuserve.com)
 
-    $Id: mcubes.h,v 2.1 2004/03/05 05:51:03 nigels Exp $
+    $Id: mcubes.h,v 2.2 2004/08/11 05:20:18 nigels Exp $
 
     $Log: mcubes.h,v $
+    Revision 2.2  2004/08/11 05:20:18  nigels
+    Updated copyright and removed email address from headers
+
     Revision 2.1  2004/03/05 05:51:03  nigels
     Resolved gaps in sphere and heart when gcc optimisations (-O3) enabled
     General tidy-up of code, more to follow, optimistations also possible

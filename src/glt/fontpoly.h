@@ -6,9 +6,9 @@
 /*
 
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2003 Nigel Stewart
+  Copyright (C) 2000-2004 Nigel Stewart
 
-  Email:  nigels@nigels.com
+
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -32,9 +32,12 @@
     \brief   Polyfont OpenGL Font
     \ingroup GLT
 
-    $Id: fontpoly.h,v 2.2 2004/02/16 01:26:18 nigels Exp $
+    $Id: fontpoly.h,v 2.3 2004/08/11 05:20:18 nigels Exp $
 
     $Log: fontpoly.h,v $
+    Revision 2.3  2004/08/11 05:20:18  nigels
+    Updated copyright and removed email address from headers
+
     Revision 2.2  2004/02/16 01:26:18  nigels
     Whitespace differences
 

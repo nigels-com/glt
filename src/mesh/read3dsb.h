@@ -4,9 +4,9 @@
 /*
 
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2003 Nigel Stewart
+  Copyright (C) 2000-2004 Nigel Stewart
 
-  Email:  nigels@nigels.com
+
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -34,9 +34,12 @@
         - http://www.the-labs.com/Blender/3DS-details.html
         -
 
-    $Id: read3dsb.h,v 2.1 2004/02/16 14:22:01 nigels Exp $
+    $Id: read3dsb.h,v 2.2 2004/08/11 05:20:19 nigels Exp $
 
     $Log: read3dsb.h,v $
+    Revision 2.2  2004/08/11 05:20:19  nigels
+    Updated copyright and removed email address from headers
+
     Revision 2.1  2004/02/16 14:22:01  nigels
     Added debug diagnostics
 

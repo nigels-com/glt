@@ -4,9 +4,9 @@
 /*
 
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2003 Nigel Stewart
+  Copyright (C) 2000-2004 Nigel Stewart
 
-  Email:  nigels@nigels.com
+
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -30,7 +30,7 @@
     \brief OpenGL Cursor Interface
     \ingroup GLT
 
-    $Id: cursor.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: cursor.h,v 2.1 2004/08/11 05:20:18 nigels Exp $
 
     These functions manage the raster position, and provide
     a wrapper for the OpenGL font routines.
@@ -42,6 +42,9 @@
     \author  RMIT Dept. Mechanical and Manufacturing Engineering, Australia
 
     $Log: cursor.h,v $
+    Revision 2.1  2004/08/11 05:20:18  nigels
+    Updated copyright and removed email address from headers
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
