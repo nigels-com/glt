@@ -31,17 +31,11 @@
     \ingroup Mesh
     \todo Vector2 for SFVec2f
 
-    $Id: vrml.h,v 2.0 2004/02/08 19:44:13 nigels Exp $
+    $Id: vrml.h,v 2.1 2004/02/16 14:28:20 nigels Exp $
 
     $Log: vrml.h,v $
-    Revision 2.0  2004/02/08 19:44:13  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/16 14:28:20  nigels
+    Whitespace differences
 
     Revision 1.6  2003/05/10 17:02:08  nigels
     Tidy and document
