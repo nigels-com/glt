@@ -4,11 +4,11 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.6 2004/03/21 10:54:28 jgasseli Exp $
+    $Id: bmp.cpp,v 2.7 2004/03/21 11:02:04 jgasseli Exp $
 
     $Log: bmp.cpp,v $
-    Revision 2.6  2004/03/21 10:54:28  jgasseli
-    fixed errors and templated read/write
+    Revision 2.7  2004/03/21 11:02:04  jgasseli
+    commenting out define BMP_NEW
 
     Revision 2.5  2004/03/17 03:53:56  nigels
     Resolved compile error
@@ -44,7 +44,7 @@
 
 #include <cassert>
 
-#define BMP_NEW
+//#define BMP_NEW
 
 #ifdef BMP_NEW
 #include "bmp_P.h"
@@ -95,10 +95,10 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     {
     /* Not yet supported
        case 1:
-          bufferSize = (uint32) ceil( (float)(imageSize)/(float)8 );
+          bufferSize = (imageSize+7) /8;
 	  break;
        case 4:
-          bufferSize = (uint32) ceil( (float)(imageSize)/(float)2 );
+          bufferSize = (imageSize+1) /2;
 	  break;
    */
         case 8:
@@ -288,10 +288,10 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
     {
     /* Not yet supported
        case 1:
-          bufferSize = (uint32) ceil( (float)(imageSize)/(float)8 );
+          bufferSize = (imageSize+7) /8;
 	  break;
        case 4:
-          bufferSize = (uint32) ceil( (float)(imageSize)/(float)2 );
+          bufferSize = (imageSize+1) /2;
 	  break;
    */
         case 8:
