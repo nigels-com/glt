@@ -28,28 +28,44 @@
     \ingroup Util
 */
 
+#include <misc/string.h>
+#include <misc/file.h>
+#include <misc/text2src.h>
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <string>
 using namespace std;
 
-#include <glt/config.h>
-#include <misc/text2src.h>
+const char *banner =
+    "                                           \n"
+    "text2src                                   \n"
+    "                                           \n"
+    "Text to C/C++ source conversion tool.      \n"
+    "GLT C++ OpenGL Toolkit                     \n"
+    "http://www.nigels.com/glt/                 \n"
+    "                                           \n"
+    "Usage: text2src file                       \n"
+    "                                           \n";
 
-int main(int argc,char *argv[])
+bool GlutMain(const vector<string> &arg)
 {
-    if (argc==1)
-    {
-        cout << "text2src,bin2src" << endl;
-        cout << "Part of the Glt Library: http://www.nigels.com/glt/" << endl;
-        cout << endl;
-        cout << "Usage: text2src [file]" << endl;
+    uint32 i;
+    bool help = false;
 
-        return EXIT_FAILURE;
+    for (i=1; i<arg.size(); i++)
+        if (arg[i]=="--help" || arg[i]=="/?")
+            help = true;
+
+    if (arg.size()==1 || help)
+    {
+        cout << banner;
+        return false;
     }
 
-    ifstream is(argv[1]);
+    ifstream is(arg[1].c_str());
     text2source(cout,is);
 
-    return EXIT_SUCCESS;
+    return true;
 }

@@ -29,51 +29,30 @@
 */
 
 #include <misc/string.h>
+#include <misc/file.h>
 
 #include <string>
 #include <fstream>
 #include <iostream>
 using namespace std;
 
-bool GlutMain(const std::vector<std::string> &arg)
+void unix2dos(const vector<string> &files)
 {
-    uint32 i;
-    bool help = false;
-
-    for (i=1; i<arg.size(); i++)
-        if (arg[i]=="--help" || arg[i]=="/?")
-            help = true;
-
-    if (arg.size()==1 || help)
+    for (uint32 i=0; i<files.size(); i++)
     {
-        cout << endl;
-        cout << "unix2dos" << endl;
-        cout << endl;
-        cout << "DOS end-of-line conversion tool." << endl;
-        cout << "(C) 2001-2003 Nigel Stewart (nigels@nigels.com)" << endl;
-        cout << "GLT library - http://www.nigels.com/glt/" << endl;
-        cout << endl;
-        cout << "Usage: dos2unix SOURCE ..." << endl;
-        cout << endl;
-        cout << "\tEach source file is converted to a" << endl;
-        cout << "\tDOS style ASCII file." << endl;
-        cout << endl;
-
-        return false;
-    }
-
-    for (i=1; i<arg.size(); i++)
+        if (isFile(files[i]))
     {
         // Read the file into a string
 
         string in;
 
         {
-            ifstream is(arg[i].c_str(),ios::in|ios::binary);
+                ifstream is(files[i].c_str(),ios::in|ios::binary);
             readStream(is,in);
         }
 
-        // Convert the string and write it
+            // Convert the string and write it, as long as it is
+            // not determined to be a binary file
 
         if (isBinary(in))
             cout << "Binary:   ";
@@ -86,7 +65,7 @@ bool GlutMain(const std::vector<std::string> &arg)
                 if (in!=out)
                 {
                     cout << "Updated:  ";
-                    ofstream os(arg[i].c_str(),ios::out|ios::binary);
+                        ofstream os(files[i].c_str(),ios::out|ios::binary);
                     writeStream(os,out);
                 }
                 else
@@ -95,8 +74,48 @@ bool GlutMain(const std::vector<std::string> &arg)
             else
                 cout << "Empty:    ";
 
-        cout << arg[i] << endl;
     }
+        else
+        {
+            cout << "NotFound:  ";
+        }
+
+        cout << files[i] << endl;
+    }
+}
+
+const char *banner =
+    "                                           \n"
+    "unix2dos                                   \n"
+    "                                           \n"
+    "DOS end-of-line conversion tool.           \n"
+    "GLT C++ OpenGL Toolkit                     \n"
+    "http://www.nigels.com/glt/                 \n"
+    "                                           \n"
+    "Usage: unix2dos files...                   \n"
+    "                                           \n"
+    "  Each source file is converted to a       \n"
+    "  DOS style ASCII file.                    \n"
+    "                                           \n";
+
+bool GlutMain(const vector<string> &arg)
+{
+    uint32 i;
+    bool help = false;
+
+    for (i=1; i<arg.size(); i++)
+        if (arg[i]=="--help" || arg[i]=="/?")
+            help = true;
+
+    if (arg.size()==1 || help)
+    {
+        cout << banner;
+        return false;
+    }
+
+    vector<string> files;
+    files.insert(files.begin(),arg.begin()+1,arg.end());
+    unix2dos(files);
 
     return true;
 }
