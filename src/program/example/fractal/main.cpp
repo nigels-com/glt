@@ -65,6 +65,8 @@ private:
 GltFractalWindow::GltFractalWindow(int width,int height,int x,int y)
 : GlutWindowExaminer("GLT Fractal Demo",width,height,x,y,GLUT_DOUBLE|GLUT_RGBA)
 {
+    _ortho.zNear() = -10.0;
+    _ortho.zFar()  =  10.0;
 }
 
 GltFractalWindow::~GltFractalWindow()
