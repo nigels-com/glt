@@ -101,6 +101,9 @@ MarchingCubesDemo::MarchingCubesDemo()
 : GlutWindowExaminer("GLT Marching Cubes Demo"),
   _info(_font,_viewport)
 {
+    _ortho.zNear() = -10.0;
+    _ortho.zFar()  =  10.0;
+
     mouseMode() = MODE_MOUSE_RIGHT;
 }
 
