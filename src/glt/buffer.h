@@ -30,9 +30,12 @@
     \brief   OpenGL Framebuffer Classes
     \ingroup GLT
 
-    $Id: buffer.h,v 2.1 2004/08/11 05:20:18 nigels Exp $
+    $Id: buffer.h,v 2.2 2004/12/26 05:24:01 jgasseli Exp $
 
     $Log: buffer.h,v $
+    Revision 2.2  2004/12/26 05:24:01  jgasseli
+    Fixed compile errors, Nigel needs to check that the semantics are correct.
+
     Revision 2.1  2004/08/11 05:20:18  nigels
     Updated copyright and removed email address from headers
 
@@ -222,19 +225,27 @@ public:
         GLuint viewport[4];
         glGetIntegerv(GL_VIEWPORT,(GLint *) viewport);
 
-        if (_width!=viewport[2] || _height!=viewport[3] || _pixels==NULL)
-        {
-            _x = viewport[0];
-            _y = viewport[1];
-            _width = viewport[2];
-            _height = viewport[3];
-            _size = _width*_height;
+        //if (_width!=viewport[2] || _height!=viewport[3] || _pixels==NULL)
+        if (_viewport.width()!=viewport[2] || _viewport.height()!=viewport[3])
+	{
+            //_x = viewport[0];
+            //_y = viewport[1];
+            //_width = viewport[2];
+            //_height = viewport[3];
+            //_size = _width*_height;
 
-            if (_pixels)
-                delete [] _pixels;
+	    _viewport.resize(viewport[0], viewport[1], viewport[2], viewport[3]);
+	    
+	    //if (_pixels)
+            //    delete [] _pixels;
 
-            _pixels = new DepthType[_size];
+            //_pixels = new DepthType[_size];
+	    _image.resize(_viewport.pixels()*sizeof(DepthType));
+	    
         }
+
+	DepthType *_pixels = (DepthType *) _image.data();
+	uint32    _size = _viewport.pixels();
 
         for (uint32 n=0; n<_size; n++)
             _pixels[n] = value;
