@@ -23,12 +23,13 @@ LIB		:= $(ROOT)/lib
 
 DEP		:= .depend
 OBJ		:= .object
+LOG		:= .log
 
 # Programs can be built from C++, C or assembler sources
 # Sources includes all C, C++ and assembler sources
 
-PROGRAMS    = $(CPP_SRC:.cpp=) $(C_SRC:.c=) $(ASM_SRC:.s=) 
-SOURCES     = $(C_SRC) $(CPP_SRC) $(ASM_SRC) 
+PROGRAMS    = $(CPP_SRC:.cpp=) $(C_SRC:.c=) $(ASM_SRC:.s=)
+SOURCES     = $(C_SRC) $(CPP_SRC) $(ASM_SRC)
 
 ifeq ($(TARGET),mingw32)
 SOURCES += $(RES_SRC)
@@ -43,15 +44,15 @@ endif
 
 DEPEND       := $(CXXFLAGS) -M -MM
 
-DEPENDS      := $(patsubst %.cpp,$(DEP)/%.d,$(CPP_SRC)) 
-DEPENDS      += $(patsubst %.c,$(DEP)/%.d,$(C_SRC)) 
-DEPENDS      += $(patsubst %.s,$(DEP)/%.d,$(ASM_SRC)) 
+DEPENDS      := $(patsubst %.cpp,$(DEP)/%.d,$(CPP_SRC))
+DEPENDS      += $(patsubst %.c,$(DEP)/%.d,$(C_SRC))
+DEPENDS      += $(patsubst %.s,$(DEP)/%.d,$(ASM_SRC))
 
 # DEPENDS is the set of .d files corresponding to each .o
 
-OBJECTS      := $(patsubst %.cpp,$(OBJ)/%.o,$(CPP_SRC)) 
-OBJECTS      += $(patsubst %.c,$(OBJ)/%.o,$(C_SRC)) 
-OBJECTS      += $(patsubst %.s,$(OBJ)/%.o,$(ASM_SRC)) 
+OBJECTS      := $(patsubst %.cpp,$(OBJ)/%.o,$(CPP_SRC))
+OBJECTS      += $(patsubst %.c,$(OBJ)/%.o,$(C_SRC))
+OBJECTS      += $(patsubst %.s,$(OBJ)/%.o,$(ASM_SRC))
 
 ifeq ($(TARGET),mingw32)
 OBJECTS      += $(patsubst %.rc,$(OBJ)/%.o,$(RES_SRC))
@@ -67,8 +68,8 @@ $(DEP)/%.d:	%.c
 	mkdir -p $(DEP)
 	-$(CC) $(DEPEND) -MT $(OBJ)/$(patsubst %.c,%.o,$<) -MF $@ $< >> /dev/null
 	printf "%s: %s\n" $(OBJ)/$(patsubst %.c,%.o,$<) "Makefile $(ROOT)/gcc/Makefile.inc $(ROOT)/gcc/Makefile.config" >> $@
-	
-$(DEP)/%.d: %.cpp 
+
+$(DEP)/%.d: %.cpp
 	printf "Makedepend %-25s\n" $*.cpp
 	mkdir -p $(DEP)
 	-$(CXX) $(DEPEND) -MT $(OBJ)/$(patsubst %.cpp,%.o,$<) -MF $@ $< >> /dev/null
@@ -79,28 +80,24 @@ $(DEP)/%.d: %.cpp
 # LOGGING
 
 # Store the output to a .log file and also pipe it
-# to standard output with some indentation.  
+# to standard output with some indentation.
 # Remove the .log file if it is empty.
 
 LOG_BEGIN = if (!
 
-LOG_END   = 2> $*.log) then rm -f $@; $(LOG_PROCESS); return 1; else $(LOG_PROCESS); fi
+LOG_END   = > $(LOG)/$*.log 2>&1) then rm -f $@; fi; $(LOG_PROCESS);
 
 LOG_PROCESS = \
-	if (test ! -s $*.log); then 									\
-		rm $*.log;													\
-	else															\
-		cat $*.log | sed "s/^$<://" | sed "s/^/           /";		\
-	fi
+	cat $(LOG)/$*.log | sed "s/^$<://" | sed "s/^/    /"
 
 LOG_SUMMARY =														\
-	-if (test -n "`ls *.log 2> /dev/null`"); then					\
+	-if (test -n "`ls $(LOG)/*.log 2> /dev/null`"); then			\
 		printf "%d warnings, %d errors in %d file(s).\n" 			\
-		`cat *.log | grep warning | wc -l` 							\
-		`cat *.log | grep error | wc -l` 							\
-		`ls *.log | wc -w`;											\
-	fi																
-		
+		`cat $(LOG)/*.log | grep warning | wc -l` 					\
+		`cat $(LOG)/*.log | grep error | wc -l` 					\
+		`ls $(LOG)/*.log | wc -w`;									\
+	fi
+
 ########################################################################
 #
 # COMPILATION
@@ -111,25 +108,29 @@ LOG_SUMMARY =														\
 $(OBJ)/%.o: %.cpp
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	$(LOG_BEGIN) $(CXX) $(CXXFLAGS) -c $< -o $@ $(LOG_END)
+	mkdir -p $(LOG)
+	$(LOG_BEGIN) $(CXX) $(CXXFLAGS) -c $< -o $@     $(LOG_END)
 
 $(OBJ)/%.o: %.c
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	$(LOG_BEGIN) $(CC) $(CFLAGS)    -c $< -o $@ $(LOG_END)
+	mkdir -p $(LOG)
+	$(LOG_BEGIN) $(CC) $(CFLAGS) -c $< -o $@        $(LOG_END)
 
 $(OBJ)/%.o: %.s
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	$(LOG_BEGIN) $(CXX) $(CXXFLAGS) -c $< -o $@ $(LOG_END)
+	mkdir -p $(LOG)
+	$(LOG_BEGIN) $(CXX) $(CXXFLAGS) -c $< -o $@     $(LOG_END)
 
 $(OBJ)/%.o: %.rc
 	printf "Compiling  %-25s\n" $<
 	mkdir -p $(OBJ)
-	$(LOG_BEGIN) windres -D__MINGW32__ $< -o $@ $(LOG_END)
+	mkdir -p $(LOG)
+	$(LOG_BEGIN) windres -D__MINGW32__ $< -o $@     $(LOG_END)
 
 .PHONY: recurse settings doRecurse summary
-	
+
 recurse: doRecurse summary
 
 doRecurse:
@@ -143,7 +144,7 @@ doRecurse:
 				printf "Skipping   %s\n" `pwd`/$$i; 	\
 			fi 											\
 		 done 											\
-	fi													
+	fi
 
 settings:
 	@if (test $(MAKELEVEL) = 0); then					\
@@ -160,14 +161,14 @@ settings:
 		printf "CXXLIBS  = %s\n" "$(CXXLIBS)";			\
 		printf "\n";									\
 	fi
-	
+
 summary:
 	@if (test $(MAKELEVEL) = 0); then					\
 		LOGS="``";										\
 		printf "\nWarning summary:\n";					\
 		find ./ -name "*.log";							\
 	fi
-	
+
 ########################################################################
 #
 # LINK BINARIES
@@ -177,23 +178,23 @@ summary:
 # Programs composed of simply one .cpp file are
 # linked into a binary with the same name
 
-$(BIN)/%$(EXE): $(OBJ)/%.o # $(LIBS) 
-	mkdir -p $(BIN) 
+$(BIN)/%$(EXE): $(OBJ)/%.o # $(LIBS)
+	mkdir -p $(BIN)
 	printf "Linking    %s\n" $(patsubst $(BIN)/%$(EXE),%$(EXE),$@)
-	$(CXX) $(OBJ)/$(patsubst $(BIN)/%$(EXE),%$(EXE),$@).o $(LIBS) $(CXXLIBS) -o $@ 
+	$(CXX) $(OBJ)/$(patsubst $(BIN)/%$(EXE),%$(EXE),$@).o $(LIBS) $(CXXLIBS) -o $@
 
 # Programs composed of multiple compilation units
 # linked into a binary named $(NAME)
 
 $(BIN)/$(NAME)$(EXE): $(DEPENDS) $(OBJECTS) $(LIBS)
-	mkdir -p $(BIN) 
+	mkdir -p $(BIN)
 	printf "Linking    %s\n" $(NAME)
-	$(CXX) $(OBJECTS) $(CXXLIBS) -o $@ 
+	$(CXX) $(OBJECTS) $(CXXLIBS) -o $@
 
 # Figure out which of the two previous rules should
 # be triggered
 
-prog: $(if $(NAME),$(BIN)/$(NAME)$(EXE),$(patsubst %,$(BIN)/%$(EXE),$(PROGRAMS))) 
+prog: $(if $(NAME),$(BIN)/$(NAME)$(EXE),$(patsubst %,$(BIN)/%$(EXE),$(PROGRAMS)))
 	$(LOG_SUMMARY)
 
 run: $(BIN)/$(NAME)$(EXE)
@@ -210,14 +211,14 @@ run: $(BIN)/$(NAME)$(EXE)
 .PHONY: lib
 
 $(LIB)/$(ARCHIVE)(%.o): $(OBJ)/%.o
-	mkdir -p $(LIB) 
+	mkdir -p $(LIB)
 	printf "Updating %s (%s)\n" $(@F) $%
 	ar cr $@ $(OBJ)/$%
 
 # Build objects before archiving, purely for cosmetic reasons.
 # Leaving out $(OBJECTS) would trigger compilation via previous rule.
 
-lib: $(OBJECTS) $(LIB)/$(ARCHIVE)( $(patsubst $(OBJ)/%,%,$(OBJECTS) ) ) 
+lib: $(OBJECTS) $(LIB)/$(ARCHIVE)( $(patsubst $(OBJ)/%,%,$(OBJECTS) ) )
 	$(LOG_SUMMARY)
 
 ########################################################################
@@ -227,7 +228,7 @@ lib: $(OBJECTS) $(LIB)/$(ARCHIVE)( $(patsubst $(OBJ)/%,%,$(OBJECTS) ) )
 .PHONY: clean realclean
 
 JUNK_EXT = .bak .out .log .aps .ncb .o .d .a .lib .obj .pdb .idb .pch .opt .plg ~
-JUNK_DIR = .object .depend
+JUNK_DIR = $(OBJ) $(DEP) $(LOG)
 
 clean:	cleantest
 	printf "Cleaning   %s\n" `pwd`
@@ -241,7 +242,7 @@ clean:	cleantest
 				$(MAKE) -C $$i clean; 					\
 			fi 											\
 		done 											\
-	fi	
+	fi
 
 ########################################################################
 #
@@ -253,7 +254,7 @@ clean:	cleantest
 realclean:
 	for i in $(JUNK_EXT); do rm -fv  `find -type f -name "*$$i"`; done
 	for i in $(JUNK_DIR); do rm -Rfv `find -type d -name "$$i"`; done
-	
+
 ########################################################################
 #
 # REGRESSION TESTING
@@ -279,7 +280,7 @@ test: prog cleantest $(patsubst %,%.out,$(PROGRAMS))
 	else										\
 		printf "FAIL\n";						\
 		diff $(patsubst %.out,%.ok,$@) $@;		\
-	fi 
+	fi
 
 cleantest:
 	@rm -f *.out
@@ -295,7 +296,7 @@ cleantest:
 
 EXPAND    = --tabs=4
 
-.PHONY: expand 
+.PHONY: expand
 
 expand: permissions
 	for i in *.c *.cpp *.h *.s *.txt *.dox; do 		      	\
@@ -307,14 +308,14 @@ expand: permissions
 			fi;												\
 			rm .tmp;										\
 		fi;													\
-	done					
+	done
 	if (test "$(SUBDIRS)"); then 							\
 		for i in $(SUBDIRS); do 							\
 			if (test -d $$i -a -f $$i/Makefile); then 		\
 				$(MAKE) -C $$i expand; 						\
 			fi 												\
 		done 												\
-	fi	
+	fi
 
 ########################################################################
 #
@@ -327,14 +328,14 @@ permissions:
 		if (test -f "$$i"); then							\
             chmod a-x,u+rw $$i;                             \
 		fi;													\
-	done					
+	done
 	if (test "$(SUBDIRS)"); then 							\
 		for i in $(SUBDIRS); do 							\
 			if (test -d $$i -a -f $$i/Makefile); then 		\
 				$(MAKE) -C $$i permissions; 				\
 			fi 												\
 		done 												\
-	fi	
+	fi
 
 ###################################
 
