@@ -55,7 +55,7 @@ class BoundingBox
     friend BoundingBox intersection(const BoundingBox &a,const BoundingBox &b);
 
 public:
-    
+
     BoundingBox();                                      ///< Default constructor
     BoundingBox(const Vector &min,const Vector &max);   ///< Constructor
     ~BoundingBox();                                     ///< Destructor
