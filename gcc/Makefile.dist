@@ -119,7 +119,7 @@ GLT_UTIL_WIN32=glt-util-win32-$(GLT_VERSION)
 GLT_EXAMPLE_WIN32=glt-example-win32-$(GLT_VERSION)
 GLT_DOX=glt-dox-$(GLT_VERSION)
  
-ZPR_VERSION=0.4
+ZPR_VERSION=0.5
 GLT_ZPR=glt-zpr-$(ZPR_VERSION)
 
 dist-core:
@@ -228,6 +228,7 @@ dist-zpr:
 	printf ""                               > .files2
 	grep "^glt/src/program/gltZpr/"	.files >> .files2
 	grep "^glt/msvc/gltZpr"		.files >> .files2
+	grep "^glt/gcc/"		.files >> .files2
 	tar cvzf            $(GLT_ZPR).tgz -T .files2 -C ../
 	cd ..; zip -9u@ glt/$(GLT_ZPR).zip < glt/.files2; cd glt
 	
