@@ -4,9 +4,12 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.2 2004/03/15 11:12:50 jgasseli Exp $
+    $Id: bmp.cpp,v 2.3 2004/03/17 02:41:44 jgasseli Exp $
 
     $Log: bmp.cpp,v $
+    Revision 2.3  2004/03/17 02:41:44  jgasseli
+    fixed style and code to better suit GLT. Removed bmp_P.cpp from build.
+
     Revision 2.2  2004/03/15 11:12:50  jgasseli
     patched in the routines from bmp_P.h, Load and Save.
 
@@ -31,7 +34,11 @@
 #include <glt/error.h>
 
 #include <cassert>
+
+#ifdef bmp_P
 #include "bmp_P.h"
+#endif
+
 using namespace std;
 
 bool
@@ -44,18 +51,19 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     // http://www.dcs.ed.ac.uk/home/mxr/gfx/2d/BMP.txt
     //
 
+#ifdef bmp_P
     /* Alternative file loading using bmp_P.cpp */
 
 
     // make a BitmapFile object for .BMP I/O
-    BitmapFile* bitmap = new BitmapFile;
+    BitmapFile bitmap;
 
     // generate the byte buffer.
     // don't copy, just reference
     // std::string should keep data as long as we don't change the string
     const byte* inputBuffer = data.data();
 
-    if( bitmap->loadFromBuffer( &inputBuffer ) )
+    if (!(bitmap->loadFromBuffer(&inputBuffer)))
     { //an error occured
         gltWarning("Unsupported BMP variant.");
         assert(0);
@@ -71,7 +79,7 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     uint32 imageSize = bitmap->getImageSize();
     uint32 bufferSize = 0;
 
-    switch( bpp )
+    switch (bpp)
     {
     /* Not yet supported
        case 1:
@@ -92,7 +100,7 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
 	    break;
     }
 
-    image.resize( bufferSize );
+    image.resize(bufferSize);
 
     //flip the colors internally
     bitmap->convertRGBtoBGR();
@@ -101,17 +109,15 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     byte* outputBuffer = image.data();
 
     //copy it over and voila
-    memcpy( outputBuffer, bitmap->getImageData(), bufferSize );
-
-    delete bitmap;
+    memcpy(outputBuffer, bitmap->getImageData(), bufferSize);
 
     //we are done
     return true;
-
+#else
 
     /* previous code */
 
-    /*
+
     const uint32 fileHeaderSize = 14;
     if (data.size()<fileHeaderSize)
         return false;
@@ -149,8 +155,8 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
 
     const uint32 bytesPerPixel    = imageBits>>3;
     const uint32 colorTableOffset = 54;
-    */
-/*
+
+
     // We don't support compressed BMP.
     //
     // According to the specs, 4-bit and 8-bit RLE
@@ -158,21 +164,21 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
 
     if (imageCompress!=0)
         return false;
-*/
+
     /*
     const uint32 imagePos    = littleEndian((uint32 *)(data.data()+10));
     const uint32 imagePixels = imageWidth*imageHeight;
     const uint32 lineBytes   = (imageWidth*bytesPerPixel+3)&~3;
     const uint32 imageBytes  = lineBytes*imageHeight;
     */
-/*
+
     if (imagePos+imageBytes!=data.size())
         return false;
-*/
+
 
     // Extract the image as RGB
 
-    /*
+
     width  = imageWidth;
     height = imageHeight;
     image.resize(imagePixels*3);
@@ -233,17 +239,18 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     }
 
     return true;
-    */
+#endif
 }
 
 bool
 encodeBMP(string &data,const uint32 width,const uint32 height,const string &image)
 {
+#ifdef bmp_P
     /* Alternative file loading using bmp_P.cpp */
 
 
     // make a BitmapFile object for .BMP I/O
-    BitmapFile* bitmap = new BitmapFile;
+    BitmapFile bitmap;
 
     // generate the byte buffer.
     // don't copy, just reference
@@ -251,14 +258,14 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
     const byte* inputBuffer = data.data();
     uint32 imageSize = data.size();
 
-    bitmap->setWidth( width );
-    bitmap->setHeight( height );
+    bitmap->setWidth(width);
+    bitmap->setHeight(height);
 
     uint16 bpp = (imageSize*8) / (width*height);
 
-    bitmap->setBpp( bpp );
+    bitmap->setBpp(bpp);
 
-    if( bpp == 8 || bpp == 4 )
+    if (bpp == 8 || bpp == 4)
     {// we need a palette from the user
        //...
     }
@@ -267,7 +274,7 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
 
     uint32 bufferSize = 0;
 
-    switch( bpp )
+    switch (bpp)
     {
     /* Not yet supported
        case 1:
@@ -288,20 +295,21 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
 	    break;
     }
 
-    image.resize( bufferSize );
+    image.resize(bufferSize);
 
     byte* outputBuffer = image.data();
 
     bitmap->convertRGBtoBGR();
 
-    bitmap->saveToBuffer( &outputBuffer );
+    bitmap->saveToBuffer(&outputBuffer);
 
-    delete bitmap;
 
     //we are done
     return true;
 
-    //assert(0);
+#else
+    assert(0);
     // TODO
-    //;return false;
+    return false;
+#endif
 }

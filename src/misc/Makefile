@@ -1,6 +1,6 @@
 SUBDIRS = internal
 CPP_SRC = string.cpp file.cpp text2src.cpp timer.cpp compress.cpp image.cpp observer.cpp \
-	  hex.cpp tga.cpp bmp.cpp jpeg.cpp png.cpp ppm.cpp bmp_P.cpp
+	  hex.cpp tga.cpp bmp.cpp jpeg.cpp png.cpp ppm.cpp
 
 ROOT    = ../..
 INCLUDE = -I$(ROOT)/src/png
