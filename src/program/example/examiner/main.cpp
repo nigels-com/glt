@@ -81,6 +81,8 @@ ExaminerDemo::ExaminerDemo(int width,int height,int x,int y)
 : GlutWindowExaminer("GlutMaster Examiner Demo",width,height,x,y),
   _info(_font,_viewport)
 {
+    _ortho.zNear() = -2.0;
+    _ortho.zFar()  =  2.0;
 }
 
 ExaminerDemo::~ExaminerDemo()
@@ -152,9 +154,6 @@ void ExaminerDemo::OnKeyboard(unsigned char key, int x, int y)
 {
     // Pass keys to parent class
     GlutWindowExaminer::OnKeyboard(key,x,y);
-
-    // Forget the current shape
-    _shape = NULL;
 
     // Create a new shape, according to the pressed key
     switch (key)
