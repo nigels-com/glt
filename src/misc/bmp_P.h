@@ -27,23 +27,29 @@
 #ifndef BITMAP_P_H
 #define BITMAP_P_H
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
-#include "image_helper_P.h"
-
-typedef struct 
+struct BitmapFileHeader
 {
-   word_t   fileType;     /* specifies file type must be BM (4D42h) */
-   dword_t  fileSize;     /* file size in bytes (54) */
-            
-   word_t   res1;         /* must be 0 */
-   word_t   res2;         /* must be 0 */
-   dword_t  imageOffset;  /* offset in bytes from the header to the data (40) */
-   
-} BitmapFileHeader;
+   uint16   fileType;     /* specifies file type must be BM (4D42h) */
+   uint32  fileSize;     /* file size in bytes (54) */
+
+   uint16   res1;         /* must be 0 */
+   uint16   res2;         /* must be 0 */
+   uint32  imageOffset;  /* offset in bytes from the header to the data (40) */
+
+   public:
+
+   BitmapFileHeader();
+   ~BitmapFileHeader();
+
+   void saveToBuffer( byte** );
+   int loadFromBuffer( const byte** );
+
+   inline void setFileSize( uint32 val ) { fileSize = val; }
+   inline void setImageOffset( uint32 val ) { ImageOffset = val; }
+
+
+};
 
 /** wrapper for the palette data.
  * MS-WIN use 4 byte quads as opposed to Adobe with 3 byte entries.
@@ -55,100 +61,97 @@ typedef struct
  * The sub header of a BMP file
  */
 
-typedef struct 
+struct BitmapInfoHeader
 {
-   dword_t  infoSize;     /* information header size in bytes (40) */
-   dword_t  imageWidth;   /* width of the bitmap in pixels (0) */
-   dword_t  imageHeight;  /* height of the bitmap in pixels (0) */
-   word_t   colourPlanes; /* must be 1 */
-   word_t   bitCount;     /* bits per pixel, 1, 4, 8, 16, (24), 32 */
-   dword_t  compression;  /* compression type (0) */
-   dword_t  imageSize;    /* size of image in bytes (0) */
-   dword_t  pixelsX;      /* number of pixels in x per meter (2834) */
-   dword_t  pixelsY;      /* number of pixels in y per meter (2834) */
-   dword_t  numColours;   /* number of colours used in the image (0) */
-   dword_t  numImportant; /* number of important colours (0) */
-   byte_t*  paletteData;  /* the palette data that may follow */
-} BitmapInfoHeader;
+   uint32  infoSize;     /* information header size in bytes (40) */
+   uint32  imageWidth;   /* width of the bitmap in pixels (0) */
+   uint32  imageHeight;  /* height of the bitmap in pixels (0) */
+   uint16   colourPlanes; /* must be 1 */
+   uint16   bitCount;     /* bits per pixel, 1, 4, 8, 16, (24), 32 */
+   uint32  compression;  /* compression type (0) */
+   uint32  imageSize;    /* size of image in bytes (0) */
+   uint32  pixelsX;      /* number of pixels in x per meter (2834) */
+   uint32  pixelsY;      /* number of pixels in y per meter (2834) */
+   uint32  numColours;   /* number of colours used in the image (0) */
+   uint32  numImportant; /* number of important colours (0) */
+   byte*  paletteData;  /* the palette data that may follow */
+
+   public:
+
+   BitmapInfoHeader();
+   ~BitmapInfoHeader();
+
+   void saveToBuffer( byte** );
+   int loadFromBuffer( const byte** );
+
+   void savePaletteToBuffer( byte** );
+   void loadPaletteBuffer( const byte** );
+
+   inline uint32 getImageWidth() const { return imageWidth; }
+   inline uint32 getImageHeight() const { return imageHeight; }
+   inline uint32 getImageSize() const { return imageSize; }
+   inline uint32 getNumberOfColours() const { return numColours; }
+   inline uint32 getBitCount() const { return bitCount; }
+};
 
 
 /**
  * Wrapper struct to hold image & palette data and interface with the headers
  */
 
-typedef struct 
+struct BitmapFile
 {
-   BitmapFileHeader  fileHeader;
-   BitmapInfoHeader  infoHeader;
-   byte_t*    imageData;
-} BitmapFileStructure;
+   BitmapFileHeader*  fileHeader;
+   BitmapInfoHeader*  infoHeader;
+   byte*    imageData;
 
+   public:
 
-/**
- * Handler object, interfaces between end user and wrapper class
- * Use only this struct in your program
- */
-
-typedef struct 
-{
-   BitmapFileStructure fileStructure;
-   char* fileName;
-} BitmapFile;
+   BitmapFile();
+   ~BitmapFile();
 
 /**
  * Loading, saving and initalising
  */
- 
-void initBitmapFile(BitmapFile*);
-void saveBitmapFile(BitmapFile*);
-void loadBitmapFile(BitmapFile*);
-void deleteBitmapFile(BitmapFile*);
 
-void saveBitmapFileToBuffer(BitmapFile*, byte_t*);
-
-/** returns 0 if the buffer does not contain a bmp structure */
-int loadBitmapFileFromBuffer(BitmapFile*, const byte_t*);
-
-void setBitmapFileName(BitmapFile*, const char*);
+   void saveToBuffer( byte** );
+   int loadFromBuffer( const byte** );
 
 /**
  * Getting & setting dimensions and other info
  */
+   uint32 getWidth( );
+   uint32 getHeight( );
+   uint16 getBpp( );
+   uint32 getImageSize( );
 
-dword_t getBitmapWidth(const BitmapFile* const );
-dword_t getBitmapHeight(const BitmapFile* const );
-word_t getBitmapBpp(const BitmapFile* const );
-dword_t getBitmapImageSize(const BitmapFile* const );
+   void setWidth( uint32 );
+   void setHeight( uint32 );
+   void setBpp( uint16 );
 
-void setBitmapWidth(BitmapFile* const,  dword_t);
-void setBitmapHeight(BitmapFile* const, dword_t);
-void setBitmapBpp(BitmapFile* const, word_t);
-
-void setBitmapDimensions(BitmapFile* const, dword_t w, dword_t h, word_t bpp);
+   void setDimensions( uint32 w, uint32 h, uint16 bpp );
 
 /**
  * Palette specific functions
  */
 
-dword_t getBitmapPaletteSize(const BitmapFile* const );
-const byte_t* getBitmapPalette(const BitmapFile* const );
+   uint32 getPaletteSize( );
+   const byte* getPalette( );
 
-void setBitmapPaletteSize(BitmapFile* const, dword_t);
+   void setPaletteSize( uint32 );
 
-void setBitmapPalette(BitmapFile* const, const byte_t* );
-
+   void setPalette( const byte* );
 
 /**
  * Getting and setting the image data
  */
- 
-byte_t* getBitmapImageData(const BitmapFile* const);
-void setBitmapImageData(BitmapFile* const, const byte_t*);
 
-void convertBitmapFileRGBtoBGR(BitmapFile* const);
+   byte* getImageData( );
+   void setImageData( const byte* );
 
-#ifdef __cplusplus
-}
-#endif
+   void convertRGBtoBGR( );
+
+};
+
 
 #endif
