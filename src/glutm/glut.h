@@ -38,7 +38,7 @@
 
 /* Use FreeGLUT */
 
-#ifdef GLUTM_FREEGLUT
+#if  defined(GLUTM_FREEGLUT)
 
 #   ifndef FREEGLUT_STATIC
 #   define FREEGLUT_STATIC
@@ -47,9 +47,18 @@
 #   include <GL/freeglut.h>
 #   include <GL/freeglut_ext.h>
 
-/* Use GLUT */
+#elif defined(GLUTM_OPENGLUT)
+
+#   ifndef OPENGLUT_STATIC
+#   define OPENGLUT_STATIC
+#   endif
+
+#   include <GL/openglut.h>
+#   include <GL/openglut_ext.h>
 
 #else
+
+/* Use GLUT */
 
 #   include <GL/glut.h>
 
