@@ -1,5 +1,5 @@
 /* trees.c -- output deflated data using Huffman coding
- * Copyright (C) 1995-2002 Jean-loup Gailly
+ * Copyright (C) 1995-2003 Jean-loup Gailly
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -29,7 +29,7 @@
  *          Addison-Wesley, 1983. ISBN 0-201-06672-6.
  */
 
-/* @(#) $Id: trees.c,v 2.0 2004/02/08 19:44:16 nigels Exp $ */
+/* @(#) $Id: trees.c,v 2.1 2004/02/08 22:28:19 nigels Exp $ */
 
 /* #define GEN_TREES_H */
 
@@ -230,7 +230,6 @@ local void send_bits(s, value, length)
 #endif /* DEBUG */
 
 
-#define MAX(a,b) (a >= b ? a : b)
 /* the arguments must not have side effects */
 
 /* ===========================================================================
@@ -675,7 +674,8 @@ local void build_tree(s, desc)
 
         /* Create a new node father of n and m */
         tree[node].Freq = tree[n].Freq + tree[m].Freq;
-        s->depth[node] = (uch) (MAX(s->depth[n], s->depth[m]) + 1);
+        s->depth[node] = (uch)((s->depth[n] >= s->depth[m] ?
+                                s->depth[n] : s->depth[m]) + 1);
         tree[n].Dad = tree[m].Dad = (ush)node;
 #ifdef DUMP_BL_TREE
         if (tree == s->bl_tree) {
@@ -950,7 +950,7 @@ void _tr_flush_block(s, buf, stored_len, eof)
      */
     max_blindex = build_bl_tree(s);
 
-    /* Determine the best encoding. Compute first the block length in bytes*/
+        /* Determine the best encoding. Compute the block lengths in bytes. */
     opt_lenb = (s->opt_len+3+7)>>3;
     static_lenb = (s->static_len+3+7)>>3;
 
@@ -1107,7 +1107,8 @@ local void compress_block(s, ltree, dtree)
         } /* literal or match pair ? */
 
         /* Check that the overlay between pending_buf and d_buf+l_buf is ok: */
-        Assert(s->pending < s->lit_bufsize + 2*lx, "pendingBuf overflow");
+        Assert((uInt)(s->pending) < s->lit_bufsize + 2*lx,
+               "pendingBuf overflow");
 
     } while (lx < s->last_lit);
 
