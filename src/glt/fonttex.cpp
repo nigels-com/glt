@@ -3,17 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fonttex.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: fonttex.cpp,v 2.1 2004/02/16 01:09:31 nigels Exp $
 
     $Log: fonttex.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
+    Revision 2.1  2004/02/16 01:09:31  nigels
+    Tweak the horizontal spacing of characters
+    Tweak the GREY_ALPHA texture to improve appearance
 
     Revision 1.7  2003/08/05 08:03:34  nigels
     *** empty log message ***
@@ -136,6 +131,13 @@ GltFontTexture::init(void *data)
                 _glyph[i].y     = flip(_glyph[i].y);
             }
 
+        // Adjust advance
+        // This is a hacky way to tweak the horizontal offset between
+        // characters to look "good".
+
+        for (i=0; i<_numGlyphs; i++)
+          _glyph[i].advance = (char) ceil(lerp<float>(_glyph[i].advance,_glyph[i].width,0.35));
+
         // Find first and last glyphs
 
         if (!_numGlyphs)
@@ -225,7 +227,10 @@ GltFontTexture::init(void *data)
             {
                 byte *buffer = new byte[width*height*2];
                 for (i=0; i<width*height; i++)
-                    buffer[i*2] = buffer[i*2+1] = ptr[i];
+                {
+                    buffer[i*2  ] = 255;
+                    buffer[i*2+1] = ptr[i];
+                }
                 _texture.init(width,height,buffer,2,mipmap);
                 delete [] buffer;
             }
@@ -248,9 +253,9 @@ GltFontTexture::clear()
         delete [] _glyphVertex;
         delete [] _glyphLut;
 
-        _glyph = NULL;
+        _glyph       = NULL;
         _glyphVertex = NULL;
-        _glyphLut = NULL;
+        _glyphLut    = NULL;
 
         _texture.clear();
     }
