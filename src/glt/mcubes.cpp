@@ -5,52 +5,32 @@
     \author Steve Anger (70714.3113@compuserve.com)
     \todo Cleanup
     \todo Normals
+    \todo Resolve gcc -O3 issues
 
     \ingroup GLT
 
-    $Id: mcubes.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: mcubes.cpp,v 2.1 2004/03/05 05:51:03 nigels Exp $
 
     $Log: mcubes.cpp,v $
+    Revision 2.1  2004/03/05 05:51:03  nigels
+    Resolved gaps in sphere and heart when gcc optimisations (-O3) enabled
+    General tidy-up of code, more to follow, optimistations also possible
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.7  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.6  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.5  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
 
 */
 
 #include <glt/gl.h>
 
 #include <cstdlib>
-#include <cmath>   // Only needed for plug-in functions
+#include <cmath>      // Used by plug-in functions
 #include <iosfwd>
 using namespace std;
 
-typedef struct {
-    float x, y, z;
-} Vector3;
-
-typedef struct {
-  Vector3 p1, p2;
-} Pair;
-
-typedef struct {
-    float  value;
-    Vector3 loc;
-} Sample;
+typedef struct { float x, y, z;            } Vector3;
+typedef struct { Vector3 p1, p2;           } Pair;
+typedef struct { float value; Vector3 loc; } Sample;
 
 static int x_steps = 20;
 static int y_steps = 20;
@@ -61,27 +41,26 @@ static GltFunc3d func3d = NULL;
 static Sample **level0 = NULL;
 static Sample **level1 = NULL;
 
-//static FILE *f = NULL;
 
-static void write_polygon (Vector3 *poly, int size);
-static int  allocate_cubes (void);
-static void free_cubes (void);
-static void sample_level (Sample **level, int ix, Vector3 *vmin, Vector3 *vmax);
-static void tesselate_cube (int iy, int iz);
-static void analyze_face (Sample *cube, int a, int b, int c, int d,
-            Pair *line, int *numline);
-static void interpolate (Vector3 *v, Sample *a, Sample *b);
+static void write_polygon(Vector3 *poly, int size);
+static bool allocate_cubes(void);
+static void free_cubes(void);
+static void sample_level(Sample **level, int ix, Vector3 *vmin, Vector3 *vmax);
+static void tesselate_cube(int iy, int iz);
+static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, int *numline);
+static void interpolate(Vector3 *v, Sample *a, Sample *b);
 static void vect_copy (Vector3 *v1, Vector3 *v2);
-static int  vect_equal (Vector3 *v1, Vector3 *v2);
-static void vect_add (Vector3 *v1, Vector3 *v2, Vector3 *v3);
-static void vect_sub (Vector3 *v1, Vector3 *v2, Vector3 *v3);
-static void vect_scale (Vector3 *v1, Vector3 *v2, float k);
+static bool vect_equal(Vector3 *v1, Vector3 *v2);
+static void vect_add  (Vector3 *v1, Vector3 *v2, Vector3 *v3);
+static void vect_sub  (Vector3 *v1, Vector3 *v2, Vector3 *v3);
+static void vect_scale(Vector3 *v1, Vector3 *v2, float k);
 
-
-int GltMarchingCubes(GltFunc3d func,
-            float minx, float miny, float minz,
-            float maxx, float maxy, float maxz,
-            int xsteps, int ysteps, int zsteps)
+bool
+GltMarchingCubes(
+    GltFunc3d func,
+    float minx, float miny, float minz,
+    float maxx, float maxy, float maxz,
+    int xsteps, int ysteps, int zsteps)
 {
     int ix, iy, iz;
     Sample **temp;
@@ -103,63 +82,76 @@ int GltMarchingCubes(GltFunc3d func,
     z_steps = zsteps;
 
     if (!allocate_cubes())
-        return 0;
+        return false;
 
-    sample_level (level0, 0, &vmin, &vmax);
+    sample_level(level0, 0, &vmin, &vmax);
 
-    for (ix = 1; ix <= x_steps; ix++) {
-        sample_level (level1, ix, &vmin, &vmax);
+    // Algorithm progresses in slices in
+    // the yz plane
 
-        for (iy = 0; iy < y_steps; iy++)
-            for (iz = 0; iz < z_steps; iz++)
-               tesselate_cube (iy, iz);
+    for (ix = 1; ix <= x_steps; ix++)
+    {
+        sample_level(level1, ix, &vmin, &vmax);
 
-        temp = level0;
+        // Visit each cube in slice
+
+        for (iy=0; iy<y_steps; iy++)
+            for (iz=0; iz<z_steps; iz++)
+               tesselate_cube(iy, iz);
+
+        temp   = level0;
         level0 = level1;
         level1 = temp;
     }
 
     free_cubes();
 
-    return 1;
+    return true;
 }
 
 /* Allocate memory for the marching cubes algorithm */
-static int allocate_cubes()
+
+static bool allocate_cubes()
 {
+    level0 = (Sample **) malloc((y_steps+1)*sizeof(Sample *));
+
+    if (!level0)
+        return false;
+
     int i;
 
-    level0 = (Sample **)malloc ((y_steps+1) * sizeof(Sample *));
-    if (level0 == NULL)
-        return 0;
-
-    for (i = 0; i < y_steps+1; i++)
+    for (i=0; i<y_steps+1; i++)
         level0[i] = NULL;
 
-    for (i = 0; i < y_steps+1; i++) {
-        level0[i] = (Sample *)malloc ((z_steps+1) * sizeof(Sample));
-        if (level0[i] == NULL) {
+    for (i = 0; i < y_steps+1; i++)
+    {
+        level0[i] = (Sample *) malloc((z_steps+1)*sizeof(Sample));
+        if (!level0[i])
+        {
             free_cubes();
-            return 0;
+            return false;
         }
     }
 
-    level1 = (Sample **)malloc ((y_steps+1) * sizeof(Sample *));
-    if (level1 == NULL)
-        return 0;
+    level1 = (Sample **) malloc((y_steps+1)*sizeof(Sample *));
 
-    for (i = 0; i < y_steps+1; i++)
+    if (!level1)
+        return false;
+
+    for (i=0; i<y_steps+1; i++)
         level1[i] = NULL;
 
-    for (i = 0; i < y_steps+1; i++) {
-        level1[i] = (Sample *)malloc ((z_steps+1) * sizeof(Sample));
-        if (level1[i] == NULL) {
+    for (i=0; i<y_steps+1; i++)
+    {
+        level1[i] = (Sample *) malloc((z_steps+1)*sizeof(Sample));
+        if (!level1[i])
+        {
             free_cubes();
-            return 0;
+            return false;
         }
     }
 
-    return 1;
+    return true;
 }
 
 
@@ -167,22 +159,26 @@ static void free_cubes()
 {
     int i;
 
-    if (level0 != NULL) {
-        for (i = 0; i < y_steps+1; i++) {
-            if (level0[i] != NULL)
-                free (level0[i]);
+    if (level0)
+    {
+        for (i=0; i<y_steps+1; i++)
+        {
+            if (level0[i])
+                free(level0[i]);
         }
 
         free (level0);
     }
 
-    if (level1 != NULL) {
-        for (i = 0; i < y_steps+1; i++) {
-            if (level1[i] != NULL)
-                free (level1[i]);
+    if (level1)
+    {
+        for (i=0; i<y_steps+1; i++)
+        {
+            if (level1[i])
+                free(level1[i]);
         }
 
-        free (level1);
+        free(level1);
     }
 
     level0 = NULL;
@@ -190,27 +186,28 @@ static void free_cubes()
 }
 
 
-static void sample_level (Sample **level, int ix, Vector3 *vmin, Vector3 *vmax)
+static void sample_level(Sample **level, int ix, Vector3 *vmin, Vector3 *vmax)
 {
     Vector3 v;
     int iy, iz;
 
     v.x = (float) ((float) ix/x_steps * vmin->x + (1.0 - (float) ix/x_steps)*vmax->x);
 
-    for (iy = 0; iy <= y_steps; iy++) {
+    for (iy = 0; iy <= y_steps; iy++)
+    {
         v.y = (float) ((float) iy/y_steps * vmin->y + (1.0 - (float)iy/y_steps)*vmax->y);
 
-        for (iz = 0; iz <= z_steps; iz++) {
+        for (iz = 0; iz <= z_steps; iz++)
+        {
             v.z =  (float) ((float) iz/z_steps * vmin->z + (1.0 - (float)iz/z_steps)*vmax->z);
 
             level[iy][iz].loc   = v;
-            level[iy][iz].value = func3d (v.x, v.y, v.z);
+            level[iy][iz].value = func3d(v.x, v.y, v.z);
         }
     }
 }
 
-
-static void tesselate_cube (int iy, int iz)
+static void tesselate_cube(int iy, int iz)
 {
     Sample cube[8];
     int    i, j, polysize, numline;
@@ -231,31 +228,36 @@ static void tesselate_cube (int iy, int iz)
 
     numline = 0;
 
-    analyze_face (cube, 0, 1, 3, 2, line, &numline);
-    analyze_face (cube, 4, 6, 7, 5, line, &numline);
-    analyze_face (cube, 0, 2, 6, 4, line, &numline);
-    analyze_face (cube, 1, 5, 7, 3, line, &numline);
-    analyze_face (cube, 2, 3, 7, 6, line, &numline);
-    analyze_face (cube, 0, 4, 5, 1, line, &numline);
+    analyze_face(cube, 0, 1, 3, 2, line, &numline);
+    analyze_face(cube, 4, 6, 7, 5, line, &numline);
+    analyze_face(cube, 0, 2, 6, 4, line, &numline);
+    analyze_face(cube, 1, 5, 7, 3, line, &numline);
+    analyze_face(cube, 2, 3, 7, 6, line, &numline);
+    analyze_face(cube, 0, 4, 5, 1, line, &numline);
 
-    if (numline > 0) {
-        /* Sort the line segments into polygons */
+    if (numline > 0)
+    {
+        /* Connect the line segments into polygons */
         polysize = 0;
 
-        for (i = 0; i < numline; i++) {
+        for (i=0; i<numline; i++)
+        {
             poly[polysize++] = line[i].p1;
 
-            for (j = i+1; j < numline; j++) {
-                if (vect_equal (&line[j].p1, &line[i].p2)) {
-                    temp = line[j];
-                    line[j] = line[i+1];
+            for (j=i+1; j<numline; j++)
+            {
+                if (vect_equal(&line[j].p1, &line[i].p2))
+                {
+                    temp      = line[j];
+                    line[j]   = line[i+1];
                     line[i+1] = temp;
                     break;
                 }
             }
 
-            if (j >= numline) {
-                write_polygon (poly, polysize);
+            if (j >= numline)
+            {
+                write_polygon(poly, polysize);
                 polysize = 0;
             }
         }
@@ -267,8 +269,8 @@ static void tesselate_cube (int iy, int iz)
    looking for positive to negative field strength changes between adjacent
    corners. If an intersection is found then the coords of the line segment(s)
    are added to array line and *numline is increased */
-static void analyze_face (Sample *cube, int a, int b, int c, int d,
-                          Pair *line, int *numline)
+
+static void analyze_face(Sample *cube, int a, int b, int c, int d, Pair *line, int *numline)
 {
     Vector3 points[4], vcenter;
     float center;
@@ -277,132 +279,160 @@ static void analyze_face (Sample *cube, int a, int b, int c, int d,
     int index = 0;
 
     /* Check face edge a-b */
-    if (cube[a].value * cube[b].value < 0.0) {
+    if (cube[a].value * cube[b].value < 0.0)
+    {
         sign[index] = cube[b].value > 0.0;
         interpolate (&points[index++], &cube[a], &cube[b]);
     }
 
     /* etc. */
-    if (cube[b].value * cube[c].value < 0.0) {
+    if (cube[b].value * cube[c].value < 0.0)
+    {
         sign[index] = cube[c].value > 0.0;
         interpolate (&points[index++], &cube[b], &cube[c]);
     }
 
-    if (cube[c].value * cube[d].value < 0.0) {
+    if (cube[c].value * cube[d].value < 0.0)
+    {
         sign[index] = cube[d].value > 0.0;
         interpolate (&points[index++], &cube[c], &cube[d]);
     }
 
-    if (cube[d].value * cube[a].value < 0.0) {
+    if (cube[d].value * cube[a].value < 0.0)
+    {
         sign[index] = cube[a].value > 0.0;
         interpolate (&points[index++], &cube[d], &cube[a]);
     }
 
-    if (index == 2) { /* One line segment */
-        if (sign[0] > 0) {  /* Get the line direction right */
-            vect_copy (&line[*numline].p1, &points[0]);
-            vect_copy (&line[*numline].p2, &points[1]);
+    if (index == 2)  /* One line segment */
+    {
+        if (sign[0] > 0)    /* Get the line direction right */
+        {
+            vect_copy(&line[*numline].p1, &points[0]);
+            vect_copy(&line[*numline].p2, &points[1]);
         }
-        else {
-            vect_copy (&line[*numline].p1, &points[1]);
-            vect_copy (&line[*numline].p2, &points[0]);
-        }
-
-        (*numline)++;
-    }
-    else if (index == 4) { /* Two line segments */
-        /* Sample the center of the face to determine which points to connect */
-        vect_add (&vcenter, &cube[a].loc, &cube[b].loc);
-        vect_add (&vcenter, &vcenter, &cube[c].loc);
-        vect_add (&vcenter, &vcenter, &cube[d].loc);
-        vect_scale (&vcenter, &vcenter, 0.25F);
-        center = func3d (vcenter.x, vcenter.y, vcenter.z);
-
-        if ((center > 0.0) != sign[0])
-            { l1 = 0; l2 = 1; l3 = 2; l4 = 3; }
         else
-            { l1 = 1; l2 = 2; l3 = 3; l4 = 0; }
-
-        if (sign[l1] > 0) {
-            vect_copy (&line[*numline].p1, &points[l1]);
-            vect_copy (&line[*numline].p2, &points[l2]);
-        }
-        else {
-            vect_copy (&line[*numline].p1, &points[l2]);
-            vect_copy (&line[*numline].p2, &points[l1]);
-        }
-
-        (*numline)++;
-
-        if (sign[l3] > 0) {
-            vect_copy (&line[*numline].p1, &points[l3]);
-            vect_copy (&line[*numline].p2, &points[l4]);
-        }
-        else {
-            vect_copy (&line[*numline].p1, &points[l4]);
-            vect_copy (&line[*numline].p2, &points[l3]);
+        {
+            vect_copy(&line[*numline].p1, &points[1]);
+            vect_copy(&line[*numline].p2, &points[0]);
         }
 
         (*numline)++;
     }
+    else
+        if (index == 4) /* Two line segments */
+        {
+            /* Sample the center of the face to determine which points to connect */
+            vect_add (&vcenter, &cube[a].loc, &cube[b].loc);
+            vect_add (&vcenter, &vcenter, &cube[c].loc);
+            vect_add (&vcenter, &vcenter, &cube[d].loc);
+            vect_scale (&vcenter, &vcenter, 0.25F);
+            center = func3d (vcenter.x, vcenter.y, vcenter.z);
+
+            if ((center > 0.0) != sign[0])
+                { l1 = 0; l2 = 1; l3 = 2; l4 = 3; }
+            else
+                { l1 = 1; l2 = 2; l3 = 3; l4 = 0; }
+
+            if (sign[l1] > 0)
+            {
+                vect_copy (&line[*numline].p1, &points[l1]);
+                vect_copy (&line[*numline].p2, &points[l2]);
+            }
+            else
+            {
+                vect_copy (&line[*numline].p1, &points[l2]);
+                vect_copy (&line[*numline].p2, &points[l1]);
+            }
+
+            (*numline)++;
+
+            if (sign[l3] > 0)
+            {
+                vect_copy (&line[*numline].p1, &points[l3]);
+                vect_copy (&line[*numline].p2, &points[l4]);
+            }
+            else
+            {
+                vect_copy (&line[*numline].p1, &points[l4]);
+                vect_copy (&line[*numline].p2, &points[l3]);
+            }
+
+            (*numline)++;
+        }
 }
 
-
-static void interpolate (Vector3 *v, Sample *a, Sample *b)
+static void interpolate(Vector3 *v, Sample *a, Sample *b)
 {
     Vector3 vtemp;
 
-    if (a->value < b->value) {
-        vect_sub (&vtemp, &a->loc, &b->loc);
+#if 1
+    Sample *x;
+    Sample *y;
+    if (a->value < b->value)
+    {
+        x=a; y=b;
+    }
+    else
+    {
+        x=b; y=a;
+    }
+
+    vect_sub   (&vtemp, &x->loc, &y->loc);
+    vect_scale (&vtemp, &vtemp, x->value/(x->value - y->value));
+    vect_sub   (v, &x->loc, &vtemp);
+#else
+
+    if (a->value < b->value)
+    {
+        vect_sub   (&vtemp, &a->loc, &b->loc);
         vect_scale (&vtemp, &vtemp, a->value/(a->value - b->value));
-        vect_sub (v, &a->loc, &vtemp);
+        vect_sub   (v, &a->loc, &vtemp);
     }
-    else {
-        vect_sub (&vtemp, &b->loc, &a->loc);
+    else
+    {
+        vect_sub   (&vtemp, &b->loc, &a->loc);
         vect_scale (&vtemp, &vtemp, b->value/(b->value - a->value));
-        vect_sub (v, &b->loc, &vtemp);
+        vect_sub   (v, &b->loc, &vtemp);
     }
+#endif
 }
 
-
-static void vect_copy (Vector3 *v1, Vector3 *v2)
+static void vect_copy(Vector3 *v1, Vector3 *v2)
 {
     v1->x = v2->x;
     v1->y = v2->y;
     v1->z = v2->z;
 }
 
-
-static int vect_equal (Vector3 *v1, Vector3 *v2)
+bool vect_equal(Vector3 *v1, Vector3 *v2)
 {
     return (v1->x == v2->x && v1->y == v2->y && v1->z == v2->z);
 }
 
 
-static void vect_add (Vector3 *v1, Vector3 *v2, Vector3 *v3)
+static void vect_add(Vector3 *v1, Vector3 *v2, Vector3 *v3)
 {
     v1->x = v2->x + v3->x;
     v1->y = v2->y + v3->y;
     v1->z = v2->z + v3->z;
 }
 
-
-static void vect_sub (Vector3 *v1, Vector3 *v2, Vector3 *v3)
+static void vect_sub(Vector3 *v1, Vector3 *v2, Vector3 *v3)
 {
     v1->x = v2->x - v3->x;
     v1->y = v2->y - v3->y;
     v1->z = v2->z - v3->z;
 }
 
-
-static void vect_scale (Vector3 *v1, Vector3 *v2, float k)
+static void vect_scale(Vector3 *v1, Vector3 *v2, float k)
 {
     v1->x = k * v2->x;
     v1->y = k * v2->y;
     v1->z = k * v2->z;
 }
 
-static void write_polygon (Vector3 *poly, int size)
+static void write_polygon(Vector3 *poly, int size)
 {
     // Use the cross-product to find a normal
     // Per-vertex lighting would be nicer
@@ -434,7 +464,7 @@ template<class T> T cub(const T &a) { return a*a*a; }
 
 float sphere(float x, float y, float z)
 {
-    return float( x*x + y*y + z*z - 0.95 );
+    return x*x + y*y + z*z - 0.95f;
 }
 
 float heart (float x, float y, float z)

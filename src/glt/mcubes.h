@@ -31,30 +31,15 @@
     \ingroup GLT
     \author  Steve Anger (70714.3113@compuserve.com)
 
-    $Id: mcubes.h,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: mcubes.h,v 2.1 2004/03/05 05:51:03 nigels Exp $
 
     $Log: mcubes.h,v $
+    Revision 2.1  2004/03/05 05:51:03  nigels
+    Resolved gaps in sphere and heart when gcc optimisations (-O3) enabled
+    General tidy-up of code, more to follow, optimistations also possible
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.9  2003/03/06 12:21:33  nigels
-    *** empty log message ***
-
-    Revision 1.8  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.7  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.6  2002/10/07 16:33:35  nigels
-    Added CVS info
-
 
 */
 
@@ -72,9 +57,13 @@ extern float sss   (float,float,float);
 /*! \brief Marching Cubes Algorithm
     \ingroup GLT
 
-    A simple implementation of the marching cubes algorithm for tesselating
-    a 3d function. The function is tesselated into triangle faces and drawn
-    using OpenGL. You are free to use all or part of this code in your own
+    A simple implementation of the marching cubes algorithm for producing
+    a tesselated isosurface from a 3d scalar field.   An isosurface is the
+    set of points equal to the isovalue.
+
+    The algorithms draws triangles directly using OpenGL.
+
+    You are free to use all or part of this code in your own
     programs as long as proper credit is given.
 
     \param func    Function to evaluate
@@ -84,17 +73,18 @@ extern float sss   (float,float,float);
     \param maxx    Maximum X of bounding box
     \param maxy    Maximum Y of bounding box
     \param maxz    Maximum Z of bounding box
-    \param xsteps  Level of detail in x direction
-    \param ysteps  Level of detail in y direction
-    \param zsteps  Level of detail in z direction
-    \return        1 on success, 0 on failure
+    \param xsteps  Number of steps in x axis
+    \param ysteps  Number of steps in y axis
+    \param zsteps  Number of steps in z axis
+    \return        true on success
 
     \note The bounding box is axis aligned.
 
     \author  Steve Anger (70714.3113@compuserve.com)
+    \author  Adapted by Nigel Stewart for GLT
 */
 
-int GltMarchingCubes(
+bool GltMarchingCubes(
         GltFunc3d func,
         float minx, float miny, float minz,
         float maxx, float maxy, float maxz,
