@@ -68,10 +68,14 @@ public:
 
     /// Constructor
     ReferenceCountPtr(T *obj)
-    : _obj(obj), _count(new int)
+    : _obj(obj), _count(NULL)
     {
-        *_count = 0;
-        inc();
+        if (_obj)
+        {
+            _count = new int;
+            *_count = 0;
+            inc();
+        }
     }
 
     /// Copy constructor
@@ -103,6 +107,10 @@ public:
         return *this;
     }
 
+    ///
+    bool operator==(const ReferenceCountPtr &ptr) const { return _obj==ptr._obj; }
+    bool operator!=(const ReferenceCountPtr &ptr) const { return _obj!=ptr._obj; }
+
     /// Reset the pointer
     void clear() { dec(); }
     /// Reset the pointer
@@ -122,6 +130,9 @@ public:
     /// Dereference the pointer
     inline const T *get()        const { return _obj; }
 
+    /// Number of reference counted pointers to the object
+    const int count()            const { return (_count ? *_count : 0); }
+
 private:
     T   *_obj;
     int *_count;
@@ -129,13 +140,17 @@ private:
     void inc()
     {
         if (_count)
+        {
+            assert(*_count>=0);
             (*_count)++;
+        }
     }
 
     void dec()
     {
         if (_count)
         {
+            assert(*_count>0);
             (*_count)--;
             if (*_count==0)
             {
