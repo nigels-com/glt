@@ -16,7 +16,7 @@ glutBitmapCharacter(GLUTbitmapFont font, int c)
   GLint swapbytes, lsbfirst, rowlength;
   GLint skiprows, skippixels, alignment;
 
-#if defined(_WIN32)
+#if defined(_MSC_VER) || defined(__CYGWIN32__) || defined(__MINGW32__)
   fontinfo = (BitmapFontPtr) __glutFont(font);
 #else
   fontinfo = (BitmapFontPtr) font;

@@ -15,7 +15,7 @@ glutBitmapWidth(GLUTbitmapFont font, int c)
   BitmapFontPtr fontinfo;
   const BitmapCharRec *ch;
 
-#ifdef _WIN32
+#if defined(_MSC_VER) || defined(__CYGWIN32__) || defined(__MINGW32__)
   fontinfo = (BitmapFontPtr) __glutFont(font);
 #else
   fontinfo = (BitmapFontPtr) font;
@@ -37,7 +37,7 @@ glutBitmapLength(GLUTbitmapFont font, const unsigned char *string)
   BitmapFontPtr fontinfo;
   const BitmapCharRec *ch;
 
-#ifdef _WIN32
+#if defined(_MSC_VER) || defined(__CYGWIN32__) || defined(__MINGW32__)
   fontinfo = (BitmapFontPtr) __glutFont(font);
 #else
   fontinfo = (BitmapFontPtr) font;
