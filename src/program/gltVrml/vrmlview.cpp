@@ -176,7 +176,7 @@ void GlutVrmlViewer::OnOpen()
     {
         _shapes.transformation() *= matrixTranslate(-box.center());
 
-        const double size = MAX(box.width(),MAX(box.height(),box.depth()));
+        const double size = std::max(box.width(),std::max(box.height(),box.depth()));
 
         if (size>1e-6)
             _shapes.transformation() *= matrixScale(1.8/size);
@@ -206,6 +206,11 @@ void GlutVrmlViewer::OnDisplay()
     drawScene();
     #else
 //    _list.draw();
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_CULL_FACE);
+
      _shapes.draw();
    #endif
 }

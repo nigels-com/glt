@@ -59,19 +59,19 @@ void ChaosSystem::findSize()
         }
         else
         {
-            xmin = MIN(_x,xmin);
-            xmax = MAX(_x,xmax);
-            ymin = MIN(_y,ymin);
-            ymax = MAX(_y,ymax);
+            xmin = std::min(_x,xmin);
+            xmax = std::max(_x,xmax);
+            ymin = std::min(_y,ymin);
+            ymax = std::max(_y,ymax);
         }
     }
 
     const double limit = 10000;
 
-    xmin = MIN( limit,xmin);
-    xmax = MAX(-limit,xmax);
-    ymin = MIN( limit,ymin);
-    ymax = MAX(-limit,ymax);
+    xmin = std::min( limit,xmin);
+    xmax = std::max(-limit,xmax);
+    ymin = std::min( limit,ymin);
+    ymax = std::max(-limit,ymax);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -139,10 +139,10 @@ void ChaosSystem::set(const uint32 seed)
             }
             else
             {
-                xmin = MIN(_x,xmin);
-                xmax = MAX(_x,xmax);
-                ymin = MIN(_y,ymin);
-                ymax = MAX(_y,ymax);
+                xmin = std::min(_x,xmin);
+                xmax = std::max(_x,xmax);
+                ymin = std::min(_y,ymin);
+                ymax = std::max(_y,ymax);
             }
 
             found = false;
