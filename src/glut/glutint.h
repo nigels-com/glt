@@ -17,7 +17,7 @@
 
 #define SUPPORT_FORTRAN  /* With GLUT 3.7, everyone supports Fortran. */
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__MINGW32__)
 #include "glutwin32.h"
 #else
 #include <X11/Xlib.h>
@@ -27,7 +27,7 @@
 #endif
 
 #define GLUT_BUILDING_LIB  /* Building the GLUT library itself. */
-#include <GL/glut.h>
+#include "GL/glut.h"
 
 #if defined(MESA) && defined(_WIN32) && !defined(__CYGWIN32__)
 #include <gl/mesa_wgl.h>
