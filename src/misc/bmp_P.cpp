@@ -43,23 +43,49 @@
  * private functions
  */
 
+template <typename T>
+inline T readFromBuffer (const byte** buff)
+{
+    T temp = littleEndian(reinterpret_cast<const T*>(*buff));
+    (*buff)+= sizeof(T);
+    return temp;
+}
+
+/*
 inline uint16 readUint16FromBuffer (const byte** buff)
 {
-    uint16 temp = littleEndian((uint16*)(*buff));
+    uint16 temp = littleEndian(reinterpret_cast<const uint16*>(*buff));
     (*buff)+=2;
     return temp;
 }
 
 inline uint32 readUint32FromBuffer (const byte** buff)
 {
-    uint32 temp = littleEndian((uint32*)(*buff));
+    uint32 temp = littleEndian(reinterpret_cast<const uint32*>(*buff));
     (*buff)+=4;
     return temp;
+}*/
+
+template <typename T>
+inline void writeToBuffer (T val, byte** buff)
+{
+    byte* temp = reinterpret_cast<byte*>(&val);
+    #ifdef GLT_BIG_ENDIAN
+    flip(val);
+    #endif
+
+    for (register unsigned i = 0; i < sizeof(T); ++i)
+    {
+        **buff = *temp;
+	++(*buff);
+	++temp;
+    };
 }
 
+/*
 inline void writeUint16ToBuffer (uint16 val, byte** buff)
 {
-    byte* temp = (byte*)(&val);
+    byte* temp = reinterpret_cast<byte*>(&val);
     #ifdef GLT_BIG_ENDIAN
     flip(val);
     #endif
@@ -73,7 +99,7 @@ inline void writeUint16ToBuffer (uint16 val, byte** buff)
 
 inline void writeUint32ToBuffer (uint32 val, byte** buff)
 {
-    byte* temp = (byte*)(&val);
+    byte* temp = reinterpret_cast<byte*>(&val);
     #ifdef GLT_BIG_ENDIAN
     flip(val);
     #endif
@@ -90,6 +116,7 @@ inline void writeUint32ToBuffer (uint32 val, byte** buff)
     **buff = *temp;
     ++(*buff);
 }
+*/
 
 /**
  * public functions
@@ -107,18 +134,18 @@ BitmapFileHeader::BitmapFileHeader( void )
 /* buffer version */
 bool BitmapFileHeader::loadFromBuffer (const byte** buff)
 {
-    fileType = readUint16FromBuffer(buff);
+    fileType = readFromBuffer<uint16>(buff);
 
     if (fileType != BMP_FILE_ID)/*check for the correct id*/
         return false;
 
-    fileSize = readUint32FromBuffer(buff);
+    fileSize = readFromBuffer<uint32>(buff);
 
     /* these are always 0 so no need to worry about byte-order */
-    res1 = readUint16FromBuffer(buff);
-    res2 = readUint16FromBuffer(buff);
+    res1 = readFromBuffer<uint16>(buff);
+    res2 = readFromBuffer<uint16>(buff);
 
-    imageOffset = readUint32FromBuffer(buff);
+    imageOffset = readFromBuffer<uint32>(buff);
 
     return true;
 }
@@ -126,14 +153,14 @@ bool BitmapFileHeader::loadFromBuffer (const byte** buff)
 /* buffer version */
 void BitmapFileHeader::saveToBuffer (byte** buff)
 {
-    writeUint16ToBuffer(fileType, buff);
-    writeUint32ToBuffer(fileSize, buff);
+    writeToBuffer<uint16>(fileType, buff);
+    writeToBuffer<uint32>(fileSize, buff);
 
     /* these are always 0 so no need to worry about byte-order */
-    writeUint16ToBuffer(res1, buff);
-    writeUint16ToBuffer(res2, buff);
+    writeToBuffer<uint16>(res1, buff);
+    writeToBuffer<uint16>(res2, buff);
 
-    writeUint32ToBuffer(imageOffset, buff);
+    writeToBuffer<uint32>(imageOffset, buff);
 }
 
 BitmapInfoHeader::BitmapInfoHeader( void )
@@ -155,17 +182,17 @@ BitmapInfoHeader::BitmapInfoHeader( void )
 /* buffer version */
 void BitmapInfoHeader::loadFromBuffer (const byte** buff)
 {
-    infoSize = readUint32FromBuffer(buff);
-    imageWidth = readUint32FromBuffer(buff);
-    imageHeight = readUint32FromBuffer(buff);
-    colourPlanes = readUint16FromBuffer(buff);
-    bitCount = readUint16FromBuffer(buff);
-    compression = readUint32FromBuffer(buff);
-    imageSize = readUint32FromBuffer(buff);
-    pixelsX = readUint32FromBuffer(buff);
-    pixelsY = readUint32FromBuffer(buff);
-    numColours = readUint32FromBuffer(buff);
-    numImportant = readUint32FromBuffer(buff);
+    infoSize = readFromBuffer<uint32>(buff);
+    imageWidth = readFromBuffer<uint32>(buff);
+    imageHeight = readFromBuffer<uint32>(buff);
+    colourPlanes = readFromBuffer<uint16>(buff);
+    bitCount = readFromBuffer<uint16>(buff);
+    compression = readFromBuffer<uint32>(buff);
+    imageSize = readFromBuffer<uint32>(buff);
+    pixelsX = readFromBuffer<uint32>(buff);
+    pixelsY = readFromBuffer<uint32>(buff);
+    numColours = readFromBuffer<uint32>(buff);
+    numImportant = readFromBuffer<uint32>(buff);
 
     loadPaletteFromBuffer(buff);
 }
@@ -188,17 +215,17 @@ void BitmapInfoHeader::loadPaletteFromBuffer (const byte** buff)
 /* buffer version */
 void BitmapInfoHeader::saveToBuffer (byte** buff)
 {
-    writeUint32ToBuffer(infoSize, buff);
-    writeUint32ToBuffer(imageWidth, buff);
-    writeUint32ToBuffer(imageHeight, buff);
-    writeUint16ToBuffer(colourPlanes, buff);
-    writeUint16ToBuffer(bitCount, buff);
-    writeUint32ToBuffer(compression, buff);
-    writeUint32ToBuffer(imageSize, buff);
-    writeUint32ToBuffer(pixelsX, buff);
-    writeUint32ToBuffer(pixelsY, buff);
-    writeUint32ToBuffer(numColours, buff);
-    writeUint32ToBuffer(numImportant, buff);
+    writeToBuffer<uint32>(infoSize, buff);
+    writeToBuffer<uint32>(imageWidth, buff);
+    writeToBuffer<uint32>(imageHeight, buff);
+    writeToBuffer<uint16>(colourPlanes, buff);
+    writeToBuffer<uint16>(bitCount, buff);
+    writeToBuffer<uint32>(compression, buff);
+    writeToBuffer<uint32>(imageSize, buff);
+    writeToBuffer<uint32>(pixelsX, buff);
+    writeToBuffer<uint32>(pixelsY, buff);
+    writeToBuffer<uint32>(numColours, buff);
+    writeToBuffer<uint32>(numImportant, buff);
 
     savePaletteToBuffer(buff);
 }

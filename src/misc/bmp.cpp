@@ -4,9 +4,12 @@
     \brief   Windows BMP image encoding and decoding
     \ingroup Misc
 
-    $Id: bmp.cpp,v 2.5 2004/03/17 03:53:56 nigels Exp $
+    $Id: bmp.cpp,v 2.6 2004/03/21 10:54:28 jgasseli Exp $
 
     $Log: bmp.cpp,v $
+    Revision 2.6  2004/03/21 10:54:28  jgasseli
+    fixed errors and templated read/write
+
     Revision 2.5  2004/03/17 03:53:56  nigels
     Resolved compile error
 
@@ -41,11 +44,11 @@
 
 #include <cassert>
 
-//#define BMP_NEW
+#define BMP_NEW
 
 #ifdef BMP_NEW
 #include "bmp_P.h"
-#include "bmp_P.cpp"
+//#include "bmp_P.cpp"
 #endif
 
 using namespace std;
@@ -70,9 +73,9 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     // generate the byte buffer.
     // don't copy, just reference
     // std::string should keep data as long as we don't change the string
-    const byte* inputBuffer = data.data();
+    const byte* inputBuffer = reinterpret_cast<const byte*>(data.data());
 
-    if (!(bitmap->loadFromBuffer(&inputBuffer)))
+    if (!(bitmap.loadFromBuffer(inputBuffer)))
     { //an error occured
         gltWarning("Unsupported BMP variant.");
         assert(0);
@@ -81,11 +84,11 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     //otherwise assume structure is correct
 
     //extract the data
-    width = bitmap->getWidth();
-    height = bitmap->getHeight();
+    width = bitmap.getWidth();
+    height = bitmap.getHeight();
 
-    uint16 bpp = bitmap->getBpp();
-    uint32 imageSize = bitmap->getImageSize();
+    uint16 bpp = bitmap.getBpp();
+    uint32 imageSize = bitmap.getImageSize();
     uint32 bufferSize = 0;
 
     switch (bpp)
@@ -112,13 +115,13 @@ decodeBMP(uint32 &width,uint32 &height,string &image,const string &data)
     image.resize(bufferSize);
 
     //flip the colors internally
-    bitmap->convertRGBtoBGR();
+    bitmap.convertRGBtoBGR();
 
     //make a pointer for output
-    byte* outputBuffer = image.data();
+    byte* outputBuffer = (byte*)(image.data());
 
     //copy it over and voila
-    memcpy(outputBuffer, bitmap->getImageData(), bufferSize);
+    memcpy(outputBuffer, bitmap.getImageData(), bufferSize);
 
     //we are done
     return true;
@@ -262,22 +265,22 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
     // generate the byte buffer.
     // don't copy, just reference
     // std::string should keep data as long as we don't change the string
-    const byte* inputBuffer = data.data();
-    uint32 imageSize = data.size();
+    const byte* inputBuffer = reinterpret_cast<const byte*>(image.data());
+    uint32 imageSize = image.size();
 
-    bitmap->setWidth(width);
-    bitmap->setHeight(height);
+    bitmap.setWidth(width);
+    bitmap.setHeight(height);
 
     uint16 bpp = (imageSize*8) / (width*height);
 
-    bitmap->setBpp(bpp);
+    bitmap.setBpp(bpp);
 
     if (bpp == 8 || bpp == 4)
     {// we need a palette from the user
        //...
     }
 
-    bitmap->setImageData( inputBuffer );
+    bitmap.setImageData( inputBuffer );
 
     uint32 bufferSize = 0;
 
@@ -302,13 +305,13 @@ encodeBMP(string &data,const uint32 width,const uint32 height,const string &imag
 	    break;
     }
 
-    image.resize(bufferSize);
+    data.resize(bufferSize);
 
-    byte* outputBuffer = image.data();
+    byte* outputBuffer = (byte*)(data.data());
 
-    bitmap->convertRGBtoBGR();
+    bitmap.convertRGBtoBGR();
 
-    bitmap->saveToBuffer(&outputBuffer);
+    bitmap.saveToBuffer(outputBuffer);
 
 
     //we are done
