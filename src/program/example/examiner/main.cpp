@@ -1,9 +1,8 @@
 /*
 
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2003 Nigel Stewart
-
-  Email:  nigels@nigels.com
+  Copyright (C) 2000-2004 Nigel Stewart
+  
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -34,7 +33,7 @@
 
 #include <glutm/main.h>     // GlutMain() support
 #include <glutm/shape.h>    // GLUT shapes such as sphere, cylinder, etc
-#include <glutm/winexam.h>  // GLUT examiner viewer
+#include <glutm/winexam.h>  // GLUT examiner viewer window
 
 #include <iostream>         // std::cout
 using namespace std;
@@ -44,7 +43,8 @@ using namespace std;
 class ExaminerDemo : public GlutWindowExaminer
 {
 public:
-    ExaminerDemo(
+    ExaminerDemo
+    (
         int width                = widthDefault,
         int height               = heightDefault,
         int x                    = xDefault,
@@ -52,11 +52,11 @@ public:
     );
    ~ExaminerDemo();
 
-   void OnOpen();
-   void OnClose();
-   void OnDisplay();
-   void OnTick();
-   void OnKeyboard(unsigned char key, int x, int y);
+   void OnOpen();                                       // Called when window is opened
+   void OnClose();                                      // Called when window is closed
+   void OnDisplay();                                    // Called to display the window
+   void OnTick();                                       // Called periodically
+   void OnKeyboard(unsigned char key, int x, int y);    // Called when keys are pressed
 
    static const string _message;
 
@@ -71,9 +71,9 @@ protected:
 
 const string ExaminerDemo::_message =
 
-    "GlutMaster Examiner Demo.           \n" \
-    "\n"\
-    "Use mouse buttons to rotate, zoom and pan. \n" \
+    "GlutMaster Examiner Demo.                  \n"
+    "                                           \n"
+    "Use mouse buttons to rotate, zoom and pan. \n"
     "Keys 0 to 9 select different objects.      \n";
 
 
@@ -89,10 +89,6 @@ ExaminerDemo::~ExaminerDemo()
 {
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Called once when GLUT window is opened
-
 void ExaminerDemo::OnOpen()
 {
     _font.init(vga8Font);               // Initialise font
@@ -106,18 +102,10 @@ void ExaminerDemo::OnOpen()
     setTick(1000/60);                   // Set 60 frames per second
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Called once when GLUT window is closed
-
 void ExaminerDemo::OnClose()
 {
     _font.init(NULL);                   // Release font resources
 }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Called for each required re-draw
 
 void ExaminerDemo::OnDisplay()
 {
@@ -132,10 +120,6 @@ void ExaminerDemo::OnDisplay()
    _info.draw();
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Called periodically to update state
-
 void ExaminerDemo::OnTick()
 {
     // Rotate viewing position unless mouse pressed
@@ -145,10 +129,6 @@ void ExaminerDemo::OnTick()
     // Trigger redraw
     postRedisplay();
 }
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Called each time a key is pressed
 
 void ExaminerDemo::OnKeyboard(unsigned char key, int x, int y)
 {
@@ -181,8 +161,6 @@ void ExaminerDemo::OnKeyboard(unsigned char key, int x, int y)
     postRedisplay();
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
 // Called by GlutMaster instead of main()
 
 bool GlutMain(const std::vector<std::string> &arg)
