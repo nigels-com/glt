@@ -115,7 +115,7 @@ SkyBoxWindow::SkyBoxWindow(int width,int height,int x,int y,const std::string &l
         // Skip empty filenames
         if (files[i].size()==0)
             continue;
-        
+
         // Skip filenames without extensions
         if (files[i].find('.')==string::npos)
             continue;
@@ -194,7 +194,7 @@ SkyBoxWindow::setCurrent()
     if (_maps.size())
     {
         assert(_maps[_map].size()==6);
-    
+
         const CubeMap &map = _maps[_map];
 
         cout << map[0] << endl;
@@ -287,7 +287,7 @@ SkyBoxWindow::OnKeyboard(unsigned char key, int x, int y)
     postRedisplay();
 }
 
-void 
+void
 SkyBoxWindow::OnSpecial(int key, int x, int y)
 {
     switch(key)
