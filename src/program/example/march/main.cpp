@@ -114,7 +114,7 @@ void
 MarchingCubesDemo::OnOpen()
 {
     ignoreKeyRepeat(true);
-	
+
     _font.init(vga8Font);
 
     _info.border() = true;
@@ -246,7 +246,7 @@ MarchingCubesDemo::generateDisplayList(GltFunc3d func)
     _list.endList();
 }
 
-bool 
+bool
 GlutMain(const std::vector<std::string> &arg)
 {
     cout << MarchingCubesDemo::_message << endl << endl;
