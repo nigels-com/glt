@@ -105,7 +105,7 @@ extern "C" {
 /* #define FREEGLUT             1 */
 /* #define FREEGLUT_VERSION_2_0 1 */
 #define OPENGLUT
-#define OPENGLUT_VERSION_0_6_1
+#define OPENGLUT_VERSION_0_6_2
 
 /*
  * Always include OpenGL and GLU headers
@@ -348,7 +348,7 @@ extern "C" {
 #define  GLUT_GAME_MODE_DISPLAY_CHANGED     0x0006
 
 /*
- * Initialization functions, see fglut_init.c
+ * Initialization functions, see og_init.c
  */
 OGAPI void    OGAPIENTRY glutInit( int* pargc, char** argv );
 OGAPI void    OGAPIENTRY glutInitWindowPosition( int x, int y );
@@ -498,7 +498,7 @@ OGAPI int     OGAPIENTRY glutLayerGet( GLenum query );
 OGAPI void  OGAPIENTRY glutBitmapCharacter( void* font, int character );
 OGAPI int   OGAPIENTRY glutBitmapWidth( void* font, int character );
 OGAPI void  OGAPIENTRY glutStrokeCharacter( void* font, int character );
-OGAPI int   OGAPIENTRY glutStrokeWidth( void* font, int character );
+OGAPI float OGAPIENTRY glutStrokeWidth( void* font, int character );
 OGAPI int   OGAPIENTRY glutBitmapLength( void* font, const unsigned char* string );
 OGAPI float OGAPIENTRY glutStrokeLength( void* font, const unsigned char* string );
 
