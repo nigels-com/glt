@@ -1,5 +1,5 @@
-#ifndef NBODY_TRAIL_H
-#define NBODY_TRAIL_H
+#ifndef GRIPS_TRAIL_H
+#define GRIPS_TRAIL_H
 
 #include <math/vector3.h>
 #include <node/shape.h>

@@ -1,5 +1,5 @@
-#ifndef NBODY_NETWORK_H
-#define NBODY_NETWORK_H
+#ifndef GRIPS_NETWORK_H
+#define GRIPS_NETWORK_H
 
 #include <network/server.h>
 #include <network/client.h>

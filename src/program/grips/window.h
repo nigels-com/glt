@@ -1,5 +1,5 @@
-#ifndef NBODY_WINDOW_H
-#define NBODY_WINDOW_H
+#ifndef GRIPS_WINDOW_H
+#define GRIPS_WINDOW_H
 
 #include <glutm/winexam.h>
 #include <glutm/axes.h>
@@ -118,6 +118,7 @@ private:
         bool editVal;
         bool particles;
         bool points;
+        bool billboard;
         bool trail;
         bool accel;
         bool center;
@@ -179,8 +180,8 @@ private:
 
     GltTexture      _formula;
     GltTexture      _eScience;
-    GltTexture  _rmit;
-    GltTexture  _vpac;
+    GltTexture      _rmit;
+    GltTexture      _vpac;
 
     GltLine         _center;
 
@@ -200,7 +201,7 @@ private:
     std::string _filename;
     std::string _options;
 
-    double      _maxTime;
+    double          _maxTime;
 
     // Networking
 

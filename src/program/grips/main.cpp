@@ -21,6 +21,12 @@ using namespace std;
 
 bool GlutMain(const std::vector<std::string> &arg)
 {
+#if 0
+    int   argc = 2;
+    char *argv[] = { "grips", "-warning" };
+    glutInit(&argc,argv);
+#endif
+
     static Grips *window = new Grips(400,400,10,10);
 
     if (arg.size()>1)
@@ -41,7 +47,8 @@ bool GlutMain(const std::vector<std::string> &arg)
     }
     else
 //        window->read(hockey2dExample);
-        window->read(shadowsExample);
+//        window->read(shadowsExample);
+        window->read(lorenz6Example);
 
     window->open();
 

@@ -40,6 +40,8 @@
 #include <iterator>
 using namespace std;
 
+//#define DEBUG_THIS
+
 //////////////////////
 
 Grips::DisplayOptions::DisplayOptions()
@@ -54,6 +56,7 @@ Grips::DisplayOptions::DisplayOptions()
     editVal(false),
     particles(true),
     points(false),
+    billboard(false),
     trail(false),
     accel(false),
     center(false),
@@ -302,6 +305,7 @@ Grips::settings()
             particles->add(_display.slices,     "slices");
             particles->add(_display.stacks,     "stacks");
             particles->add(_display.points,     "points");
+            particles->add(_display.billboard,  "billboard");
             particles->add(_textureCurrent,     "texture");
             particles->add(_display.accel,      "acceleration");
             particles->add(_display.trail,      "trail");
@@ -360,6 +364,12 @@ Grips::read(istream &is)
 //    _settings.reset();
     _settings.read(is);
 
+    // To avoid possible crash, reset the trails
+    // REVISIT - It would be nice to avoid this.
+
+    if (_document)
+        _document->particles().resetTrails();
+
     // Synchronise clients
     _server.sendState(*this);
     _server.sendTile();
@@ -388,7 +398,8 @@ Grips::write(ostream &os,const std::string &prefix) const
     _settings.write(os,prefix);
 }
 
-void Grips::step()
+void
+Grips::step()
 {
     if (!_document)
         return;
@@ -415,13 +426,15 @@ void Grips::step()
     postRedisplay();
 }
 
-void Grips::OnTick()
+void
+Grips::OnTick()
 {
     if (_display.animation)
         step();
 }
 
-void Grips::drawLogo(
+void 
+Grips::drawLogo(
     const GltViewport &viewport,
     const GltTexture  &texture,
     const GltHorizontalAlignment &alignH,
@@ -452,7 +465,7 @@ Grips::drawReflections() const
 {
     GLERROR
 
-    if (_document && _display.reflections)
+    if (_document && _display.reflections && _display.particles && !_display.points)
     {
         // Draw bodies as spheres
 
@@ -492,7 +505,7 @@ Grips::drawShadows() const
 {
     GLERROR
 
-    if (_document && _display.shadows && _display.particles)
+    if (_document && _display.shadows && _display.particles && !_display.points)
     {
         ParticleSystem &particles  = _document->particles();
 
@@ -548,7 +561,7 @@ Grips::drawParticles() const
 {
     GLERROR
 
-    if (_document && _display.particles)
+    if (_document && _display.particles && !_display.points)
     {
         ParticleSystem &particles  = _document->particles();
 
@@ -563,13 +576,9 @@ Grips::drawParticles() const
                   const Particle &a = *i;
 
                   a._color.glColor();
-
-                  if (!_display.points)
-                  {
-                     sphere.position(a._position,_radiusScale*a._radius);
-                     sphere.draw();
-                  }
-            }
+                  sphere.position(a._position,_radiusScale*a._radius);
+                  sphere.draw();
+             }
     }
 
     GLERROR
@@ -623,6 +632,7 @@ Grips::drawFloor() const
         glPushAttrib(GL_ENABLE_BIT);
 
             glDisable(GL_LIGHTING);
+
             white.glColor();
             glBegin(GL_LINE_LOOP);
             Vector(box.max().x(),box.max().y(),box.min().z()).glVertex();
@@ -661,7 +671,8 @@ Grips::drawBox() const
     GLERROR
 }
 
-void Grips::OnDisplay()
+void
+Grips::OnDisplay()
 {
     // Clear Screen
 
@@ -748,7 +759,6 @@ void Grips::OnDisplay()
     //
 
     _material.set();
-//    _light0.set();
 
     if (_document)
     {
@@ -793,23 +803,14 @@ void Grips::OnDisplay()
                 if (_document)
                     _document->_video.draw();
 
-    /*
-                glPushMatrix();
-                    glDisable(GL_CULL_FACE);
-                    glRotatef(90.0,1,0,0);
-                    const real sf = 8.0/64;
-                    glScalef(sf,sf,sf);
-                    _sprite.draw();
-                glPopMatrix();
-    */
                 // Draw trails
 
                 if (_display.trail)
                    for (ParticleSystem::const_iterator i=particles.begin(); i!=particles.end(); i++)
                       if (i->_visible)
                       {
-                         i->_color.glColor();
-                         i->_trail.draw();
+                          i->_color.glColor();
+                          i->_trail.draw();
                       }
 
                 glDepthMask(GL_TRUE);
@@ -824,8 +825,10 @@ void Grips::OnDisplay()
 
                 if (_display.points)
                 {
-    #if 1
-                    glPushAttrib(GL_ENABLE_BIT);
+                    if (_display.billboard)
+                    {
+                        glPushAttrib(GL_ENABLE_BIT);
+                        
                         glDisable(GL_LIGHTING);
                         glDisable(GL_NORMALIZE);
                         glDisable(GL_DEPTH_TEST);
@@ -844,23 +847,26 @@ void Grips::OnDisplay()
                                 glPushMatrix();
                                 glTranslate(i->_position);
                                 glScale(_radiusScale*i->_radius);
+
+                                // TODO - Orient billboard appropriately
                                 glRotatef(90,1,0,0);
                                 _quad.draw();
                                 glPopMatrix();
                              }
 
-                    glPopAttrib();
-
-    #else
-                    glBegin(GL_POINTS);
-                    for (ParticleSystem::const_iterator i=particles.begin(); i!=particles.end(); i++)
-                      if (i->_visible)
-                          {
-                             i->_color.glColor();
-                             i->_position.glVertex();
-                          }
-                    glEnd();
-    #endif
+                        glPopAttrib();
+                    }
+                    else
+                    {
+                        glBegin(GL_POINTS);
+                        for (ParticleSystem::const_iterator i=particles.begin(); i!=particles.end(); i++)
+                            if (i->_visible)
+                            {
+                                i->_color.glColor();
+                                i->_position.glVertex();
+                            }
+                        glEnd();
+                     }
                 }
 
            glPopAttrib();
@@ -1080,25 +1086,27 @@ void Grips::OnDisplay()
             _info.text() = _menu.menu();
             _info.draw();
         }
-        else if (_display.options)
-        {
-            _info.text() = _options;
-            _info.draw();
-        }
-        else if (_display.info)
-        {
-            ostringstream os;
-            os.setf(ios::fixed|ios::showpoint);
-            os.precision(3);
+        else 
+            if (_display.options)
+            {
+                _info.text() = _options;
+                _info.draw();
+            }
+            else 
+                if (_display.info)
+                {
+                    ostringstream os;
+                    os.setf(ios::fixed|ios::showpoint);
+                    os.precision(3);
 
-            if (integrator)
-                integrator->print(os);
+                    if (integrator)
+                        integrator->print(os);
 
-            os << '\0';
+                    os << '\0';
 
-            _info.text() = os.str();
-            _info.draw();
-        }
+                    _info.text() = os.str();
+                    _info.draw();
+                }
     }
 
     setAnimation(_display.animation);
@@ -1298,7 +1306,7 @@ Grips::OnNotify(const Document *subject)
 }
 
 const string Grips::help =
-"GRIPS - GRand Integrated Particle System      \n" \
-"RMIT School of Computer Science and IT        \n" \
-"Email: nigels@cs.rmit.edu.au                  \n" \
-"\n";
+    "GRIPS - GRand Integrated Particle System      \n" 
+    "RMIT School of Computer Science and IT        \n" 
+    "Email: nigels@nigels.com                      \n" 
+    "\n";

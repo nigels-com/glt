@@ -247,17 +247,6 @@ grips.world.histogram.zvelocity.max:                        200.000000	# 0x00000
 grips.world.histogram.zvelocity.size:                       200
 grips.world.histogram.zvelocity.cumulative:                 true
 grips.world.histogram.zvelocity.reset:                      
-grips.world.histogram.speed.display:                        false
-grips.world.histogram.speed.line:                           true
-grips.world.histogram.speed.color.red:                      0.500000	# 0x000000000000E03F 
-grips.world.histogram.speed.color.green:                    0.500000	# 0x000000000000E03F 
-grips.world.histogram.speed.color.blue:                     0.500000	# 0x000000000000E03F 
-grips.world.histogram.speed.color.alpha:                    1.000000	# 0x000000000000F03F 
-grips.world.histogram.speed.min:                            0.000000	# 0x0000000000000000 
-grips.world.histogram.speed.max:                            4.000000	# 0x0000000000001040 
-grips.world.histogram.speed.size:                           50
-grips.world.histogram.speed.cumulative:                     true
-grips.world.histogram.speed.reset:                          
 grips.world.init.n:                                         100
 grips.world.init.defaults.mass:                             1.000000	# 0x000000000000F03F 
 grips.world.init.defaults.radius:                           0.400000	# 0x9A9999999999D93F 
@@ -568,3 +557,14 @@ grips.network.httpClient.url:
 grips.network.httpClient.relaxTime:                         1000
 grips.world.init.init:                                      
 grips.display.particles.billboard: false
+grips.world.histogram.speed.display:                        true
+grips.world.histogram.speed.line:                           true
+grips.world.histogram.speed.color.red:                      0.256000    # 0xFDA9F1D24D62D03F
+grips.world.histogram.speed.color.green:                    0.256000    # 0xFDA9F1D24D62D03F
+grips.world.histogram.speed.color.blue:                     0.256000    # 0xFDA9F1D24D62D03F
+grips.world.histogram.speed.color.alpha:                    1.000000    # 0x000000000000F03F
+grips.world.histogram.speed.min:                            0.000000    # 0x0000000000000000
+grips.world.histogram.speed.max:                            400.000000  # 0x0000000000007940
+grips.world.histogram.speed.size:                           100
+grips.world.histogram.speed.cumulative:                     true
+grips.world.histogram.speed.reset:
