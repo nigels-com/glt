@@ -30,9 +30,12 @@
     \brief   Display List Cache
     \ingroup GLT
 
-    $Id: dlcache.h,v 2.3 2004/08/11 05:20:18 nigels Exp $
+    $Id: dlcache.h,v 2.4 2004/12/26 04:32:05 jgasseli Exp $
 
     $Log: dlcache.h,v $
+    Revision 2.4  2004/12/26 04:32:05  jgasseli
+    fixed namespace error in dlcache
+
     Revision 2.3  2004/08/11 05:20:18  nigels
     Updated copyright and removed email address from headers
 
@@ -134,7 +137,7 @@ public:
     virtual ~GltDisplayListCache()
     {
         #ifndef NDEBUG
-        std::cout << "Cache size: " << _lru.size() << endl;
+        std::cout << "Cache size: " << _lru.size() << std::endl;
         #endif
 
         clear();

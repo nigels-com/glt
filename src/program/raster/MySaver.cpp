@@ -425,12 +425,11 @@ RasterSaver::drawScene1()
     // w and h of OpenGL window
     // Avoid zero w or h
 
-    const int w = MAX(1,getWidth());
-    const int h = MAX(1,getHeight());
+    const int h  = std::max(1,getHeight());
+    const int w = std::max(1,getWidth());
 
     const float time = _timer.elapsed();
 
-    //
 
     const float angle = 1000.0*time/20.0;
 
@@ -570,8 +569,8 @@ RasterSaver::drawScene2()
     // w and h of OpenGL window
     // Avoid zero w or h
 
-    const int w = MAX(1,getWidth());
-    const int h = MAX(1,getHeight());
+    const int w = std::max(1,getWidth());
+    const int h = std::max(1,getHeight());
 
     const float time = _timer.elapsed();
 
@@ -666,8 +665,8 @@ RasterSaver::drawScene3()
     // w and h of OpenGL window
     // Avoid zero w or h
 
-    const int w = MAX(1,getWidth());
-    const int h = MAX(1,getHeight());
+    const int w = std::max(1,getWidth());
+    const int h = std::max(1,getHeight());
 
     const float time = _timer.elapsed();
 
