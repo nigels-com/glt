@@ -3,9 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: frame.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
+    $Id: frame.cpp,v 2.1 2004/02/21 23:53:58 nigels Exp $
 
     $Log: frame.cpp,v $
+    Revision 2.1  2004/02/21 23:53:58  nigels
+    Decrease frequency of frame rate calculation to 2 fps
+
     Revision 2.0  2004/02/08 19:44:11  nigels
     Migrate to CVS on sourceforge, revision incremented to 2.0
 
@@ -38,7 +41,7 @@ using namespace std;
 
 GltFrameRate::GltFrameRate(const int sampleSize)
 : _frames(0),
-  _step(0.200),
+  _step(0.500),
   _lastFrameRate(0.0),
   _lastFrameTime(0.0),
   _buffer(sampleSize)
