@@ -3,9 +3,13 @@
 /*! \file
     \ingroup Math
 
-    $Id: bbox.cpp,v 2.1 2004/02/16 02:45:58 nigels Exp $
+    $Id: bbox.cpp,v 2.2 2004/05/03 03:44:50 nigels Exp $
 
     $Log: bbox.cpp,v $
+    Revision 2.2  2004/05/03 03:44:50  nigels
+    Added bounding box destructor
+    Some reformatting of header
+
     Revision 2.1  2004/02/16 02:45:58  nigels
     Whitespace differences
 
@@ -36,6 +40,10 @@ BoundingBox::BoundingBox()
 
 BoundingBox::BoundingBox(const Vector &min,const Vector &max)
 : _defined(true), _min(min), _max(max)
+{
+}
+
+BoundingBox::~BoundingBox()
 {
 }
 

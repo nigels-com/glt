@@ -55,90 +55,61 @@ class BoundingBox
     friend BoundingBox intersection(const BoundingBox &a,const BoundingBox &b);
 
 public:
-    /// Default constructor
-    BoundingBox();
-    /// Constructor
-    BoundingBox(const Vector &min,const Vector &max);
+    
+    BoundingBox();                                      ///< Default constructor
+    BoundingBox(const Vector &min,const Vector &max);   ///< Constructor
+    ~BoundingBox();                                     ///< Destructor
 
     //
     // Get/Set
     //
 
-    /// Defined?
-          bool &defined();
+          bool &defined();                              ///< Defined?
+    const bool  defined() const;                        ///< Defined?
 
-    /// Defined?
-    const bool  defined() const;
+          Vector &min();                                ///< Minimum x,y,z
+    const Vector &min() const;                          ///< Minimum x,y,z
 
-    /// Minimum x,y,z
-          Vector &min();
-    /// Minimum x,y,z
-    const Vector &min() const;
+          Vector &max();                                ///< Maximum x,y,z
+    const Vector &max() const;                          ///< Maximum x,y,z
 
-    /// Maximum x,y,z
-          Vector &max();
-    /// Maximum x,y,z
-    const Vector &max() const;
+    Vector center() const;                              ///< Box center
 
-    /// Box center
-    Vector center() const;
+    real width() const;                                 ///< Box width (Xmax - Xmin)
+    real height() const;                                ///< Box height (Ymax - Ymin)
+    real depth() const;                                 ///< Box depth (Zmax - Zmin)
 
-    /// Box width (Xmax - Xmin)
-    real width() const;
-
-    /// Box height (Ymax - Ymin)
-    real height() const;
-
-    /// Box depth (Zmax - Zmin)
-    real depth() const;
-
-    /// Extract the 8 corners of the box
-    void points(std::vector<Vector> &p) const;
+    void points(std::vector<Vector> &p) const;          ///< Extract the 8 corners of the box
 
     //
     // Set operations
     //
 
-    /// Empty set (undefined)
-    void reset();
+    void reset();                                               ///< Empty set (undefined)
 
-    /// Boolean union
-    BoundingBox &operator+=(const Vector &p);
-    /// Boolean union
-    BoundingBox &operator+=(const std::vector<Vector> &p);
-    /// Boolean union
-    BoundingBox &operator+=(const BoundingBox &box);
-    /// Boolean intersection
-    BoundingBox &operator*=(const BoundingBox &box);
+    BoundingBox &operator+=(const Vector &p);                   ///< Boolean union
+    BoundingBox &operator+=(const std::vector<Vector> &p);      ///< Boolean union
+    BoundingBox &operator+=(const BoundingBox &box);            ///< Boolean union
+    BoundingBox &operator*=(const BoundingBox &box);            ///< Boolean intersection
 
-    /// Box equality operator
-    bool operator==(const BoundingBox &box) const;
+    bool operator==(const BoundingBox &box) const;              ///< Box equality operator
 
-//  /// Closest distance to box
-//  Real   dist(const Vector &pos) const;
+//  Real   dist(const Vector &pos) const;                       ///< Closest distance to box
 
-    /// Volumetric classification
-    bool inside(const Vector &pos) const;
-
-    /// Intersection between boxes
-    bool intersects(const BoundingBox &box) const;
+    bool inside(const Vector &pos) const;                       ///< Volumetric classification
+    bool intersects(const BoundingBox &box) const;              ///< Intersection between boxes
 
     /// Map object co-ordinates to window co-ordinates
     bool project(const Matrix &model,const Matrix &proj,const GltViewport &view);
 
-//  /// Intersect ray
-//  Real   intersect        (const Vector &p0,const Vector &p1) const;
-//  /// Intersect ray
-//  Vector intersectPosition(const Vector &p0,const Vector &p1) const;
+//  Real   intersect        (const Vector &p0,const Vector &p1) const;  ///< Intersect ray
+//  Vector intersectPosition(const Vector &p0,const Vector &p1) const;  ///< Intersect ray
 
 protected:
 
-    /// Is the bounding box defined?
-    bool   _defined;
-    /// Box minimum
-    Vector _min;
-    /// Box maximum
-    Vector _max;
+    bool   _defined;        ///< Is the bounding box defined?
+    Vector _min;            ///< Box minimum
+    Vector _max;            ///< Box maximum
 };
 
 #endif
