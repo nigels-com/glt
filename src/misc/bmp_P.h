@@ -116,6 +116,7 @@ struct BitmapFile
  */
 
    void saveToBuffer( byte** );
+   /* returns 1 on error */
    int loadFromBuffer( const byte** );
 
 /**
