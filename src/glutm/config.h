@@ -56,7 +56,8 @@
 //#define GLUTM_OPEN_INVENTOR
 //#define GLUTM_RAYPP
 //#define GLUTM_SAVER
-#define GLUTM_FREEGLUT
+//#define GLUTM_FREEGLUT
+#define GLUTM_OPENGLUT
 #define GLUT_STATIC
 #endif
 
@@ -64,7 +65,8 @@
 //#define GLUTM_OPEN_INVENTOR
 //#define GLUTM_RAYPP
 //#define GLUTM_DEBUG
-#define GLUTM_FREEGLUT
+//#define GLUTM_FREEGLUT
+#define GLUTM_OPENGLUT
 #endif
 
 // MS Visual C++ compiler has the facility
