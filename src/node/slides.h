@@ -93,6 +93,7 @@ private:
 
     uint32                           _current;
     uint32                           _cacheSize;
+    mutable std::vector<time_t>      _slideFileTime;
     mutable lru<uint32,GltSprite>    _slideCache;
 
     bool                             _autoScale;

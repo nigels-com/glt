@@ -4,6 +4,9 @@
 #include <glt/error.h>
 #include <glt/viewport.h>
 
+#include <misc/file.h>
+
+#include <iostream>
 using namespace std;
 
 /*! \file
@@ -91,6 +94,24 @@ GltSlides::draw() const
                 _preloadSprite[_current].draw();
             else
             {
+                // Remove cached image if file has been
+                // modified
+
+                if (_slideFilename[_current].size())
+                {
+                    _slideFileTime.resize(_slideFilename.size(),0);
+                    time_t t = timeFileModified(_slideFilename[_current]);
+                    if (_slideFileTime[_current] != t)
+                    {
+                        _slideCache.erase(_current);
+                        _slideFileTime[_current] = t;
+
+                        #ifndef NDEBUG
+                        cout << t << '\t' << _slideFilename[_current] << endl;
+                        #endif
+                    }
+                }
+
                 GltSprite *slide = _slideCache.find(_current);
 
                 if (!slide)
