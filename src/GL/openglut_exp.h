@@ -53,8 +53,7 @@ extern "C"
  * OpenGLUT experimental functions.
  */
 OGAPI int glutCreateMenuWindow( int parent, int x, int y, int w, int h );
-
-OGAPI void glutSetWindowStayOnTop( int enable );
+OGAPI void glutSetWindowStayOnTop( GLint enable );
 
 /*
  * Allow for conditional compilation of experimental features.
