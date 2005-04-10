@@ -244,21 +244,26 @@ void OGAPIENTRY glutSetCursor( int cursorID )
 
         switch( cursorID )
         {
-            MAP_CURSOR( GLUT_CURSOR_RIGHT_ARROW, IDC_ARROW     );
-            MAP_CURSOR( GLUT_CURSOR_LEFT_ARROW,  IDC_ARROW     );
-            MAP_CURSOR( GLUT_CURSOR_INFO,        IDC_HELP      );
-            MAP_CURSOR( GLUT_CURSOR_DESTROY,     IDC_CROSS     );
-            MAP_CURSOR( GLUT_CURSOR_HELP,        IDC_HELP      );
-            MAP_CURSOR( GLUT_CURSOR_CYCLE,       IDC_SIZEALL   );
-            MAP_CURSOR( GLUT_CURSOR_SPRAY,       IDC_CROSS     );
-            MAP_CURSOR( GLUT_CURSOR_WAIT,        IDC_WAIT      );
-            MAP_CURSOR( GLUT_CURSOR_TEXT,        IDC_UPARROW   );
-            MAP_CURSOR( GLUT_CURSOR_CROSSHAIR,   IDC_CROSS     );
-            /* MAP_CURSOR( GLUT_CURSOR_NONE,        IDC_NO        ); */
-            ZAP_CURSOR( GLUT_CURSOR_NONE,        NULL           );
+            MAP_CURSOR( GLUT_CURSOR_BOTTOM_LEFT_CORNER,  IDC_SIZENESW );
+            MAP_CUSROR( GLUT_CURSOR_BOTTOM_RIGHT_CORNER, IDC_SIZENWSE );
+            MAP_CURSOR( GLUT_CURSOR_CROSSHAIR,           IDC_CROSS    );
+            MAP_CURSOR( GLUT_CURSOR_CYCLE,               IDC_SIZEALL  );
+            MAP_CURSOR( GLUT_CURSOR_DESTROY,             IDC_CROSS    );
+            MAP_CURSOR( GLUT_CURSOR_HELP,                IDC_HELP     );
+            MAP_CURSOR( GLUT_CURSOR_INFO,                IDC_HELP     );
+            MAP_CURSOR( GLUT_CURSOR_LEFT_RIGHT,          IDC_SIZEWE   );
+            MAP_CURSOR( GLUT_CURSOR_SPRAY,               IDC_CROSS    );
+            MAP_CURSOR( GLUT_CURSOR_TEXT,                IDC_UPARROW  );
+            MAP_CURSOR( GLUT_CURSOR_TOP_LEFT_CORNER,     IDC_SIZENWSE );
+            MAP_CURSOR( GLUT_CURSOR_TOP_RIGHT_CORNER,    IDC_SIZENESW );
+            MAP_CURSOR( GLUT_CURSOR_UP_DOWN,             IDC_SIZENS   );
+            MAP_CURSOR( GLUT_CURSOR_WAIT,                IDC_WAIT     );
+            /* MAP_CURSOR( GLUT_CURSOR_NONE,             IDC_NO       ); */
+            ZAP_CURSOR( GLUT_CURSOR_NONE,                NULL         );
 
         default:
-            MAP_CURSOR( GLUT_CURSOR_UP_DOWN,     IDC_ARROW     );
+            MAP_CURSOR( GLUT_CURSOR_LEFT_ARROW,          IDC_ARROW    );
+            MAP_CURSOR( GLUT_CURSOR_RIGHT_ARROW,         IDC_ARROW    );
         }
 #endif
     }

@@ -275,8 +275,9 @@ struct tagSOG_State
     GLboolean        UseCurrentContext;    /* New windows share with current */
 
     GLboolean        GLDebugSwitch;        /* OpenGL state debugging switch  */
-    GLboolean        PrintErrors;          /* Print errors to standard error */
-    GLboolean        PrintWarnings;        /* Print warnings to standard err */
+    GLboolean        PrintErrors;          /* Show errors                    */
+    GLboolean        PrintWarnings;        /* Show warnings                  */
+    GLboolean        PrintInforms;         /* Show informs                   */
     GLboolean        XSyncSwitch;          /* X11 sync protocol switch       */
 
     int              KeyRepeat;            /* Global key repeat mode.        */
@@ -636,6 +637,19 @@ struct tagSOG_WindowList
 };
 
 /*
+ * A stack structure for temporary state management
+ */
+
+#define OPENGLUT_STACK_SIZE 32
+
+typedef struct tagSOG_Stack SOG_Stack;
+struct tagSOG_Stack
+{
+    void       *stack[OPENGLUT_STACK_SIZE];
+    int         pos;
+};
+
+/*
  * This holds information about all the windows, menus etc.
  */
 typedef struct tagSOG_Structure SOG_Structure;
@@ -654,6 +668,9 @@ struct tagSOG_Structure
 
     int              WindowID;    /* The new current window ID          */
     int              MenuID;      /* The new current menu ID            */
+
+    SOG_Stack        WindowStack; /* Stack storage for window context   */
+    SOG_Stack        MenuStack;   /* Stack storage for menu context     */
 };
 
 /*
@@ -873,8 +890,8 @@ void ogJoystickShutdown( void );
 void ogJoystickOpen( int ident );
 void ogJoystickPollWindow( SOG_Window *window );
 int ogJoystickDetect( void );
-int ogGetJoystickNumAxes( int ident );
-int ogGetJoystickNumButtons( int ident );
+int ogJoystickAxes( void );
+int ogJoystickButtons( void );
 int ogGetJoystickNotWorking( int ident );
 float ogGetJoystickDeadBand( int ident, int axis );
 void ogSetJoystickDeadBand( int ident, int axis, float db );
@@ -957,6 +974,12 @@ int ogListLength(SOG_List *list);
 void ogListInsert(SOG_List *list, SOG_Node *next, SOG_Node *node);
 
 /*
+ * Stack functions
+ */
+void  ogPush(SOG_Stack *stack, void *item);
+void *ogPop (SOG_Stack *stack);
+
+/*
  * String functions.
  *
  * (strdup() is not actually a standard function, so we cannot
@@ -966,9 +989,10 @@ void ogListInsert(SOG_List *list, SOG_Node *next, SOG_Node *node);
 char *ogStrDup( const char *str );
 
 /*
- * Error Messages functions
+ * Message output functions
  */
 void ogError( const char *fmt, ... );
 void ogWarning( const char *fmt, ... );
+void ogInformation( const char *fmt, ... );
 
 #endif

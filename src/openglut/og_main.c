@@ -380,6 +380,21 @@ long ogElapsedTime( void )
 }
 
 /*
+ * This function should be a common point for ~all text messages
+ * that OpenGLUT produces.  A naive implementation is to simply
+ * do a vfprintf().  However, for specialized environments where
+ * that may be inconvenient, useless, or impossible (e.g.,
+ * highly graphical systems without a {stderr} concept, or
+ * perhaps embedded systems), this should provide a way to
+ * redirect output to a more useful place---or to suppress all
+ * output if you have no use for warnings/errors/etc.
+ */
+static void oghOutput( const char *fmt, va_list ap )
+{
+    vfprintf( stderr, fmt, ap );
+}
+
+/*
  * Error Messages.
  */
 void ogError( const char *fmt, ... )
@@ -393,7 +408,7 @@ void ogError( const char *fmt, ... )
         fprintf( stderr, "OpenGLUT Error " );
         if( ogState.ProgramName )
             fprintf( stderr, "(%s): ", ogState.ProgramName );
-        vfprintf( stderr, fmt, ap );
+        oghOutput( fmt, ap );
         fprintf( stderr, "\n" );
 
         va_end( ap );
@@ -405,6 +420,9 @@ void ogError( const char *fmt, ... )
     exit( EXIT_FAILURE );
 }
 
+/*
+ * Warning messages.
+ */
 void ogWarning( const char *fmt, ... )
 {
     if( ogState.PrintWarnings )
@@ -416,7 +434,27 @@ void ogWarning( const char *fmt, ... )
         fprintf( stderr, "OpenGLUT Warning " );
         if( ogState.ProgramName )
             fprintf( stderr, "(%s): ", ogState.ProgramName );
-        vfprintf( stderr, fmt, ap );
+        oghOutput( fmt, ap );
+        fprintf( stderr, "\n" );
+
+        va_end( ap );
+    }
+}
+
+/*
+ * Informational messages.
+ */
+void ogInformation( const char *fmt, ... )
+{
+    if( ogState.PrintInforms )
+    {
+        va_list ap;
+        va_start( ap, fmt );
+
+        fprintf( stderr, "OpenGLUT Information " );
+        if( ogState.ProgramName )
+            fprintf( stderr, "(%s): ", ogState.ProgramName );
+        oghOutput( fmt, ap );
         fprintf( stderr, "\n" );
 
         va_end( ap );
@@ -524,8 +562,8 @@ static void ogSleepForEvents( void )
         err = select( socket+1, &fdset, NULL, NULL, &wait );
 
         if( -1 == err )
-	    if( EINTR != errno )
-		ogWarning( "ogSleepForEvents(): select() error: %d", errno );
+            if( EINTR != errno )
+                ogWarning( "ogSleepForEvents(): select() error: %d", errno );
     }
 #elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
     MsgWaitForMultipleObjects( 0, NULL, FALSE, msec, QS_ALLEVENTS );
@@ -1594,21 +1632,26 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         if( LOWORD( lParam ) == HTCLIENT )
             switch( window->State.Cursor )
             {
-                MAP_CURSOR( GLUT_CURSOR_RIGHT_ARROW, IDC_ARROW     );
-                MAP_CURSOR( GLUT_CURSOR_LEFT_ARROW,  IDC_ARROW     );
-                MAP_CURSOR( GLUT_CURSOR_INFO,        IDC_HELP      );
-                MAP_CURSOR( GLUT_CURSOR_DESTROY,     IDC_CROSS     );
-                MAP_CURSOR( GLUT_CURSOR_HELP,        IDC_HELP      );
-                MAP_CURSOR( GLUT_CURSOR_CYCLE,       IDC_SIZEALL   );
-                MAP_CURSOR( GLUT_CURSOR_SPRAY,       IDC_CROSS     );
-                MAP_CURSOR( GLUT_CURSOR_WAIT,        IDC_WAIT      );
-                MAP_CURSOR( GLUT_CURSOR_TEXT,        IDC_UPARROW   );
-                MAP_CURSOR( GLUT_CURSOR_CROSSHAIR,   IDC_CROSS     );
-                /* MAP_CURSOR( GLUT_CURSOR_NONE,        IDC_NO         ); */
-                ZAP_CURSOR( GLUT_CURSOR_NONE,        NULL          );
+                MAP_CURSOR( GLUT_CURSOR_BOTTOM_LEFT_CORNER,  IDC_SIZENESW );
+                MAP_CUSROR( GLUT_CURSOR_BOTTOM_RIGHT_CORNER, IDC_SIZENWSE );
+                MAP_CURSOR( GLUT_CURSOR_CROSSHAIR,           IDC_CROSS    );
+                MAP_CURSOR( GLUT_CURSOR_CYCLE,               IDC_SIZEALL  );
+                MAP_CURSOR( GLUT_CURSOR_DESTROY,             IDC_CROSS    );
+                MAP_CURSOR( GLUT_CURSOR_HELP,                IDC_HELP     );
+                MAP_CURSOR( GLUT_CURSOR_INFO,                IDC_HELP     );
+                MAP_CURSOR( GLUT_CURSOR_LEFT_RIGHT,          IDC_SIZEWE   );
+                MAP_CURSOR( GLUT_CURSOR_SPRAY,               IDC_CROSS    );
+                MAP_CURSOR( GLUT_CURSOR_TEXT,                IDC_UPARROW  );
+                MAP_CURSOR( GLUT_CURSOR_TOP_LEFT_CORNER,     IDC_SIZENWSE );
+                MAP_CURSOR( GLUT_CURSOR_TOP_RIGHT_CORNER,    IDC_SIZENESW );
+                MAP_CURSOR( GLUT_CURSOR_UP_DOWN,             IDC_SIZENS   );
+                MAP_CURSOR( GLUT_CURSOR_WAIT,                IDC_WAIT     );
+                /* MAP_CURSOR( GLUT_CURSOR_NONE,             IDC_NO       ); */
+                ZAP_CURSOR( GLUT_CURSOR_NONE,                NULL         );
 
             default:
-                MAP_CURSOR( GLUT_CURSOR_UP_DOWN,     IDC_ARROW     );
+                MAP_CURSOR( GLUT_CURSOR_LEFT_ARROW,          IDC_ARROW    );
+                MAP_CURSOR( GLUT_CURSOR_RIGHT_ARROW,         IDC_ARROW    );
             }
         else
             lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );

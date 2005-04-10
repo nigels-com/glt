@@ -340,6 +340,11 @@ GLboolean ogSetupPixelFormat( SOG_Window *window, GLboolean checkOnly,
 }
 #endif
 
+SOG_Window *ogGetWindow( )
+{
+    return ogStructure.Window;
+}
+
 /*
  * Sets the OpenGL context and the ogStructure "Current Window" pointer to
  * the window structure passed in.
@@ -369,6 +374,15 @@ void ogSetWindow( SOG_Window *window )
     }
 }
 
+void ogPushWindow( )
+{
+    ogPushStack( &ogStructure.WindowStack, ogStructure.Window );
+}
+
+void ogPopWindow( )
+{
+    ogSetWindow( (SOG_Window *) ogPopStack( &ogStructure.WindowStack ) );
+}
 
 /*! \internal
     Opens a window. Requires a SOG_Window object created and attached
@@ -456,10 +470,10 @@ void ogOpenWindow( SOG_Window *window, const char *title,
             GLXFBConfig glxfb_xid = False;
             /* We must use GLX 1.3 method for pbuffers */
             int status;
-            
+
             window->Window.Pixmap=False; /* Try a pbuffer first */
-            
-            ogWarning( "Trying GLXPBuffer" );
+
+            ogInformation( "Trying GLXPBuffer" );
             window->State.IsOffscreen = GL_TRUE;
 
             glXattrib_list[ 1 ] = w;
@@ -469,17 +483,17 @@ void ogOpenWindow( SOG_Window *window, const char *title,
                 ogDisplay.Display, window->Window.VisualInfo,
                 GLX_FBCONFIG_ID, ( void * )glxfb_xid
             );
-            ogWarning(
+            ogInformation(
                 "Possible error codes "
                 "SUCC=%d EXT=%d SCR=%d ATTR=%d VIS=%d VAL=%d",
                 Success,
                 GLX_NO_EXTENSION, GLX_BAD_SCREEN, GLX_BAD_ATTRIBUTE,
                 GLX_BAD_VISUAL, GLX_BAD_VALUE
             );
-            ogWarning( " status: %d\n XID of glxfb: %p", status, glxfb_xid );
+            ogInformation( " status: %d\n XID of glxfb: %p", status, glxfb_xid );
 
             if( Success != status )
-                ogWarning( "Could not get glX frame buffer config ID" );
+                ogInformation( "Could not get glX frame buffer config ID" );
             else
             {
                 window->Window.Handle = glXCreatePbuffer(
@@ -488,10 +502,10 @@ void ogOpenWindow( SOG_Window *window, const char *title,
                     glXattrib_list
                 );
                 if( False == window->Window.Handle )
-                    ogWarning( "Could not create GLX pbuffer." );
+                    ogInformation( "Could not create GLX pbuffer." );
                 else
                 {
-                    ogWarning( "Have pbuffer!" );
+                    ogInformation( "Have pbuffer!" );
                     have_pbuffer = 1;
                     if( glXattrib_list[ 5 ] == True )
                     {
@@ -1930,13 +1944,13 @@ void OGAPIENTRY glutSetWindowStayOnTop( GLint enable )
 #if TARGET_HOST_WIN32
     SetWindowPos(
         ogStructure.Window->Window.Handle,
-        ( GL_TRUE == enable ) ? HWND_TOPMOST : HWND_NOTOPMOST,
+        enable ? HWND_TOPMOST : HWND_NOTOPMOST,
         0, 0, 0, 0, 0
     );
 #elif TARGET_HOST_UNIX_X11
     Display *display = ogDisplay.Display;
-    Window   window  = ogStructure.Window->Window.Handle;
-    XEvent e;
+    Window  window   = ogStructure.Window->Window.Handle;
+    XEvent  e;
 
     /*
      * Where this feature is supported, these seem to be common bits
@@ -1952,7 +1966,7 @@ void OGAPIENTRY glutSetWindowStayOnTop( GLint enable )
 
     /* These two are for EWMH and KDE style window managers. */
     e.xclient.message_type = XInternAtom( display, "_NET_WM_STATE", FALSE );
-    e.xclient.data.l[ 0 ]  = ( GL_TRUE == enable ) ? 1 : 0;
+    e.xclient.data.l[ 0 ]  = enable ? 1 : 0;
 
     if(
         XInternAtom( display, "KWIN_RUNNING", TRUE )       &&
@@ -1974,7 +1988,7 @@ void OGAPIENTRY glutSetWindowStayOnTop( GLint enable )
     {
         /* IceWM compatible */
         e.xclient.message_type = XInternAtom( display, "_WIN_LAYER", FALSE );
-        e.xclient.data.l[ 0 ]  = ( GL_TRUE == enable ) ? 10 : 4;
+        e.xclient.data.l[ 0 ]  = enable ? 10 : 4;
         e.xclient.data.l[ 1 ]  = 0;
     }
 

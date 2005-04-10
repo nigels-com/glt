@@ -70,7 +70,8 @@ SOG_State ogState =
     GL_FALSE,               /* UseCurrentContext */
     GL_FALSE,               /* GLDebugSwitch */
     GL_TRUE,                /* PrintErrors */
-    GL_FALSE,               /* PrintWarnings */
+    GL_TRUE,                /* PrintWarnings */
+    GL_FALSE,               /* PrintInforms */
     GL_FALSE,               /* XSyncSwitch */
     GLUT_KEY_REPEAT_ON,     /* KeyRepeat */
     0xffffffff,             /* Modifiers */
@@ -273,7 +274,8 @@ void ogDeinitialize( void )
     ogState.UseCurrentContext   = GL_FALSE;
     ogState.GLDebugSwitch       = GL_FALSE;
     ogState.PrintErrors         = GL_TRUE;
-    ogState.PrintWarnings       = GL_FALSE;
+    ogState.PrintWarnings       = GL_TRUE;
+    ogState.PrintInforms        = GL_FALSE;
     ogState.XSyncSwitch         = GL_FALSE;
     ogState.ActionOnWindowClose = GLUT_ACTION_EXIT;
     ogState.ExecState           = GLUT_EXEC_STATE_INIT;
@@ -546,16 +548,31 @@ static int XParseGeometry(
                  Direct rendering is normally requested but indirect
                  is normally accepted.
                  \a -direct is not always available.
-                 See \a -indirect.
+                 If both \a direct and \a indirect are specified on
+                 the command line, the tail-most one determines
+                 OpenGLUT's behavior.
+                 See \a -indirect, \a -maybe-indirect.
                - \a -indirect Attempt only indirect OpenGL rendering.
                  \a -indirect is always available.
-                 See \a -direct.
+                 See \a -direct, \a -maybe-indirect.
+               - \a -maybe-indirect Restore the default OpenGLUT
+                 behavior of trying direct rendering first, then
+                 falling back to indirect rendering.
+                 See \a -direct, \a -indirect.
                - \a -iconic Open the window in iconized form.
                - \a -gldebug Print any detected OpenGL errors via
                  glutReportErrors().  Presently
                  done at the bottom of glutMainLoopEvent().
-               - \a -warnings Print OpenGLUT warning messages to
-                 standard error.  Warnings are disabled by default.
+               - \a -no-warnings Disable the showing of OpenGLUT warnings
+                 (e.g., on standard error consoles).
+               - \a -warnings Show OpenGLUT warning messages
+                 (e.g., on standard error consoles).
+                 This is the default.
+               - \a -no-informs Disable showing OpenGLUT informational
+                 messages (e.g., on standard error consoles).
+                 This is the default.
+               - \a -informs Show OpenGLUT informational messages
+                 (e.g., on standard error consoles).
                - \a -sync Synchronize the window system communications
                  heavily.
 
@@ -661,27 +678,34 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         }
         else if( strcmp( argv[ i ], "-direct" ) == 0)
         {
-            if( ! ogState.TryDirectContext )
-                ogError(
-                    "option ambiguity, -direct and -indirect "
-                    "cannot be both specified."
-                );
+            if( !ogState.TryDirectContext )
+                ogInformation( "-direct override of -indirect" );
 
             ogState.ForceDirectContext = GL_TRUE;
+            ogState.TryDirectContext = GL_TRUE;
             argv[ i ] = NULL;
             ( *pargc )--;
         }
         else if( strcmp( argv[ i ], "-indirect" ) == 0 )
         {
             if( ogState.ForceDirectContext )
-                ogError(
-                    "option ambiguity, -direct and -indirect "
-                    "cannot be both specified."
-                );
+                ogInformation( "-indirect override of -direct" );
 
             ogState.TryDirectContext = GL_FALSE;
+            ogState.ForceDirectContext = GL_FALSE;
             argv[ i ] = NULL;
-            (*pargc)--;
+            ( *pargc )--;
+        }
+        else if( strcmp( argv[ i ], "-maybe-indirect" ) == 0 )
+        {
+            if( ogState.ForceDirectContext )
+                ogInformation( "-maybe-indirect override of -direct" );
+            else if( !ogState.TryDirectContext )
+                ogInformation( "-maybe-indirect override of -indirect" );
+            ogState.ForceDirectContext = GL_FALSE;
+            ogState.TryDirectContext = GL_TRUE;
+            argv[ i ] = NULL;
+            ( *pargc )--;
         }
         else if( strcmp( argv[ i ], "-iconic" ) == 0 )
         {
@@ -695,9 +719,27 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
             argv[ i ] = NULL;
             ( *pargc )--;
         }
+        else if( strcmp( argv[ i ], "-no-warning" ) == 0 )
+        {
+            ogState.PrintWarnings = GL_FALSE;
+            argv[ i ] = NULL;
+            ( *pargc )--;
+        }
         else if( strcmp( argv[ i ], "-warning" ) == 0 )
         {
             ogState.PrintWarnings = GL_TRUE;
+            argv[ i ] = NULL;
+            ( *pargc )--;
+        }
+        else if( strcmp( argv[ i ], "-no-informs" ) == 0 )
+        {
+            ogState.PrintInforms = GL_FALSE;
+            argv[ i ] = NULL;
+            ( *pargc )--;
+        }
+        else if( strcmp( argv[ i ], "-informs" ) == 0 )
+        {
+            ogState.PrintInforms = GL_TRUE;
             argv[ i ] = NULL;
             ( *pargc )--;
         }
@@ -1065,7 +1107,7 @@ static int oghCompareTags( const void *_a, const void *_b )
                    Enables \a GLUT_SINGLE.
 
               - \a stereo \n
-                   Enables \a GLUT_STERO.
+                   Enables \a GLUT_STEREO.
 
               - \a acca \n
                    Number of \a RGBA accumulation bits.

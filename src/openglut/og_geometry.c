@@ -2,6 +2,7 @@
     \file  og_geometry.c
     \brief Algorithmic geometric objects.
 */
+
 /*
  * OpenGLUT geometry rendering methods.
  *
@@ -35,6 +36,7 @@
 #endif
 
 #include <float.h>
+#include <math.h>
 
 #include <GL/openglut.h>
 #include "og_internal.h"
@@ -187,18 +189,26 @@ void OGAPIENTRY glutSolidSphere( GLdouble radius, GLint slices, GLint stacks )
     double *sint1 = NULL, *cost1 = NULL;
     double *sint2 = NULL, *cost2 = NULL;
 
-    if( DBL_EPSILON > radius )
-        ogWarning( "Small radius in glutSolidSphere" );
+    if( fabs(radius) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero radius in glutSolidSphere" );
+        return;
+    }
 
-    if( 1 > slices )
-        ogWarning( "Invalid slices in glutSolidSphere" );
-    else
-        ogCircleTable( &sint1, &cost1, slices );
+    if( slices == 0 )
+    {
+        ogWarning( "Zero slices in glutSolidSphere" );
+        return;
+    }
 
-    if( 1 > stacks )
-        ogWarning( "Invalid stacks in glutSolidSphere" );
-    else
-        ogCircleTable( &sint2, &cost2, stacks * 2 );
+    if( stacks == 0 )
+    {
+        ogWarning( "Zero stacks in glutSolidSphere" );
+        return;
+    }
+
+    ogCircleTable( &sint1, &cost1, -slices    );
+    ogCircleTable( &sint2, &cost2, stacks * 2 );
 
     slices = abs( slices );
     stacks = abs( stacks );
@@ -306,18 +316,26 @@ void OGAPIENTRY glutWireSphere( GLdouble radius, GLint slices, GLint stacks )
     double *sint1 = NULL, *cost1 = NULL;
     double *sint2 = NULL, *cost2 = NULL;
 
-    if( DBL_EPSILON > radius )
-        ogWarning( "Small radius in glutWireSphere" );
+    if( fabs(radius) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero radius in glutWireSphere" );
+        return;
+    }
 
-    if( 1 > slices )
-        ogWarning( "Invalid slices in glutWireSphere" );
-    else
-        ogCircleTable( &sint1, &cost1, slices );
+    if( slices == 0 )
+    {
+        ogWarning( "Zero slices in glutWireSphere" );
+        return;
+    }
 
-    if( 1 > stacks )
-        ogWarning( "Invalid stacks in glutWireSphere" );
-    else
-        ogCircleTable( &sint2, &cost2,  stacks * 2 );
+    if( stacks == 0 )
+    {
+        ogWarning( "Zero stacks in glutWireSphere" );
+        return;
+    }
+
+    ogCircleTable( &sint1, &cost1, -slices    );
+    ogCircleTable( &sint2, &cost2, stacks * 2 );
 
     slices = abs( slices );
     stacks = abs( stacks );
@@ -398,22 +416,36 @@ void OGAPIENTRY glutSolidCone( GLdouble base, GLdouble height,
     /* Pre-computed circle */
     double *sint = NULL, *cost = NULL;
 
-    if( DBL_EPSILON > base )
-        ogWarning( "Small base in glutSolidCone" );
-    if( DBL_EPSILON > height )
-        ogWarning( "Small height in glutSolidCone" );
+    if( fabs(base) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero base in glutSolidCone" );
+        return;
+    }
 
-    if( 1 > slices )
-        ogWarning( "Invalid slices in glutSolidCone" );
-    else if( 1 > stacks )
-        ogWarning( "Invalid stacks in glutSolidCone" );
-    else
-        ogCircleTable( &sint, &cost, -slices );
+    if( fabs(height) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero height in glutSolidCone" );
+        return;
+    }
+
+    if( slices == 0 )
+    {
+        ogWarning( "Zero slices in glutSolidCone" );
+        return;
+    }
+
+    if( stacks == 0 )
+    {
+        ogWarning( "Zero stacks in glutSolidCone" );
+        return;
+    }
+
+    ogCircleTable( &sint, &cost, -slices );
 
     slices = abs( slices );
     stacks = abs( stacks );
 
-    if( sint && cost && side_length>0.0 )
+    if( sint && cost && ( side_length > DBL_EPSILON ) )
     {
         const double zStep = height/stacks;
         const double rStep = base/stacks;
@@ -505,22 +537,36 @@ void OGAPIENTRY glutWireCone( GLdouble base, GLdouble height,
     /* Pre-computed circle */
     double *sint = NULL, *cost = NULL;
 
-    if( DBL_EPSILON > base )
-        ogWarning( "Small base in glutWireCone" );
-    if( DBL_EPSILON > height )
-        ogWarning( "Small height in glutWireCone" );
+    if( fabs(base) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero base in glutWireCone" );
+        return;
+    }
 
-    if( 1 > slices )
-        ogWarning( "Invalid slices in glutWireCone" );
-    else if( 1 > stacks )
-        ogWarning( "Invalid stacks in glutWireCone" );
-    else
-        ogCircleTable( &sint, &cost, slices );
+    if( fabs(height) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero height in glutWireCone" );
+        return;
+    }
+
+    if( slices == 0 )
+    {
+        ogWarning( "Zero slices in glutWireCone" );
+        return;
+    }
+
+    if( stacks == 0 )
+    {
+        ogWarning( "Zero stacks in glutWireCone" );
+        return;
+    }
+
+    ogCircleTable( &sint, &cost, slices );
 
     slices = abs( slices );
     stacks = abs( stacks );
 
-    if( sint && cost && (DBL_EPSILON < side_length ) )
+    if( sint && cost && ( side_length > DBL_EPSILON ) )
     {
         const double zStep = height / stacks;
         const double rStep = base   / stacks;
@@ -585,17 +631,31 @@ void OGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height,
     /* Pre-computed circle */
     double *sint = NULL, *cost = NULL;
 
-    if( DBL_EPSILON > radius )
-        ogWarning( "Small radius in glutSolidCylinder" );
-    if( DBL_EPSILON > height )
-        ogWarning( "Small height in glutSolidCylinder" );
+    if( fabs(radius) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero radius in glutSolidCylinder" );
+        return;
+    }
 
-    if( 1 > slices )
-        ogWarning( "Invalid slices in glutSolidCylinder" );
-    else if( 1 > stacks )
-        ogWarning( "Invalid stacks in glutSolidCylinder" );
-    else
-        ogCircleTable( &sint, &cost, -slices );
+    if( fabs(height) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero height in glutSolidCylinder" );
+        return;
+    }
+
+    if( slices == 0 )
+    {
+        ogWarning( "Zero slices in glutSolidCylinder" );
+        return;
+    }
+
+    if( stacks == 0 )
+    {
+        ogWarning( "Zero stacks in glutSolidCylinder" );
+        return;
+    }
+
+    ogCircleTable( &sint, &cost, -slices );
 
     slices = abs( slices );
     stacks = abs( stacks );
@@ -610,14 +670,14 @@ void OGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height,
         glBegin( GL_TRIANGLE_FAN );
         glNormal3d( 0.0, 0.0, -1.0 );
         glVertex3d( 0.0, 0.0,  0.0 );
-        for (j = 0; j <= slices; j++ )
+        for( j = 0; j <= slices; j++ )
             glVertex3d( cost[ j ] * radius, sint[ j ] * radius, 0.0 );
         glEnd();
 
         glBegin( GL_TRIANGLE_FAN );
         glNormal3d( 0.0, 0.0, 1.0    );
         glVertex3d( 0.0, 0.0, height );
-        for ( j = slices; j >= 0; j-- )
+        for( j = slices; j >= 0; j-- )
             glVertex3d( cost[ j ] * radius, sint[ j ] * radius, height );
         glEnd( );
 
@@ -672,18 +732,31 @@ void OGAPIENTRY glutWireCylinder(
     /* Pre-computed circle */
     double *sint = NULL, *cost = NULL;
 
-    if( DBL_EPSILON > radius )
-        ogWarning( "Small radius in glutWireCylinder" );
+    if( fabs(radius) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero radius in glutWireCylinder" );
+        return;
+    }
 
-    if( DBL_EPSILON > height )
-        ogWarning( "Small height in glutWireCylinder" );
+    if( fabs(height) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero height in glutWireCylinder" );
+        return;
+    }
 
-    if( 1 > slices )
-        ogWarning( "Invalid slices in glutWireCylinder" );
-    else if( 1 > stacks )
-        ogWarning( "Invalid stacks in glutWireCylinder" );
-    else
-        ogCircleTable( &sint, &cost, -slices );
+    if( slices == 0 )
+    {
+        ogWarning( "Zero slices in glutWireCylinder" );
+        return;
+    }
+
+    if( stacks == 0 )
+    {
+        ogWarning( "Zero stacks in glutWireCylinder" );
+        return;
+    }
+
+    ogCircleTable( &sint, &cost, slices );
 
     slices = abs(slices);
     stacks = abs(stacks);
@@ -760,39 +833,45 @@ void OGAPIENTRY glutWireTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
     double spsi, cpsi, sphi, cphi;
     int i, j;
 
-    /*
-     * XXX Probably should not print any of these.  If the
-     * XXX radii are too small, that's a client decision and
-     * XXX not worth a comment.  If the sides/rings are less than
-     * XXX 1, then we can with some correctness simply do nothing.
-     * XXX Less than 0 makes no sense.
-     */
-    if( DBL_EPSILON > dInnerRadius )
-        ogWarning( "Small tube radius in glutWireTorus" );
-    if( DBL_EPSILON > dOuterRadius )
-        ogWarning( "Small path radius in glutWireTorus" );
-
-    if( 0 > nSides )
-        ogWarning( "Invalid sides in glutWireTorus" );
-    else if ( 0 > nRings )
-        ogWarning( "Invalid rings in glutWireTorus" );
-    else
+    if( fabs(dInnerRadius) < DBL_EPSILON )
     {
-        /*
-         * Increment the number of sides and rings to allow for one more point
-         * than surface
-         */
-        nSides = abs( nSides ) + 1;
-        nRings = abs( nRings ) + 1;
-
-        vertex = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
-        normal = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
+        ogWarning( "Near-zero inner radius in glutWireTorus" );
+        return;
     }
+
+    if( fabs(dOuterRadius) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero outer radius in glutWireTorus" );
+        return;
+    }
+
+    if( nSides == 0 )
+    {
+        ogWarning( "Zero sides in glutWireTorus" );
+        return;
+    }
+
+    if( nRings == 0 )
+    {
+        ogWarning( "Zero rings in glutWireTorus" );
+        return;
+    }
+
+    /*
+     * Increment the number of sides and rings to allow for one more point
+     * than surface
+     */
+
+    nSides = abs( nSides ) + 1;
+    nRings = abs( nRings ) + 1;
+
+    vertex = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
+    normal = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
 
     if( vertex && normal )
     {
-        dpsi =  2.0 * M_PI / ( double )nRings;
-        dphi = -2.0 * M_PI / ( double )nSides;
+        dpsi =  2.0 * M_PI / ( double )( nRings - 1 );
+        dphi = -2.0 * M_PI / ( double )( nSides - 1 );
         psi  = 0.0;
 
         for( j = 0; j < nRings; j++ )
@@ -881,29 +960,40 @@ void OGAPIENTRY glutSolidTorus( GLdouble dInnerRadius, GLdouble dOuterRadius,
     double spsi, cpsi, sphi, cphi;
     int i, j;
 
-    if( DBL_EPSILON > dInnerRadius )
-        ogWarning( "Small tube radius in glutSolidTorus" );
-    if( DBL_EPSILON > dOuterRadius )
-        ogWarning( "Small path radius in glutSolidTorus" );
-
-    if( 1 > nSides )
-        ogWarning( "Invalid sides in glutSolidTorus" );
-    else if( 1 > nRings )
-        ogWarning( "Invalid rings in glutSolidTorus" );
-    else
+    if( fabs(dInnerRadius) < DBL_EPSILON )
     {
-
-        /*
-         * Increment the number of sides and rings to allow for one more point
-         * than surface
-         */
-
-        nSides = abs(nSides)+1;
-        nRings = abs(nRings)+1;
-
-        vertex = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
-        normal = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
+        ogWarning( "Near-zero inner radius in glutSolidTorus" );
+        return;
     }
+
+    if( fabs(dOuterRadius) < DBL_EPSILON )
+    {
+        ogWarning( "Near-zero outer radius in glutSolidTorus" );
+        return;
+    }
+
+    if( nSides == 0 )
+    {
+        ogWarning( "Zero sides in glutSolidTorus" );
+        return;
+    }
+
+    if( nRings == 0 )
+    {
+        ogWarning( "Zero rings in glutSolidTorus" );
+        return;
+    }
+
+    /*
+     * Increment the number of sides and rings to allow for one more point
+     * than surface
+     */
+
+    nSides = abs( nSides ) + 1;
+    nRings = abs( nRings ) + 1;
+
+    vertex = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
+    normal = ( double * )calloc( sizeof( double ), 3 * nSides * nRings );
 
     if( vertex && normal )
     {
@@ -1336,7 +1426,6 @@ void OGAPIENTRY glutSolidOctahedron( void )
     glEnd();
 }
 
-
 /*!
     \fn
     \brief      Draw a wireframe tetrahedron.
@@ -1393,7 +1482,6 @@ void OGAPIENTRY glutWireTetrahedron( void )
     glEnd();
 }
 
-
 /*!
     \fn
     \brief      Draw a solid tetrahedron.
@@ -1449,7 +1537,7 @@ void OGAPIENTRY glutSolidTetrahedron( void )
 /*
  *
  */
-double icos_r[ 12 ][ 3 ] =
+static double icos_r[ 12 ][ 3 ] =
 {
     { 1.0, 0.0, 0.0 },
     {  0.447213595500,  0.894427191000, 0.0 },
@@ -1464,14 +1552,13 @@ double icos_r[ 12 ][ 3 ] =
     { -0.447213595500, -0.276393202252, -0.850650808354 },
     { -1.0, 0.0, 0.0 }
 };
-int icos_v[ 20 ][ 3 ] =
+static int icos_v[ 20 ][ 3 ] =
 {
     { 0, 1, 2 }, { 0, 2, 3 }, { 0, 3, 4 }, { 0, 4, 5 }, { 0, 5, 1 },
     { 1, 8, 2 }, { 2, 7, 3 }, { 3, 6, 4 }, { 4, 10, 5 }, { 5, 9, 1 },
     { 1, 9, 8 }, { 2, 8, 7 }, { 3, 7, 6 }, { 4, 6, 10 }, { 5, 10, 9 },
     { 11, 9, 10 }, { 11, 8, 9 }, { 11, 7, 8 }, { 11, 6, 7 }, { 11, 10, 6 }
 };
-
 
 /*!
     \fn
@@ -1527,7 +1614,6 @@ void OGAPIENTRY glutWireIcosahedron( void )
         glEnd( );
     }
 }
-
 
 /*!
     \fn
@@ -1586,7 +1672,7 @@ void OGAPIENTRY glutSolidIcosahedron( void )
 /*
  *
  */
-double rdod_r[ 14 ][ 3 ] =
+static double rdod_r[ 14 ][ 3 ] =
 {
     { 0.0, 0.0, 1.0 },
     {  0.707106781187,  0.000000000000,  0.5 },
@@ -1603,7 +1689,8 @@ double rdod_r[ 14 ][ 3 ] =
     {  0.000000000000, -0.707106781187, -0.5 },
     {  0.0, 0.0, -1.0 }
 };
-int rdod_v[ 12 ][ 4 ] =
+
+static int rdod_v[ 12 ][ 4 ] =
 {
     { 0,  1,  5,  2 },
     { 0,  2,  6,  3 },
@@ -1618,7 +1705,8 @@ int rdod_v[ 12 ][ 4 ] =
     { 7, 11, 13, 12 },
     { 8, 12, 13,  9 }
 };
-double rdod_n[ 12 ][ 3 ] =
+
+static double rdod_n[ 12 ][ 3 ] =
 {
   {  0.353553390594,  0.353553390594,  0.5 },
   { -0.353553390594,  0.353553390594,  0.5 },
@@ -1745,6 +1833,7 @@ typedef struct tetrahedron_edge
     int v2;
     double normal[ 3 ];
 } tetrahedron_edge;
+
 static const tetrahedron_edge tetrahedron_edges[ 6 ] =
 {
     { 0, 1, { -0.707106781186674,  0.408248290463772, -0.577350269189535 } },

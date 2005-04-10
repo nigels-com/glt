@@ -2,6 +2,7 @@
     \file  og_state.c
     \brief OpenGLUT state query methods.
 */
+
 /*
  * Portions copyright (C) 2004, the OpenGLUT project contributors.
  * OpenGLUT branched from freeglut in February, 2004.
@@ -72,7 +73,7 @@ static int oghGetConfig( int attribute )
 
 /*!
     \fn
-    \brief    Allows you to set some general state/option variables.
+    \brief    Set an OpenGLUT option.
     \ingroup  state
     \param    eWhat    Enumerated parameter ID.
     \param    value    New value.
@@ -93,25 +94,22 @@ static int oghGetConfig( int attribute )
                    will contine execution of remaining windows.
 
               - \a GLUT_INIT_DISPLAY_MODE \n
-                   An alternate way to set the display mode for a
-                   new window.
+                   Set the display mode for new windows.
 
               - \a GLUT_INIT_WINDOW_HEIGHT \n
-                   An alternate way to set the height of new windows.
+                   Set the initial height of new windows.
 
               - \a GLUT_INIT_WINDOW_WIDTH \n
-                   An alternate way to set the width of new windows.
+                   Set the initial width of new windows.
 
               - \a GLUT_INIT_WINDOW_X \n
-                   An alternate way to set the initial horizontal position
-                   of new windows.
+                   Set the initial horizontal position of new windows.
 
               - \a GLUT_INIT_WINDOW_Y \n
-                   An alternate way to set the initial vertical position
-                   of new windows.
+                   Set the initial vertical position of new windows.
 
               - \a GLUT_RENDERING_CONTEXT \n
-                   Set to either \a GLUT_CREATE_NEW_CONTEXT or
+                   Either \a GLUT_CREATE_NEW_CONTEXT or
                    \a GUT_USE_CURRENT_CONTEXT to indicate
                    whether to share the current OpenGL rendering context
                    with new windows.
@@ -157,14 +155,15 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
     case GLUT_RENDERING_CONTEXT:
         if( GLUT_USE_CURRENT_CONTEXT == value )
             ogState.UseCurrentContext = GL_TRUE;
-        else if( GLUT_CREATE_NEW_CONTEXT == value )
-            ogState.UseCurrentContext = GL_FALSE;
         else
-            ogWarning(
-                "glutSetOption(): "
-                "Unknown GLUT_RENDERING_CONTEXT parameter: %d",
-                value
-            );
+            if( GLUT_CREATE_NEW_CONTEXT == value )
+                ogState.UseCurrentContext = GL_FALSE;
+            else
+                ogWarning(
+                    "glutSetOption(): "
+                    "Unknown GLUT_RENDERING_CONTEXT parameter: %d",
+                    value
+                );
         break;
 
     case GLUT_WINDOW_CURSOR:
@@ -181,17 +180,16 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
 
 /*!
     \fn
-    \brief    Allows you to query some general state/option variables.
+    \brief    Query an OpenGLUT option or state.
     \ingroup  state
     \param    eWhat    Enumerated parameter ID.
 
-              This function permits you to query for the current value
-              of many different OpenGLUT state variables.  The current
-              list is:
+              Query for the current value of one of many possible OpenGLUT 
+              state variables.  The current list is:
 
               - \a GLUT_ACTION_ON_WINDOW_CLOSE \n
-                   Allows you to do something other than die if the
-                   user closes one of your windows.
+                   Do something other than exit when the
+                   a window is closed via the window manager.
 
               - \a GLUT_DISPLAY_MODE_POSSIBLE \n
 
@@ -212,18 +210,19 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
               - \a GLUT_MENU_NUM_ITEMS \n
 
               - \a GLUT_RENDERING_CONTEXT \n
-                   Allows you to specify context-sharing when you
-                   open new windows.
+                   OpenGL contexts shared with new windows.
 
               - \a GLUT_SCREEN_HEIGHT \n
+                   Screen height in pixels.
 
               - \a GLUT_SCREEN_HEIGHT_MM \n
-                   Height in millimeters.
+                   Screen height in millimeters.
 
               - \a GLUT_SCREEN_WIDTH \n
+                   Screen width in pixels.
 
               - \a GLUT_SCREEN_WIDTH_MM \n
-                   Width in millimeters.
+                   Screen width in millimeters.
 
               - \a GLUT_VERSION \n
 
@@ -279,24 +278,6 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
               - \a GLUT_WINDOW_X \n
 
               - \a GLUT_WINDOW_Y \n
-
-
-              Most of the above are very obvious, and so full documentation
-              is postponed for now.
-
-    \todo     Go back and flesh out the above list.
-    \todo     This function is a bit messy, especially the WINCE part.  Fix.
-    \todo     Lots of code uses return to hop out.  Since it's such a
-              sprawling function, it's easy to be in the middle and not
-              be 100% sure if there's anything important at the end of
-              the function, or if it is safe to just "drop out" of
-              the current case and head for the bottom.
-    \todo     Causes crashes (assertion failure) if you call this
-              before having called glutInit()---other than GLUT_INIT_STATE
-              and GLUT_ELAPSED_TIME.  Because various things can cause
-              OpenGLUT to become deinitialized, we should probably either
-              return default values of some kind or do minimal initialization
-              if we are called without proper initialization.
 
     \see      glutSetOption(), glutDeviceGet(), glutGetModifiers(),
               glutLayerGet()
@@ -635,15 +616,12 @@ int OGAPIENTRY glutGet( GLenum eWhat )
 
 /*!
     \fn
-    \brief    Allows you to get some device state/option variables.
+    \brief    Query input device state.
     \ingroup  inputstate
     \param    eWhat    Enumerated parameter ID.
 
-              Retrieves some system-specific information about
+              Retrieve system-specific information about
               attached devices.  Supported device queries are:
-
-              - \a GLUT_HAS_JOYSTICK \n
-                   Return non-zero if there is a joystick.
 
               - \a GLUT_HAS_KEYBOARD \n
                    Return non-zero if there is a keyboard.
@@ -651,20 +629,31 @@ int OGAPIENTRY glutGet( GLenum eWhat )
               - \a GLUT_HAS_MOUSE \n
                    Return non-zero if there is a mouse.
 
+              - \a GLUT_HAS_JOYSTICK \n
+                   Return non-zero if there is a joystick.
+
               - \a GLUT_HAS_SPACEBALL \n
                    Return non-zero if there is a spaceball.
 
-              - \a GLUT_JOYSTICK_AXES \n
-                   Return the number of axes for the joystick.
+              - \a GLUT_HAS_DIAL_AND_BUTTON_BOX \n
+                   Return non-zero if a dials-and-buttons box is
+                   present.
 
-              - \a GLUT_JOYSTICK_POLL_RATE \n
-                   Return the rate (in GLUT timer ticks?) at
-                   which the joystick is polled.  Requires a
-                   current window to be set.
+              - \a GLUT_HAS_TABLET \n
+                   Return non-zero if a tablet is present.
 
               - \a GLUT_NUM_MOUSE_BUTTONS \n
-                   Return the number of buttons that the user's
-                   mouse has.
+                   Return the number of mouse buttons.
+
+              - \a GLUT_JOYSTICK_BUTTONS \n
+                   Return the number of joystick buttons.
+
+              - \a GLUT_JOYSTICK_AXES \n
+                   Return the number of joystick axes.
+
+              - \a GLUT_JOYSTICK_POLL_RATE \n
+                   Return the rate at which the joystick is polled,
+                   for the current window.
 
               - \a GLUT_OWNS_JOYSTICK \n
                    Return non-zero if OpenGLUT believes that it has
@@ -677,13 +666,6 @@ int OGAPIENTRY glutGet( GLenum eWhat )
               - \a GLUT_DEVICE_KEY_REPEAT \n
                    Described as returning the key repeat rate in
                    one place, but actually returns a key repeat mode.
-
-              - \a GLUT_HAS_DIAL_AND_BUTTON_BOX \n
-                   Return non-zero if a dials-and-buttons box is
-                   present.
-
-              - \a GLUT_HAS_TABLET \n
-                   Return non-zero if a tablet is present.
 
               - \a GLUT_NUM_BUTTON_BOX_BUTTONS \n
                    Return the number of buttons on a dials-and-buttons
@@ -699,13 +681,10 @@ int OGAPIENTRY glutGet( GLenum eWhat )
               - \a GLUT_NUM_TABLET_BUTTONS \n
                    Return the number of buttons on a tablet, if any.
 
-    \bug      Keyboards are optional, but OpenGLUT doesn't detect
-              their absence.
-    \bug      Mice are optional, but OpenGLUT is only able to check
-              for them under WIN32.
-    \bug      Mice can have a varying number of buttons, but OpenGLUT
-              assumes exactly 3 on UNIX_X11.
-    \todo     Only supports querying for one joystick.
+    \todo     Keyboards assumed to exist.
+    \todo     Mouse assumed to exist on UNIX/X11.
+    \todo     Mice assumed to have three buttons on UNIX/X11.
+    \todo     Joystick query limited to one joystick
     \bug      \a GLUT_DEVICE_KEY_REPEAT returns the key repeat mode,
               but the comment says it returns the <i>rate</i>.
               \a GLUT_DEVICE_KEY_REPEAT should probably return
@@ -773,10 +752,10 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
         ret = ogStructure.Window->State.JoystickPollRate;
         break;
     case GLUT_JOYSTICK_BUTTONS:
-        ret = ogGetJoystickNumButtons( 0 );
+        ret = ogJoystickButtons( );
         break;
     case GLUT_JOYSTICK_AXES:
-        ret = ogGetJoystickNumAxes( 0 );
+        ret = ogJoystickAxes( );
         break;
 
     case GLUT_HAS_SPACEBALL:
@@ -814,22 +793,18 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
 
 /*!
     \fn
-    \brief    Returns the status of Alt, Shift, and Ctrl keys.
+    \brief    Query the Alt, Shift and Ctrl keys.
     \ingroup  inputstate
 
-              According to which, if any, modifier keys are held,
-              the return value is the logical \a OR combination
-              of any of the following symbolic bitmasks:
+              Return the logical \a OR combination of the 
+              following symbolic bitmasks:
 
                - \a GLUT_ACTIVE_SHIFT
                - \a GLUT_ACTIVE_CTRL
                - \a GLUT_ACTIVE_ALT
 
-              E.g., if the shift key is held, and no other modifier
-              keys are held, this function will return \a GLUT_ACTIVE_SHIFT.
-
-    \bug      Complains if not invoked by a client callback.
-    \bug      Does not differentiate between the left and right forms
+    \todo     Complains if not invoked by a client callback.
+    \todo     Does not differentiate between the left and right forms
               of the modifiers.
     \see      glutSetOption(), glutGet(), glutDeviceGet(),
               glutLayerGet()
@@ -848,7 +823,7 @@ int OGAPIENTRY glutGetModifiers( void )
 
 /*!
     \fn
-    \brief    Allows you to get some overlay state/option variables.
+    \brief    Query overlay state/option variables.
     \ingroup  overlays
     \param    eWhat    Enumerated parameter ID.
 
@@ -876,6 +851,7 @@ int OGAPIENTRY glutGetModifiers( void )
               All information relates to the <i>current window</i>
               and any overlay that it may have.
 
+    \note     OpenGLUT does not support overlays.
     \see      glutSetOption(), glutGet(), glutDeviceGet(), glutGetModifiers()
 */
 int OGAPIENTRY glutLayerGet( GLenum eWhat )

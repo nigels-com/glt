@@ -2,6 +2,7 @@
     \file  og_joystick.c
     \brief Joystick handling code
 */
+
 /*
  * Portions copyright (C) 2004, the OpenGLUT project contributors.
  * OpenGLUT branched from freeglut in Feburary, 2004.
@@ -856,15 +857,12 @@ static void oghJoystickRead( SOG_Joystick *joy, int *buttons, float *axes )
             axes[ i ] = oghJoystickFudgeAxis( joy, raw_axes[ i ], i );
 }
 
-/*
- * Happy happy happy joy joy joy (happy new year toudi :D)
- */
-
-
 #if TARGET_HOST_MAC_OSX
-/** open the IOKit connection, enumerate all the HID devices, add their
-interface references to the static array. We then use the array index
-as the device number when we come to open() the joystick. */
+/*
+ open the IOKit connection, enumerate all the HID devices, add their
+ interface references to the static array. We then use the array index
+ as the device number when we come to open() the joystick.
+ */
 static int oghJoystickFindDevices( SOG_Joystick *joy, mach_port_t masterPort )
 {
     CFMutableDictionaryRef hidMatch = NULL;
@@ -1617,6 +1615,15 @@ static void oghJoystickOpen( SOG_Joystick *joy )
             }
 #       endif
 #   endif
+
+    ogInformation
+    ( 
+        "Joystick %d \"%s\" with %d axes and %d buttons.",
+        joy->id,
+        joy->name,
+        joy->num_axes,
+        joy->num_buttons
+    );
 }
 
 /*
@@ -1694,6 +1701,8 @@ void ogJoystickShutdown( void )
  */
 void ogJoystickOpen( int ident )
 {
+    ogInformation( "Opening joystick %d", ident );
+
     if( ident >= MAX_NUM_JOYSTICKS )
         ogError( "Too large of a joystick number: %d.", ident );
 
@@ -1825,12 +1834,16 @@ void ogJoystickPollWindow( SOG_Window *window )
                 oghJoystickRead( ogJoystick[ ident ], &buttons, axes );
 
                 if( !ogJoystick[ ident ]->error )
+                {
                     INVOKE_WCB( *window, Joystick,
                                 ( buttons,
                                   (int)( axes[ 0 ] * 1000.0f ),
                                   (int)( axes[ 1 ] * 1000.0f ),
                                   (int)( axes[ 2 ] * 1000.0f ) )
                     );
+
+                    return;
+                }
             }
 }
 
@@ -1846,22 +1859,51 @@ int ogJoystickDetect( void )
     if( ogJoystick && ogState.JoysticksInitted )
         for( i = 0; i < MAX_NUM_JOYSTICKS; i++ )
             if( ogJoystick[ i ] && !ogJoystick[ i ]->error)
+            {
+                ogInformation( "Detected joystick %d", i );
                 ret = 1;
+            }
 
     return ret;
 }
 
 /*
- * XXX These are not tested.
+ * Implementation for glutDeviceGet(GLUT_JOYSTICK_AXES)
  */
-int ogGetJoystickNumAxes( int ident )
+int ogJoystickAxes( void )
 {
-    return ogJoystick[ ident ]->num_axes;
+    int i;
+
+    ogJoystickInit( );
+    if( ogJoystick && ogState.JoysticksInitted )
+        for( i = 0; i < MAX_NUM_JOYSTICKS; i++ )
+            if( ogJoystick[ i ] && !ogJoystick[ i ]->error)
+                return ogJoystick[ i ]->num_axes;
+
+    return 0;
 }
-int ogGetJoystickNumButtons( int ident )
+
+/*
+ * Implementation for glutDeviceGet(GLUT_JOYSTICK_BUTTONS)
+ */
+int ogJoystickButtons( void )
 {
-    return ogJoystick[ ident ]->num_buttons;
+    int i;
+
+    ogJoystickInit( );
+    if( ogJoystick && ogState.JoysticksInitted )
+        for( i = 0; i < MAX_NUM_JOYSTICKS; i++ )
+            if( ogJoystick[ i ] && !ogJoystick[ i ]->error)
+                return ogJoystick[ i ]->num_buttons;
+
+    return 0;
 }
+
+/*
+ * XXX These are not tested.
+ * XXX These are not used anywhere yet.
+ */
+
 int ogGetJoystickNotWorking( int ident )
 {
     return ogJoystick[ ident ]->error;
@@ -1871,6 +1913,7 @@ float ogGetJoystickDeadBand( int ident, int axis )
 {
     return ogJoystick[ ident ]->dead_band [ axis ];
 }
+
 void ogSetJoystickDeadBand( int ident, int axis, float db )
 {
     ogJoystick[ ident ]->dead_band[ axis ] = db;
@@ -1880,6 +1923,7 @@ float ogGetJoystickSaturation( int ident, int axis )
 {
     return ogJoystick[ ident ]->saturate[ axis ];
 }
+
 void ogSetJoystickSaturation( int ident, int axis, float st )
 {
     ogJoystick[ ident ]->saturate [ axis ] = st;
@@ -1887,44 +1931,59 @@ void ogSetJoystickSaturation( int ident, int axis, float st )
 
 void ogSetJoystickMinRange( int ident, float *axes )
 {
-    memcpy(
-        ogJoystick[ ident ]->min, axes,
+    memcpy
+    (
+        ogJoystick[ ident ]->min, 
+        axes,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
 }
+
 void ogSetJoystickMaxRange( int ident, float *axes )
 {
-    memcpy(
-        ogJoystick[ ident ]->max, axes,
+    memcpy
+    (
+        ogJoystick[ ident ]->max,
+        axes,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
 }
+
 void ogSetJoystickCenter( int ident, float *axes )
 {
-    memcpy(
-        ogJoystick[ ident ]->center, axes,
+    memcpy
+    (
+        ogJoystick[ ident ]->center, 
+        axes,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
 }
 
 void ogGetJoystickMinRange( int ident, float *axes )
 {
-    memcpy(
-        axes, ogJoystick[ ident ]->min,
+    memcpy
+    (
+        axes, 
+        ogJoystick[ ident ]->min,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
 }
+
 void ogGetJoystickMaxRange( int ident, float *axes )
 {
-    memcpy(
-        axes, ogJoystick[ ident ]->max,
+    memcpy
+    (
+        axes, 
+        ogJoystick[ ident ]->max,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
 }
+
 void ogGetJoystickCenter( int ident, float *axes )
 {
     memcpy(
-        axes, ogJoystick[ ident ]->center,
+        axes, 
+        ogJoystick[ ident ]->center,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
 }

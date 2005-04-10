@@ -53,7 +53,9 @@ SOG_Structure ogStructure =
     NULL,            /* The menu OpenGL context    */
     NULL,            /* The game mode window       */
     0,               /* The highest used window ID */
-    0                /* The highest used menu ID   */
+    0,               /* The highest used menu ID   */
+    { {}, 0 },       /* Window stack               */
+    { {}, 0 }        /* Menu stack                 */
 };
 
 
@@ -604,4 +606,38 @@ void ogListInsert( SOG_List *list, SOG_Node *next, SOG_Node *node )
         prev->Next = node;
     else
         list->First = node;
+}
+
+void ogPushStack( SOG_Stack *stack, void *item )
+{
+    assert( stack );
+    if( !stack )
+        return;
+
+    assert( stack->pos>=0 );
+    if( stack->pos<0 )
+        return;
+
+    assert( stack->pos<OPENGLUT_STACK_SIZE );
+    if( stack->pos>=OPENGLUT_STACK_SIZE )
+        ogError( "Stack overflow in ogPushStack" );
+
+    stack->stack[ (stack->pos)++ ] = item;
+}
+
+void *ogPopStack(SOG_Stack *stack)
+{
+    assert( stack );
+    if( !stack )
+        return NULL;
+
+    assert( stack->pos>0 );
+    if( stack->pos==0 )
+        ogError( "Stack underflow in ogPopStack" );
+
+    assert( stack->pos<OPENGLUT_STACK_SIZE );
+    if( stack->pos>=OPENGLUT_STACK_SIZE )
+        return NULL;
+
+    return stack->stack[ --(stack->pos) ];
 }
