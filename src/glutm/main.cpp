@@ -55,6 +55,8 @@ int main(int argc,char** argv)
 
     if (ok)
     {
+        GlutMaster::init(argc,argv);
+
         if (GlutMaster::active())
           GlutMaster::mainLoop();
 
