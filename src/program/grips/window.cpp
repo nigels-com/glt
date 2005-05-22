@@ -312,11 +312,12 @@ Grips::settings()
             particles->add(_radiusScale,0.2    ,"radiusScale");
 
             GltFields *shadows = new GltFields("shadows");
-            shadows->add(_display.shadows,      "shadows"     );
-            shadows->add(_display.reflections,  "reflections" );
-            shadows->add(_display.stencil,      "stencil"     );
-            shadows->add(_display.selfShadows , "selfShadows" );
+            shadows->add(_display.shadows,      "shadows"      );
+            shadows->add(_display.reflections,  "reflections"  );
+            shadows->add(_display.stencil,      "stencil"      );
+            shadows->add(_display.selfShadows , "selfShadows"  );
             shadows->add(_display.shadowVolumes,"shadowVolumes");
+            shadows->add(_display.shadowPlane,  "shadowPlane"  );
 
         display->add(particles);
 
@@ -433,7 +434,7 @@ Grips::OnTick()
         step();
 }
 
-void 
+void
 Grips::drawLogo(
     const GltViewport &viewport,
     const GltTexture  &texture,
@@ -518,8 +519,7 @@ Grips::drawShadows() const
         glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT);
         glPushMatrix();
 
-            Vector4 plane(0,0,1,10);
-            matrixShadow(plane,_light0.position()).glMultMatrix();
+            matrixShadow(_display.shadowPlane,_light0.position()).glMultMatrix();
 
             glDepthFunc(GL_ALWAYS);
             glDisable(GL_LIGHTING);
@@ -828,7 +828,7 @@ Grips::OnDisplay()
                     if (_display.billboard)
                     {
                         glPushAttrib(GL_ENABLE_BIT);
-                        
+
                         glDisable(GL_LIGHTING);
                         glDisable(GL_NORMALIZE);
                         glDisable(GL_DEPTH_TEST);
@@ -1086,13 +1086,13 @@ Grips::OnDisplay()
             _info.text() = _menu.menu();
             _info.draw();
         }
-        else 
+        else
             if (_display.options)
             {
                 _info.text() = _options;
                 _info.draw();
             }
-            else 
+            else
                 if (_display.info)
                 {
                     ostringstream os;
@@ -1306,7 +1306,7 @@ Grips::OnNotify(const Document *subject)
 }
 
 const string Grips::help =
-    "GRIPS - GRand Integrated Particle System      \n" 
-    "RMIT School of Computer Science and IT        \n" 
-    "Email: nigels@nigels.com                      \n" 
+    "GRIPS - GRand Integrated Particle System      \n"
+    "RMIT School of Computer Science and IT        \n"
+    "Email: nigels@nigels.com                      \n"
     "\n";

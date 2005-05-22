@@ -133,6 +133,8 @@ private:
         bool selfShadows;
         bool shadowVolumes;
 
+        Vector4 shadowPlane;
+
         int32 slices;
         int32 stacks;
 
