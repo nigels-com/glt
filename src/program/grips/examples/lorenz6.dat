@@ -267,8 +267,6 @@ grips.world.lineSpray.enable: false
 grips.world.fountain.enable: false
 grips.world.exhaust.enable: false
 grips.world.hockey.collision: true
-grips.display.opengl.orthoCamera.zNear:                     -5.000000	# 0xFFFFFFFFFFFF13C0 
-grips.display.opengl.orthoCamera.zFar:                      5.000000	# 0xFFFFFFFFFFFF1340 
 grips.display.grid.enable:                                  false
 grips.world.trail.trail.solid:                              true
 grips.world.video.enable: false
@@ -283,3 +281,5 @@ grips.display.particles.billboard: false
 grips.world.trail.size: 100
 grips.display.particles.enable: true
 grips.wait: 10
+grips.display.opengl.orthoCamera.zNear:                     -5
+grips.display.opengl.orthoCamera.zFar:                     5

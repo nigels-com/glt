@@ -397,12 +397,6 @@ grips.display.opengl.material.emission.blue:                0.000000	# 0x0000000
 grips.display.opengl.material.emission.alpha:               1.000000	# 0x000000000000F03F 
 grips.display.opengl.material.shininess:                    40.000000	# 0x00002042 
 grips.display.opengl.ortho:                                 true
-grips.display.opengl.orthoCamera.x:                         -1.250000	# 0x000000000000F4BF 
-grips.display.opengl.orthoCamera.y:                         1.250000	# 0x000000000000F43F 
-grips.display.opengl.orthoCamera.width:                     -1.000000	# 0x000000000000F0BF 
-grips.display.opengl.orthoCamera.height:                    1.000000	# 0x000000000000F03F 
-grips.display.opengl.orthoCamera.zNear:                     -1.000000	# 0x000000000000F0BF 
-grips.display.opengl.orthoCamera.zFar:                      1.000000	# 0x000000000000F03F 
 grips.display.opengl.transform.00:                          0.051850	# 0x56B7E1D1178CAA3F 
 grips.display.opengl.transform.01:                          -0.000182	# 0x2D9167DE82DE27BF 
 grips.display.opengl.transform.02:                          0.001262	# 0x496FAB6AC2AC543F 
@@ -496,3 +490,5 @@ grips.display.opengl.light1.enabled:                        false
 grips.display.opengl.light2.enabled:                        false
 grips.display.particles.billboard: false
 grips.display.particles.enable: true
+grips.display.opengl.orthoCamera.zNear:                     -5
+grips.display.opengl.orthoCamera.zFar:                     5

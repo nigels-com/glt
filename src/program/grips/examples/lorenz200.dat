@@ -70,38 +70,38 @@ grips.display.formula:                                      true
 grips.display.info:                                         false
 grips.display.opengl.lighting:                              true
 grips.display.opengl.ortho:                                 true
-grips.display.opengl.transform.00:                          -0.017530
-grips.display.opengl.transform.01:                          -0.012132
-grips.display.opengl.transform.02:                          -0.036723
-grips.display.opengl.transform.03:                          0.000000
-grips.display.opengl.transform.04:                          -0.018063
-grips.display.opengl.transform.05:                          0.038218
-grips.display.opengl.transform.06:                          -0.004003
-grips.display.opengl.transform.07:                          0.000000
-grips.display.opengl.transform.08:                          0.034196
-grips.display.opengl.transform.09:                          0.013970
-grips.display.opengl.transform.10:                          -0.020939
-grips.display.opengl.transform.11:                          0.000000
-grips.display.opengl.transform.12:                          -0.979958
-grips.display.opengl.transform.13:                          -0.359729
-grips.display.opengl.transform.14:                          0.000000
-grips.display.opengl.transform.15:                          1.000000
-grips.display.opengl.transformInv.00:                       -9.722249
-grips.display.opengl.transformInv.01:                       -10.019104
-grips.display.opengl.transformInv.02:                       18.966608
-grips.display.opengl.transformInv.03:                       0.000000
-grips.display.opengl.transformInv.04:                       -6.728425
-grips.display.opengl.transformInv.05:                       21.197741
-grips.display.opengl.transformInv.06:                       7.747991
-grips.display.opengl.transformInv.07:                       0.000000
-grips.display.opengl.transformInv.08:                       -20.367026
-grips.display.opengl.transformInv.09:                       -2.219994
-grips.display.opengl.transformInv.10:                       -11.613377
-grips.display.opengl.transformInv.11:                       0.000000
-grips.display.opengl.transformInv.12:                       -11.947809
-grips.display.opengl.transformInv.13:                       -2.192859
-grips.display.opengl.transformInv.14:                       21.373664
-grips.display.opengl.transformInv.15:                       1.000000
+grips.display.opengl.transform.00:                          -0.017884	# 0xB4911E9D375092BF 
+grips.display.opengl.transform.01:                          -0.012377	# 0x4254DCE9275989BF 
+grips.display.opengl.transform.02:                          -0.037465	# 0xA39CB9E3972EA3BF 
+grips.display.opengl.transform.03:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.04:                          -0.018428	# 0x26CA7138C3DE92BF 
+grips.display.opengl.transform.05:                          0.038990	# 0x0959952481F6A33F 
+grips.display.opengl.transform.06:                          -0.004084	# 0xE8611D6C3EBA70BF 
+grips.display.opengl.transform.07:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.08:                          0.034887	# 0xA7B446EDAEDCA13F 
+grips.display.opengl.transform.09:                          0.014252	# 0xE2F13A9C43308D3F 
+grips.display.opengl.transform.10:                          -0.021362	# 0x411A5D46EBDF95BF 
+grips.display.opengl.transform.11:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.12:                          -0.929253	# 0xE753005171BCEDBF 
+grips.display.opengl.transform.13:                          -0.346110	# 0xC4BA5DCDAA26D6BF 
+grips.display.opengl.transform.14:                          0.000000	# 0x0000000000000000 
+grips.display.opengl.transform.15:                          1.000000	# 0x000000000000F03F 
+grips.display.opengl.transformInv.00:                       -9.529927	# 0x2D91FA8B520F23C0 
+grips.display.opengl.transformInv.01:                       -9.820917	# 0xFCDCB9304FA423C0 
+grips.display.opengl.transformInv.02:                       18.591176	# 0x6B3FE24857973240 
+grips.display.opengl.transformInv.03:                       0.000000	# 0x0000000000000000 
+grips.display.opengl.transformInv.04:                       -6.595157	# 0x22B953E570611AC0 
+grips.display.opengl.transformInv.05:                       20.777959	# 0x8071F14C28C73440 
+grips.display.opengl.transformInv.06:                       7.594431	# 0xB9A66E83B2601E40 
+grips.display.opengl.transformInv.07:                       0.000000	# 0x0000000000000000 
+grips.display.opengl.transformInv.08:                       -19.963691	# 0xF9671A6EB4F633C0 
+grips.display.opengl.transformInv.09:                       -2.176225	# 0xC7B64BDDE86801C0 
+grips.display.opengl.transformInv.10:                       -11.383573	# 0x71386AA863C426C0 
+grips.display.opengl.transformInv.11:                       0.000000	# 0x0000000000000000 
+grips.display.opengl.transformInv.12:                       -11.138366	# 0x37B6D7DAD74626C0 
+grips.display.opengl.transformInv.13:                       -1.934658	# 0xCE43B2395CF4FEBF 
+grips.display.opengl.transformInv.14:                       19.904419	# 0x01D8B40688E73340 
+grips.display.opengl.transformInv.15:                       1.000000	# 0x000000000000F03F 
 grips.display.spin.active:                                  false
 grips.display.spin.duration:                                0.000000
 grips.display.spin.loop:                                    false
@@ -189,8 +189,6 @@ grips.world.lineSpray.enable: false
 grips.world.fountain.enable: false
 grips.world.exhaust.enable: false
 grips.world.hockey.collision: true
-grips.display.opengl.orthoCamera.zNear:                     -5.000000	# 0xFFFFFFFFFFFF13C0 
-grips.display.opengl.orthoCamera.zFar:                      5.000000	# 0xFFFFFFFFFFFF1340 
 grips.display.grid.enable:                                  false
 grips.world.trail.trail.enable:                             true
 grips.world.trail.trail.solid:                              false
@@ -211,3 +209,5 @@ grips.display.opengl.light2.enabled:                        true
 grips.display.particles.billboard: false
 grips.display.particles.enable: true
 grips.wait: 10
+grips.display.opengl.orthoCamera.zNear:                     -5
+grips.display.opengl.orthoCamera.zFar:                     5

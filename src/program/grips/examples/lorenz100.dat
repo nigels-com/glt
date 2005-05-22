@@ -367,12 +367,6 @@ grips.display.opengl.material.emission.blue:                0.000000	# 0x0000000
 grips.display.opengl.material.emission.alpha:               1.000000	# 0x000000000000F03F 
 grips.display.opengl.material.shininess:                    25.599995	# 0xCACCCC41 
 grips.display.opengl.ortho:                                 true
-grips.display.opengl.orthoCamera.x:                         -1.256677	# 0x07C7DAE0581BF4BF 
-grips.display.opengl.orthoCamera.y:                         1.256677	# 0x07C7DAE0581BF43F 
-grips.display.opengl.orthoCamera.width:                     -1.000000	# 0x000000000000F0BF 
-grips.display.opengl.orthoCamera.height:                    1.000000	# 0x000000000000F03F 
-grips.display.opengl.orthoCamera.zNear:                     -5.000000	# 0xFFFFFFFFFFFF13C0 
-grips.display.opengl.orthoCamera.zFar:                      5.000000	# 0xFFFFFFFFFFFF1340 
 grips.display.opengl.light0.enabled:                        true
 grips.display.opengl.light0.ambient.red:                    0.101960	# 0x7C0A80F10C1ABA3F 
 grips.display.opengl.light0.ambient.green:                  0.101960	# 0x7C0A80F10C1ABA3F 
@@ -451,38 +445,38 @@ grips.display.opengl.light2.spotCutoff:                     180.000000	# 0x00003
 grips.display.opengl.light2.attenuation.constant:           1.000000	# 0x0000803F 
 grips.display.opengl.light2.attenuation.linear:             0.000000	# 0x00000000 
 grips.display.opengl.light2.attenuation.quadratic:          0.000000	# 0x00000000 
-grips.display.opengl.transform.00:                          -0.017884	# 0xB4911E9D375092BF 
-grips.display.opengl.transform.01:                          -0.012377	# 0x4254DCE9275989BF 
-grips.display.opengl.transform.02:                          -0.037465	# 0xA39CB9E3972EA3BF 
-grips.display.opengl.transform.03:                          0.000000	# 0x0000000000000000 
-grips.display.opengl.transform.04:                          -0.018428	# 0x26CA7138C3DE92BF 
-grips.display.opengl.transform.05:                          0.038990	# 0x0959952481F6A33F 
-grips.display.opengl.transform.06:                          -0.004084	# 0xE8611D6C3EBA70BF 
-grips.display.opengl.transform.07:                          0.000000	# 0x0000000000000000 
-grips.display.opengl.transform.08:                          0.034887	# 0xA7B446EDAEDCA13F 
-grips.display.opengl.transform.09:                          0.014252	# 0xE2F13A9C43308D3F 
-grips.display.opengl.transform.10:                          -0.021362	# 0x411A5D46EBDF95BF 
-grips.display.opengl.transform.11:                          0.000000	# 0x0000000000000000 
-grips.display.opengl.transform.12:                          -0.929253	# 0xE753005171BCEDBF 
-grips.display.opengl.transform.13:                          -0.346110	# 0xC4BA5DCDAA26D6BF 
-grips.display.opengl.transform.14:                          0.000000	# 0x0000000000000000 
-grips.display.opengl.transform.15:                          1.000000	# 0x000000000000F03F 
-grips.display.opengl.transformInv.00:                       -9.529927	# 0x2D91FA8B520F23C0 
-grips.display.opengl.transformInv.01:                       -9.820917	# 0xFCDCB9304FA423C0 
-grips.display.opengl.transformInv.02:                       18.591176	# 0x6B3FE24857973240 
-grips.display.opengl.transformInv.03:                       0.000000	# 0x0000000000000000 
-grips.display.opengl.transformInv.04:                       -6.595157	# 0x22B953E570611AC0 
-grips.display.opengl.transformInv.05:                       20.777959	# 0x8071F14C28C73440 
-grips.display.opengl.transformInv.06:                       7.594431	# 0xB9A66E83B2601E40 
-grips.display.opengl.transformInv.07:                       0.000000	# 0x0000000000000000 
-grips.display.opengl.transformInv.08:                       -19.963691	# 0xF9671A6EB4F633C0 
-grips.display.opengl.transformInv.09:                       -2.176225	# 0xC7B64BDDE86801C0 
-grips.display.opengl.transformInv.10:                       -11.383573	# 0x71386AA863C426C0 
-grips.display.opengl.transformInv.11:                       0.000000	# 0x0000000000000000 
-grips.display.opengl.transformInv.12:                       -11.138366	# 0x37B6D7DAD74626C0 
-grips.display.opengl.transformInv.13:                       -1.934658	# 0xCE43B2395CF4FEBF 
-grips.display.opengl.transformInv.14:                       19.904419	# 0x01D8B40688E73340 
-grips.display.opengl.transformInv.15:                       1.000000	# 0x000000000000F03F 
+grips.display.opengl.transform.00:                          0.018307    # 0x3B7407DA19BF923F
+grips.display.opengl.transform.01:                          0.008169    # 0xE614C888FFBA803F
+grips.display.opengl.transform.02:                          -0.025885   # 0xE5ABCD4A92819ABF
+grips.display.opengl.transform.03:                          0.000000    # 0x0000000000000000
+grips.display.opengl.transform.04:                          0.003725    # 0x771ABD76D8836E3F
+grips.display.opengl.transform.05:                          0.030171    # 0x995CA3F510E59E3F
+grips.display.opengl.transform.06:                          0.012156    # 0x3081F19363E5883F
+grips.display.opengl.transform.07:                          0.000000    # 0x0000000000000000
+grips.display.opengl.transform.08:                          0.026886    # 0x7CA3ACB802889B3F
+grips.display.opengl.transform.09:                          -0.009741   # 0xB0EF7E3B37F383BF
+grips.display.opengl.transform.10:                          0.015942    # 0x081B59281253903F
+grips.display.opengl.transform.11:                          0.000000    # 0x0000000000000000
+grips.display.opengl.transform.12:                          -0.821625   # 0x90721DD0BF4AEABF
+grips.display.opengl.transform.13:                          0.273604    # 0xA479EDBFBB82D13F
+grips.display.opengl.transform.14:                          0.000000    # 0x0000000000000000
+grips.display.opengl.transform.15:                          1.000000    # 0x000000000000F03F
+grips.display.opengl.transformInv.00:                       17.079527   # 0xC9C979E25B143140
+grips.display.opengl.transformInv.01:                       3.474035    # 0xAF1209C4D2CA0B40
+grips.display.opengl.transformInv.02:                       25.083007   # 0xC43051EB3F153940
+grips.display.opengl.transformInv.03:                       0.000000    # 0x0000000000000000
+grips.display.opengl.transformInv.04:                       7.620903    # 0x4C031A17CE7B1E40
+grips.display.opengl.transformInv.05:                       28.146750   # 0x612D266491253C40
+grips.display.opengl.transformInv.06:                       -9.088840   # 0xF4C078777C2D22C0
+grips.display.opengl.transformInv.07:                       0.000000    # 0x0000000000000000
+grips.display.opengl.transformInv.08:                       -24.147925  # 0x0C97BA61DE2538C0
+grips.display.opengl.transformInv.09:                       11.340015   # 0x94042F7616AE2640
+grips.display.opengl.transformInv.10:                       14.871576   # 0x1C9424263FBE2D40
+grips.display.opengl.transformInv.11:                       0.000000    # 0x0000000000000000
+grips.display.opengl.transformInv.12:                       11.947849   # 0x160839674CE52740
+grips.display.opengl.transformInv.13:                       -4.846720   # 0x337168910A6313C0
+grips.display.opengl.transformInv.14:                       23.095563   # 0x7DACF5D076183740
+grips.display.opengl.transformInv.15:                       1.000000    # 0x000000000000F03F
 grips.display.tile.width:                                   1
 grips.display.tile.height:                                  1
 grips.display.tile.index:                                   0
@@ -568,3 +562,5 @@ grips.world.histogram.speed.max:                            400.000000  # 0x0000
 grips.world.histogram.speed.size:                           100
 grips.world.histogram.speed.cumulative:                     true
 grips.world.histogram.speed.reset:
+grips.display.opengl.orthoCamera.zNear:                     -5
+grips.display.opengl.orthoCamera.zFar:                     5

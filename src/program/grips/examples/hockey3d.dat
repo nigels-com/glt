@@ -216,3 +216,5 @@ grips.display.particles.billboard: false
 grips.world.trail.size: 5
 grips.display.particles.enable: true
 grips.wait: 10
+grips.display.opengl.orthoCamera.zNear:                     -5
+grips.display.opengl.orthoCamera.zFar:                     5

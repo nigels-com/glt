@@ -309,3 +309,5 @@ grips.display.opengl.light2.enabled:                        false
 grips.display.particles.billboard: false
 grips.display.particles.points: false
 grips.display.particles.enable: true
+grips.display.opengl.orthoCamera.zNear:                     -5
+grips.display.opengl.orthoCamera.zFar:                     5
