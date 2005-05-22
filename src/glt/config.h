@@ -30,9 +30,12 @@
     \brief GLT Configuration File
     \ingroup GLT
 
-    $Id: config.h,v 2.2 2004/08/11 05:20:18 nigels Exp $
+    $Id: config.h,v 2.3 2005/05/22 16:57:18 nigels Exp $
 
     $Log: config.h,v $
+    Revision 2.3  2005/05/22 16:57:18  nigels
+    Bump version to 0.8-rc4
+
     Revision 2.2  2004/08/11 05:20:18  nigels
     Updated copyright and removed email address from headers
 
@@ -77,7 +80,7 @@
 #include <string>
 
 /// GLT Version string
-#define GLT_VERSION_STRING "0.8-rc3"
+#define GLT_VERSION_STRING "0.8-rc4"
 
 //
 // General config options
