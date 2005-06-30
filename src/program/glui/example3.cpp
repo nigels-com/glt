@@ -23,7 +23,7 @@ int   wireframe = 0;
 int   obj_type = 1;
 int   segments = 8;
 int   segments2 = 8;
-char  text[sizeof(GLUI_String)] = {"Hello World!"};
+std::string text = "Hello World!";
 int   light0_enabled = 1;
 int   light1_enabled = 0;
 float light0_intensity = 1.0;
@@ -33,15 +33,19 @@ int   counter = 0;
 float scale = 1.0;
 
 /** Pointers to the windows and some of the controls we'll create **/
-GLUI *cmd_line_glui, *glui;
-GLUI_Checkbox   *checkbox;
-GLUI_Spinner    *spinner, *light0_spinner, *light1_spinner, *scale_spinner;
-GLUI_RadioGroup *radio;
-GLUI_EditText   *edittext, *cmd_line;
-GLUI_Panel      *obj_panel;
+GLUI *cmd_line_glui=0, *glui;
+GLUI_Checkbox    *checkbox;
+GLUI_Spinner     *spinner, *light0_spinner, *light1_spinner, *scale_spinner;
+GLUI_RadioGroup  *radio;
+GLUI_EditText    *edittext;
+GLUI_CommandLine *cmd_line;
+GLUI_Panel       *obj_panel;
+GLUI_Button      *open_console_btn;
 
 /********** User IDs for callbacks ********/
-#define CMD_LINE_ID          100
+#define OPEN_CONSOLE_ID      100
+#define CMD_HIST_RESET_ID    101
+#define CMD_CLOSE_ID         102
 #define LIGHT0_ENABLED_ID    200
 #define LIGHT1_ENABLED_ID    201
 #define LIGHT0_INTENSITY_ID  250
@@ -62,12 +66,7 @@ GLfloat light1_position[] = {-1.0f, -1.0f, 1.0f, 0.0f};
 
 void control_cb( int control )
 {
-  if ( control == CMD_LINE_ID ) {
-    /*** User typed text into the 'command line' window ***/
-    printf( "Command (%d): %s\n", counter, cmd_line->get_text() );
-    cmd_line->set_text( "" );  /* Clear command line */
-  }
-  else if ( control == LIGHT0_ENABLED_ID ) {
+  if ( control == LIGHT0_ENABLED_ID ) {
     if ( light0_enabled ) {
       glEnable( GL_LIGHT0 );
       light0_spinner->enable();
@@ -109,12 +108,68 @@ void control_cb( int control )
   }
 }
 
+/**************************************** pointer_cb() *******************/
+/* GLUI control pointer callback                                         */
+/* You can also use a function that takes a GLUI_Control pointer  as its */
+/* argument.  This can simplify things sometimes, and reduce the clutter */
+/* of global variables by giving you the control pointer directly.       */
+/* For instance here we didn't need an additional global ID for the      */
+/* cmd_line because we can just compare pointers directly.               */
+
+void pointer_cb( GLUI_Control* control )
+{
+  if (control->get_id() == OPEN_CONSOLE_ID ) {
+    /****** Make command line window ******/
+    cmd_line_glui = GLUI_Master.create_glui( "Enter command:",
+      0, 50, 500 );
+
+    cmd_line = new GLUI_CommandLine(
+      cmd_line_glui, "Command (try 'exit'):", NULL, -1, pointer_cb );
+    cmd_line->set_w( 400 );  /** Widen 'command line' control **/
+
+    GLUI_Panel *panel = new GLUI_Panel(cmd_line_glui,"", GLUI_PANEL_NONE);
+    new GLUI_Button(panel, "Clear History", CMD_HIST_RESET_ID, pointer_cb);
+    new GLUI_Column(panel, false);
+    new GLUI_Button(panel, "Close", CMD_CLOSE_ID, pointer_cb);
+
+    cmd_line_glui->set_main_gfx_window( main_window );
+
+    control->disable();
+  }
+  else if ( control->get_id() == CMD_CLOSE_ID ) {
+    open_console_btn->enable();
+    control->glui->close();
+  }
+  else if ( control == cmd_line ) {
+    /*** User typed text into the 'command line' window ***/
+    printf( "Command (%d): %s\n", counter, cmd_line->get_text() );
+    std::string text = cmd_line->get_text();
+    if (text =="exit" || text == "quit")
+      exit(0);
+  }
+  else if ( control->get_id() == CMD_HIST_RESET_ID ) {
+    cmd_line->reset_history();
+  }
+
+}
+
 /**************************************** myGlutKeyboard() **********/
 
 void myGlutKeyboard(unsigned char Key, int x, int y)
 {
   switch(Key)
   {
+    // A few keys here to test the sync_live capability.
+  case 'o':
+    // Cycle through object types
+    ++obj_type %= 3;
+    GLUI_Master.sync_live_all();
+    break;
+  case 'w':
+    // Toggle wireframe mode
+    wireframe = !wireframe;
+    GLUI_Master.sync_live_all();
+    break;
   case 27:
   case 'q':
     exit(0);
@@ -250,8 +305,7 @@ void myGlutDisplay( void )
   glRasterPos2i( 10, 10 );
 
   /*** Render the live character array 'text' ***/
-  int i;
-  for( i=0; i<(int)strlen( text ); i++ )
+  for (unsigned int i=0; i<text.length(); ++i)
     glutBitmapCharacter( GLUT_BITMAP_HELVETICA_18, text[i] );
 
   glEnable( GL_LIGHTING );
@@ -268,6 +322,7 @@ int main(int argc, char* argv[])
   /*   Initialize GLUT and create window  */
   /****************************************/
 
+  glutInit(&argc, argv);
   glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
   glutInitWindowPosition( 50, 50 );
   glutInitWindowSize( 300, 300 );
@@ -309,82 +364,72 @@ int main(int argc, char* argv[])
 
   glui = GLUI_Master.create_glui( "GLUI", 0, 400, 50 ); /* name, flags,
                                x, and y */
-  glui->add_statictext( "GLUI Example 3" );
-  obj_panel = glui->add_panel( "Object" );
+  new GLUI_StaticText( glui, "GLUI Example 3" );
+  obj_panel = new GLUI_Panel(glui, "Object" );
 
   /***** Control for the object type *****/
 
-  GLUI_Panel *type_panel = glui->add_panel_to_panel( obj_panel, "Type");
-  radio = glui->add_radiogroup_to_panel(type_panel,&obj_type,4,control_cb);
-  glui->add_radiobutton_to_group( radio, "Sphere" );
-  glui->add_radiobutton_to_group( radio, "Torus" );
-  glui->add_radiobutton_to_group( radio, "Teapot" );
+  GLUI_Panel *type_panel = new GLUI_Panel( obj_panel, "Type" );
+  radio = new GLUI_RadioGroup(type_panel,&obj_type,4,control_cb);
+  new GLUI_RadioButton( radio, "Sphere" );
+  new GLUI_RadioButton( radio, "Torus" );
+  new GLUI_RadioButton( radio, "Teapot" );
 
   checkbox =
-    glui->add_checkbox_to_panel( obj_panel, "Wireframe", &wireframe, 1,
-                 control_cb );
-  spinner  = glui->add_spinner_to_panel( obj_panel, "Segments:",
-                     GLUI_SPINNER_INT, &segments);
+    new GLUI_Checkbox(obj_panel, "Wireframe", &wireframe, 1, control_cb );
+  spinner =
+    new GLUI_Spinner( obj_panel, "Segments:", &segments);
   spinner->set_int_limits( 3, 60 );
   spinner->set_alignment( GLUI_ALIGN_RIGHT );
 
   scale_spinner =
-    glui->add_spinner_to_panel( obj_panel, "Scale:",
-                GLUI_SPINNER_FLOAT, &scale);
+    new GLUI_Spinner( obj_panel, "Scale:", &scale);
   scale_spinner->set_float_limits( .2f, 4.0 );
   scale_spinner->set_alignment( GLUI_ALIGN_RIGHT );
 
-  glui->add_separator_to_panel( obj_panel );
-  edittext = glui->add_edittext_to_panel( obj_panel, "Text:",
-                      GLUI_EDITTEXT_TEXT, text );
+  new GLUI_Separator( obj_panel );
+  edittext = new GLUI_EditText( obj_panel, "Text:", text );
   edittext->set_w( 150 );
 
   /******** Add some controls for lights ********/
 
-  GLUI_Panel *light0 = glui->add_panel( "Light 1" );
-  GLUI_Panel *light1 = glui->add_panel( "Light 2" );
+  GLUI_Panel *light0 = new GLUI_Panel( glui, "Light 1" );
+  GLUI_Panel *light1 = new GLUI_Panel( glui, "Light 2" );
 
-  glui->add_checkbox_to_panel( light0, "Enabled", &light0_enabled,
-                   LIGHT0_ENABLED_ID, control_cb );
+  new GLUI_Checkbox( light0, "Enabled", &light0_enabled,
+                     LIGHT0_ENABLED_ID, control_cb );
   light0_spinner =
-    glui->add_spinner_to_panel( light0, "Intensity:", GLUI_SPINNER_FLOAT,
-                &light0_intensity, LIGHT0_INTENSITY_ID,
-                control_cb );
+    new GLUI_Spinner( light0, "Intensity:",
+                      &light0_intensity, LIGHT0_INTENSITY_ID,
+                      control_cb );
   light0_spinner->set_float_limits( 0.0, 1.0 );
 
-  glui->add_checkbox_to_panel( light1, "Enabled", &light1_enabled,
-                   LIGHT1_ENABLED_ID, control_cb );
+  new GLUI_Checkbox( light1, "Enabled", &light1_enabled,
+                     LIGHT1_ENABLED_ID, control_cb );
   light1_spinner =
-    glui->add_spinner_to_panel( light1, "Intensity:", GLUI_SPINNER_FLOAT,
-                &light1_intensity, LIGHT1_INTENSITY_ID,
-                control_cb );
+    new GLUI_Spinner( light1, "Intensity:",
+                      &light1_intensity, LIGHT1_INTENSITY_ID,
+                      control_cb );
   light1_spinner->set_float_limits( 0.0, 1.0 );
   light1_spinner->disable();   /* Disable this light initially */
 
   /****** Add a grayed-out counter *****/
 
   GLUI_EditText *counter_edittext =
-    glui->add_edittext( "Count:", GLUI_EDITTEXT_INT, &counter );
+    new GLUI_EditText( glui, "Count:", &counter );
   counter_edittext->disable();
+
+  /****** Button to Open Command Line Window ******/
+  open_console_btn =
+    new GLUI_Button(glui, "Open Console", OPEN_CONSOLE_ID, pointer_cb);
 
   /****** A 'quit' button *****/
 
-  glui->add_button( "Quit", 0,(GLUI_Update_CB)exit );
-
-  /****** Command line window ******/
-
-  cmd_line_glui = GLUI_Master.create_glui( "Enter command:",
-                       0, 50, 500 );
-
-  cmd_line = cmd_line_glui->add_edittext( "Command:",
-                      GLUI_EDITTEXT_TEXT, NULL,
-                      CMD_LINE_ID, control_cb );
-  cmd_line->set_w( 400 );  /** Widen 'command line' control **/
+  new GLUI_Button(glui, "Quit", 0,(GLUI_Update_CB)exit );
 
   /**** Link windows to GLUI, and register idle callback ******/
 
   glui->set_main_gfx_window( main_window );
-  cmd_line_glui->set_main_gfx_window( main_window );
 
   /* We register the idle callback with GLUI, not with GLUT */
   GLUI_Master.set_glutIdleFunc( myGlutIdle );

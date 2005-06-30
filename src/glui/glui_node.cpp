@@ -1,8 +1,13 @@
-/*
+/****************************************************************************
 
-  glui_node.cpp - linked-list tree structure
+  GLUI User Interface Toolkit
+  ---------------------------
 
-  GLUI User Interface Toolkit (LGPL)
+     glui_node.cpp - linked-list tree structure
+
+
+          --------------------------------------------------
+
   Copyright (c) 1998 Paul Rademacher
 
   WWW:    http://sourceforge.net/projects/glui/
@@ -22,10 +27,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
+*****************************************************************************/
 
 #include "glui.h"
-#include "stdinc.h"
+#include "glui_internal.h"
 
 /********************************************* GLUI_Node::GLUI_Node() *******/
 
@@ -36,10 +41,6 @@ GLUI_Node::GLUI_Node()
     child_tail(NULL),
     next_sibling(NULL),
     prev_sibling(NULL)
-{
-}
-
-GLUI_Node::~GLUI_Node()
 {
 }
 
@@ -93,7 +94,6 @@ void   GLUI_Node::link_this_to_parent_last( GLUI_Node *new_parent )
   if ( new_parent->child_tail == NULL ) {   /* parent has no children */
     new_parent->child_head = this;
     new_parent->child_tail = this;
-    this->parent_node      = new_parent;
     this->parent_node      = new_parent;
   }
   else {                                 /* parent has children */
@@ -197,8 +197,9 @@ void   GLUI_Node::unlink( void )
   this->child_tail   = NULL;
 }
 
-void
-GLUI_Node::dump( FILE *out, char *name )
+/**************************************** GLUI_Node::dump() **************/
+
+void GLUI_Node::dump( FILE *out, const char *name )
 {
     fprintf( out, "GLUI_node: %s\n", name );
     fprintf( out, "   parent: %p     child_head: %p    child_tail: %p\n",

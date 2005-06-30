@@ -10,10 +10,11 @@ CPP_SRC = \
 	algebra3.cpp              glui_checkbox.cpp       glui_node.cpp       glui_spinner.cpp \
 	arcball.cpp glui.cpp      glui_column.cpp         glui_panel.cpp      glui_statictext.cpp \
 	glui_add_controls.cpp     glui_control.cpp        glui_radio.cpp      glui_translation.cpp \
-	glui_bitmap_img_data.cpp  glui_edittext.cpp       glui_rollout.cpp    \
+	glui_bitmap_img_data.cpp  glui_edittext.cpp       glui_rollout.cpp    glui_string.cpp \
 	glui_bitmaps.cpp          glui_listbox.cpp        glui_rotation.cpp   quaternion.cpp \
-	glui_button.cpp           glui_mouse_iaction.cpp  glui_separator.cpp
-
+	glui_button.cpp           glui_mouse_iaction.cpp  glui_separator.cpp  glui_window.cpp \
+	glui_commandline.cpp      glui_filebrowser.cpp    glui_list.cpp       glui_scrollbar.cpp \
+	glui_textbox.cpp          glui_tree.cpp           glui_treepanel.cpp
 ROOT     = ../..
 INCLUDE   = -I$(ROOT)/src/GL 
 #EXPAND   = --tabs=2

@@ -1,8 +1,12 @@
-/*
+/****************************************************************************
+  GLUI User Interface Toolkit
+  ---------------------------
 
-  glui_column.cpp - GLUI_Column control class
+     glui_column.cpp - GLUI_Column control class
 
-  GLUI User Interface Toolkit (LGPL)
+
+          --------------------------------------------------
+
   Copyright (c) 1998 Paul Rademacher
 
   WWW:    http://sourceforge.net/projects/glui/
@@ -22,10 +26,20 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
+*****************************************************************************/
 
 #include "glui.h"
-#include "stdinc.h"
+#include "glui_internal.h"
+
+/******************************** GLUI_Column::GLUI_Column() ************/
+
+GLUI_Column::GLUI_Column( GLUI_Node *parent, int draw_bar )
+{
+  common_init();
+  int_val = draw_bar; /* Whether to draw vertical bar or not */
+
+  parent->add_control( this );
+}
 
 /**************************************** GLUI_Column::draw() ************/
 

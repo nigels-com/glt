@@ -1,8 +1,13 @@
-/*
+/****************************************************************************
 
-  glui_mouse_iaction - GLUI Mouse Interaction control class
+  GLUI User Interface Toolkit
+  ---------------------------
 
-  GLUI User Interface Toolkit (LGPL)
+     glui_mouse_iaction - GLUI Mouse Interaction control class
+
+
+          --------------------------------------------------
+
   Copyright (c) 1998 Paul Rademacher
 
   WWW:    http://sourceforge.net/projects/glui/
@@ -22,10 +27,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
+*****************************************************************************/
 
 #include "glui.h"
-#include "stdinc.h"
+#include "glui_internal.h"
 
 /********************** GLUI_Mouse_Interaction::mouse_down_handler() ******/
 
@@ -43,7 +48,7 @@ int    GLUI_Mouse_Interaction::mouse_down_handler( int local_x, int local_y )
 
 /**************************** GLUI_Mouse_Interaction::mouse_up_handler() */
 
-int    GLUI_Mouse_Interaction::mouse_up_handler( int local_x, int local_y, int inside )
+int    GLUI_Mouse_Interaction::mouse_up_handler( int local_x, int local_y, bool inside )
 {
   iaction_mouse_up_handler( local_x-x_abs, local_y-y_abs, inside );
   return false;
@@ -53,7 +58,7 @@ int    GLUI_Mouse_Interaction::mouse_up_handler( int local_x, int local_y, int i
 /****************************** GLUI_Mouse_Interaction::mouse_held_down_handler() ******/
 
 int    GLUI_Mouse_Interaction::mouse_held_down_handler( int local_x, int local_y,
-                            int inside)
+                            bool inside)
 {
   iaction_mouse_held_down_handler( local_x-x_abs, local_y-y_abs , inside );
 
@@ -86,7 +91,7 @@ void    GLUI_Mouse_Interaction::draw( int x, int y )
     draw_name( x_left, h-4 );
     restore_window(orig);
 
-    draw_active_box( x_left-4, x_left+string_width( name.string )+4,
+    draw_active_box( x_left-4, x_left+string_width( name )+4,
              h, h-14 );
   }
 

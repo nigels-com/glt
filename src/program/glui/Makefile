@@ -1,4 +1,4 @@
-CPP_SRC  = example1.cpp example2.cpp example3.cpp example4.cpp example5.cpp
+CPP_SRC  = example1.cpp example2.cpp example3.cpp example4.cpp example5.cpp example6.cpp
 
 ROOT     = ../../..
 INCLUDE  = 

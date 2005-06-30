@@ -1,8 +1,12 @@
-/*
+/****************************************************************************
 
-  glui_bitmaps.cpp
+  GLUI User Interface Toolkit
+  ---------------------------
 
-  GLUI User Interface Toolkit (LGPL)
+     glui_bitmaps.cpp
+
+          --------------------------------------------------
+
   Copyright (c) 1998 Paul Rademacher
 
   WWW:    http://sourceforge.net/projects/glui/
@@ -22,11 +26,10 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-*/
+*****************************************************************************/
 
 #include "glui.h"
-#include "stdinc.h"
-
+#include "glui_internal.h"
 #include <cassert>
 
 /************ Image Bitmap arrays **********/
@@ -53,6 +56,8 @@ extern int glui_img_listbox_up[];
 extern int glui_img_listbox_down[];
 extern int glui_img_listbox_up_dis[];
 
+
+// These must be in the same order as the GLUI_STDBITMAP enums from glui.h!
 int *bitmap_arrays[] = {
   glui_img_checkbox_0,
   glui_img_checkbox_1,
@@ -96,8 +101,7 @@ GLUI_Bitmap::~GLUI_Bitmap()
     }
 }
 
-void
-GLUI_Bitmap::init(int *array)
+void GLUI_Bitmap::init(int *array)
 {
     w = 0;
     h = 0;
@@ -131,22 +135,19 @@ GLUI_StdBitmaps::~GLUI_StdBitmaps()
 {
 }
 
-int
-GLUI_StdBitmaps::width(int i) const
+int GLUI_StdBitmaps::width(int i) const
 {
     assert(i>=0 && i<GLUI_STDBITMAP_NUM_ITEMS);
     return bitmaps[i].w;
 }
 
-int
-GLUI_StdBitmaps::height(int i) const
+int GLUI_StdBitmaps::height(int i) const
 {
     assert(i>=0 && i<GLUI_STDBITMAP_NUM_ITEMS);
     return bitmaps[i].h;
 }
 
-void
-GLUI_StdBitmaps::draw(int i, int x, int y) const
+void GLUI_StdBitmaps::draw(int i, int x, int y) const
 {
     assert(i>=0 && i<GLUI_STDBITMAP_NUM_ITEMS);
 

@@ -23,7 +23,14 @@ int   main_window;
 int   wireframe = 0;
 int   obj = 0;
 int   segments = 8;
-char  text[200] = {"Hello World!"};
+
+// Using a std::string as a live variable is safe.
+std::string text = "Hello World!";
+
+// Using a char buffer as a live var is also possible, but it is dangerous
+// because GLUI doesn't know how big your buffer is.
+// But still, it works as long as text doesn't happen to overflow.
+//char  text[200] = {"Hello World!"};
 
 GLUI_Checkbox   *checkbox;
 GLUI_Spinner    *spinner;
@@ -57,12 +64,22 @@ void myGlutKeyboard(unsigned char Key, int x, int y)
 {
   switch(Key)
   {
+    // A few keys here to test the sync_live capability.
+  case 'o':
+    // Cycle through object types
+    ++obj %= 3;
+    GLUI_Master.sync_live_all();
+    break;
+  case 'w':
+    // Toggle wireframe mode
+    wireframe = !wireframe;
+    GLUI_Master.sync_live_all();
+    break;
   case 27:
   case 'q':
     exit(0);
     break;
   };
-
   glutPostRedisplay();
 }
 
@@ -155,6 +172,12 @@ void myGlutDisplay( void )
     else
       glutSolidTorus( .2,.5,16,segments );
   }
+  else if ( obj == 2 ) {
+    if ( wireframe )
+      glutWireTeapot( .5 );
+    else
+      glutSolidTeapot( .5 );
+  }
 
   glDisable( GL_LIGHTING );  /* Disable lighting while we render text */
   glMatrixMode( GL_PROJECTION );
@@ -168,8 +191,7 @@ void myGlutDisplay( void )
   //  printf( "text: %s\n", text );
 
   /*** Render the live character array 'text' ***/
-  int i;
-  for( i=0; i<(int)strlen( text ); i++ )
+  for (unsigned int i=0; i<text.length(); ++i)
     glutBitmapCharacter( GLUT_BITMAP_HELVETICA_18, text[i] );
 
   glEnable( GL_LIGHTING );
@@ -186,6 +208,7 @@ int main(int argc, char* argv[])
   /*   Initialize GLUT and create window  */
   /****************************************/
 
+  glutInit(&argc, argv);
   glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
   glutInitWindowPosition( 50, 50 );
   glutInitWindowSize( 300, 300 );
@@ -223,19 +246,18 @@ int main(int argc, char* argv[])
 
   GLUI *glui = GLUI_Master.create_glui( "GLUI", 0, 400, 50 ); /* name, flags,
                                  x, and y */
-  glui->add_statictext( "GLUI Example 2" );
-  glui->add_separator();
-  checkbox = glui->add_checkbox( "Wireframe", &wireframe, 1, control_cb );
-  spinner  = glui->add_spinner( "Segments:",GLUI_SPINNER_INT, &segments,
-                2, control_cb );
+  new GLUI_StaticText( glui, "GLUI Example 2" );
+  new GLUI_Separator( glui );
+  checkbox = new GLUI_Checkbox( glui, "Wireframe", &wireframe, 1, control_cb );
+  spinner  = new GLUI_Spinner( glui, "Segments:", &segments, 2, control_cb );
   spinner->set_int_limits( 3, 60 );
-  edittext = glui->add_edittext( "Text:", GLUI_EDITTEXT_TEXT, text,
-                 3, control_cb );
-  GLUI_Panel *obj_panel = glui->add_panel( "Object Type" );
-  radio = glui->add_radiogroup_to_panel(obj_panel,&obj,4,control_cb);
-  glui->add_radiobutton_to_group( radio, "Sphere" );
-  glui->add_radiobutton_to_group( radio, "Torus" );
-  glui->add_button( "Quit", 0,(GLUI_Update_CB)exit );
+  edittext = new GLUI_EditText( glui, "Text:", text, 3, control_cb );
+  GLUI_Panel *obj_panel = new GLUI_Panel( glui, "Object Type" );
+  radio = new GLUI_RadioGroup( obj_panel,&obj,4,control_cb );
+  new GLUI_RadioButton( radio, "Sphere" );
+  new GLUI_RadioButton( radio, "Torus" );
+  new GLUI_RadioButton( radio, "Teapot" );
+  new GLUI_Button( glui, "Quit", 0,(GLUI_Update_CB)exit );
 
   glui->set_main_gfx_window( main_window );
 
