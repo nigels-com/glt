@@ -25,10 +25,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
@@ -53,11 +49,9 @@ int FGAPIENTRY glutExtensionSupported( const char* extension )
   const char *extensions, *start;
   const int len = strlen( extension );
 
-  /*
-   * Make sure there is a current window, and thus a current context available
-   */
-  freeglut_assert_ready;
-  freeglut_return_val_if_fail( fgStructure.Window != NULL, 0 );
+  /* Make sure there is a current window, and thus a current context available */
+  FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutExtensionSupported" );
+  freeglut_return_val_if_fail( fgStructure.CurrentWindow != NULL, 0 );
 
   if (strchr(extension, ' '))
     return 0;
@@ -88,54 +82,49 @@ int FGAPIENTRY glutExtensionSupported( const char* extension )
 void FGAPIENTRY glutReportErrors( void )
 {
     GLenum error;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutReportErrors" );
     while( ( error = glGetError() ) != GL_NO_ERROR )
         fgWarning( "GL error: %s", gluErrorString( error ) );
 }
 
 /*
- * Turns the ignore key auto repeat feature on and off
- *
- * DEPRECATED 11/4/02 - Do not use
+ * Control the auto-repeat of keystrokes to the current window
  */
 void FGAPIENTRY glutIgnoreKeyRepeat( int ignore )
 {
-    fgState.IgnoreKeyRepeat = ignore ? GL_TRUE : GL_FALSE;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutIgnoreKeyRepeat" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutIgnoreKeyRepeat" );
+
+    fgStructure.CurrentWindow->State.IgnoreKeyRepeat = ignore ? GL_TRUE : GL_FALSE;
 }
 
 /*
- * Hints the window system whether to generate key auto repeat, or not.
- * This is evil.
+ * Set global auto-repeat of keystrokes
  *
- * XXX Is this also deprecated as of 20021104?
+ * RepeatMode should be either:
+ *    GLUT_KEY_REPEAT_OFF
+ *    GLUT_KEY_REPEAT_ON
+ *    GLUT_KEY_REPEAT_DEFAULT
  */
 void FGAPIENTRY glutSetKeyRepeat( int repeatMode )
 {
-#if TARGET_HOST_UNIX_X11
-
-    freeglut_assert_ready;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutSetKeyRepeat" );
 
     switch( repeatMode )
     {
-    case GLUT_KEY_REPEAT_OFF:   XAutoRepeatOff( fgDisplay.Display ); break;
-    case GLUT_KEY_REPEAT_ON:    XAutoRepeatOn( fgDisplay.Display );  break;
-    case GLUT_KEY_REPEAT_DEFAULT:
-        {
-            XKeyboardState keyboardState;
+    case GLUT_KEY_REPEAT_OFF:
+    case GLUT_KEY_REPEAT_ON:
+     fgState.KeyRepeat = repeatMode;
+     break;
 
-            XGetKeyboardControl( fgDisplay.Display, &keyboardState );
-            glutSetKeyRepeat(
-                keyboardState.global_auto_repeat == AutoRepeatModeOn ?
-                GLUT_KEY_REPEAT_ON : GLUT_KEY_REPEAT_OFF
-            );
-        }
-        break;
+    case GLUT_KEY_REPEAT_DEFAULT:
+     fgState.KeyRepeat = GLUT_KEY_REPEAT_ON;
+     break;
 
     default:
         fgError ("Invalid glutSetKeyRepeat mode: %d", repeatMode);
         break;
     }
-
-#endif
 }
 
 /*
@@ -143,10 +132,12 @@ void FGAPIENTRY glutSetKeyRepeat( int repeatMode )
  */
 void FGAPIENTRY glutForceJoystickFunc( void )
 {
-    freeglut_assert_ready;
-    freeglut_return_if_fail( fgStructure.Window != NULL );
-    freeglut_return_if_fail( FETCH_WCB( *( fgStructure.Window ), Joystick ) );
-    fgJoystickPollWindow( fgStructure.Window );
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutForceJoystickFunc" );
+#if !TARGET_HOST_WINCE
+    freeglut_return_if_fail( fgStructure.CurrentWindow != NULL );
+    freeglut_return_if_fail( FETCH_WCB( *( fgStructure.CurrentWindow ), Joystick ) );
+    fgJoystickPollWindow( fgStructure.CurrentWindow );
+#endif /* !TARGET_HOST_WINCE */
 }
 
 /*
@@ -154,9 +145,8 @@ void FGAPIENTRY glutForceJoystickFunc( void )
  */
 void FGAPIENTRY glutSetColor( int nColor, GLfloat red, GLfloat green, GLfloat blue )
 {
-    /*
-     *
-     */
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutSetColor" );
+    /* We really need to do something here. */
 }
 
 /*
@@ -164,9 +154,8 @@ void FGAPIENTRY glutSetColor( int nColor, GLfloat red, GLfloat green, GLfloat bl
  */
 GLfloat FGAPIENTRY glutGetColor( int color, int component )
 {
-    /*
-     *
-     */
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutGetColor" );
+    /* We really need to do something here. */
     return( 0.0f );
 }
 
@@ -175,9 +164,8 @@ GLfloat FGAPIENTRY glutGetColor( int color, int component )
  */
 void FGAPIENTRY glutCopyColormap( int window )
 {
-    /*
-     *
-     */
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutCopyColormap" );
+    /* We really need to do something here. */
 }
 
 /*** END OF FILE ***/

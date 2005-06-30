@@ -67,6 +67,16 @@
 #define  GLUT_DIRECT_RENDERING              0x01FE
 
 /*
+ * New tokens for glutInitDisplayMode.
+ * Only one GLUT_AUXn bit may be used at a time.
+ * Value 0x0400 is defined in OpenGLUT.
+ */
+#define  GLUT_AUX1                          0x1000
+#define  GLUT_AUX2                          0x2000
+#define  GLUT_AUX3                          0x4000
+#define  GLUT_AUX4                          0x8000
+
+/*
  * Process loop function, see freeglut_main.c
  */
 FGAPI void    FGAPIENTRY glutMainLoopEvent( void );
@@ -112,7 +122,8 @@ FGAPI void    FGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height, GL
 /*
  * Extension functions, see freeglut_ext.c
  */
-FGAPI void * FGAPIENTRY glutGetProcAddress( const char *procName );
+typedef void (*GLUTproc)();
+FGAPI GLUTproc FGAPIENTRY glutGetProcAddress( const char *procName );
 
 
 #ifdef __cplusplus

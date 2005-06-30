@@ -25,12 +25,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
+
+#if TARGET_HOST_WINCE
+#include <aygshell.h>
+#pragma comment( lib, "Aygshell.lib" )
+
+static wchar_t* fghWstrFromStr(const char* str)
+{
+    int i,len=strlen(str);
+    wchar_t* wstr = (wchar_t*)malloc(2*len+2);
+    for(i=0; i<len; i++)
+        wstr[i] = str[i];
+    wstr[len] = 0;
+    return wstr;
+}
+
+
+#endif /* TARGET_HOST_WINCE */
 
 /*
  * TODO BEFORE THE STABLE RELEASE:
@@ -70,12 +83,10 @@ XVisualInfo* fgChooseVisual( void )
     int attributes[ 32 ];
     int where = 0;
 
-    /*
-     * First we have to process the display mode settings...
-     */
+    /* First we have to process the display mode settings... */
 /*
- * Why is there a semi-colon in this #define?  The code
- * that uses the macro seems to always add more semicolons...
+ * XXX Why is there a semi-colon in this #define?  The code
+ * XXX that uses the macro seems to always add more semicolons...
  */
 #define ATTRIB(a) attributes[where++]=a;
 #define ATTRIB_VAL(a,v) {ATTRIB(a); ATTRIB(v);}
@@ -116,9 +127,17 @@ XVisualInfo* fgChooseVisual( void )
             ATTRIB_VAL( GLX_ACCUM_ALPHA_SIZE, 1 );
     }
 
-    /*
-     * Push a null at the end of the list
-     */
+    if( fgState.DisplayMode & GLUT_AUX1 )
+        ATTRIB_VAL( GLX_AUX_BUFFERS, 1 );
+    if( fgState.DisplayMode & GLUT_AUX2 )
+        ATTRIB_VAL( GLX_AUX_BUFFERS, 2 );
+    if( fgState.DisplayMode & GLUT_AUX3 )
+        ATTRIB_VAL( GLX_AUX_BUFFERS, 3 );
+    if( fgState.DisplayMode & GLUT_AUX4 )
+        ATTRIB_VAL( GLX_AUX_BUFFERS, 4 );
+
+
+    /* Push a null at the end of the list */
     ATTRIB( None );
 
     if( ! wantIndexedMode )
@@ -154,6 +173,9 @@ XVisualInfo* fgChooseVisual( void )
 GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
                               unsigned char layer_type )
 {
+#if TARGET_HOST_WINCE
+    return GL_TRUE;
+#else
     PIXELFORMATDESCRIPTOR* ppfd, pfd;
     int flags, pixelformat;
 
@@ -166,9 +188,7 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
 #pragma message( "fgSetupPixelFormat(): there is still some work to do here!" )
 #endif
 
-    /*
-     * Specify which pixel format do we opt for...
-     */
+    /* Specify which pixel format do we opt for... */
     pfd.nSize           = sizeof(PIXELFORMATDESCRIPTOR);
     pfd.nVersion        = 1;
     pfd.dwFlags         = flags;
@@ -194,7 +214,17 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
     pfd.cDepthBits      = 24;
     pfd.cStencilBits    = 8;
 #endif
-    pfd.cAuxBuffers     = 0;
+    if( fgState.DisplayMode & GLUT_AUX4 )
+        pfd.cAuxBuffers = 4;
+    else if( fgState.DisplayMode & GLUT_AUX3 )
+        pfd.cAuxBuffers = 3;
+    else if( fgState.DisplayMode & GLUT_AUX2 )
+        pfd.cAuxBuffers = 2;
+    else if( fgState.DisplayMode & GLUT_AUX1 )
+        pfd.cAuxBuffers = 1;
+    else
+        pfd.cAuxBuffers = 0;
+
     pfd.iLayerType      = layer_type;
     pfd.bReserved       = 0;
     pfd.dwLayerMask     = 0;
@@ -211,6 +241,7 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
     if( checkOnly )
         return GL_TRUE;
     return SetPixelFormat( window->Window.Device, pixelformat, ppfd );
+#endif /* TARGET_HOST_WINCE */
 }
 #endif
 
@@ -227,10 +258,10 @@ void fgSetWindow ( SFG_Window *window )
             window->Window.Handle,
             window->Window.Context
         );
-#elif TARGET_HOST_WIN32
-    if( fgStructure.Window )
-        ReleaseDC( fgStructure.Window->Window.Handle,
-                   fgStructure.Window->Window.Device );
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+    if( fgStructure.CurrentWindow )
+        ReleaseDC( fgStructure.CurrentWindow->Window.Handle,
+                   fgStructure.CurrentWindow->Window.Device );
 
     if ( window )
     {
@@ -241,7 +272,7 @@ void fgSetWindow ( SFG_Window *window )
         );
     }
 #endif
-    fgStructure.Window = window;
+    fgStructure.CurrentWindow = window;
 }
 
 
@@ -259,26 +290,16 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     XSizeHints sizeHints;
     XWMHints wmHints;
     unsigned long mask;
+    unsigned int current_DisplayMode = fgState.DisplayMode ;
 
-    freeglut_assert_ready;
+    /* Save the display mode if we are creating a menu window */
+    if( window->IsMenu && ( ! fgStructure.MenuContext ) )
+        fgState.DisplayMode = GLUT_DOUBLE | GLUT_RGB ;
 
-    /*
-     * XXX fgChooseVisual() is a common part of all three.
-     * XXX With a little thought, we should be able to greatly
-     * XXX simplify this.
-     */
-    if( !window->IsMenu )
-        window->Window.VisualInfo = fgChooseVisual( );
-    else if( fgStructure.MenuContext )
-        window->Window.VisualInfo = fgChooseVisual( );
-    else
-    {
-        /* XXX Why are menus double- and depth-buffered? */
-        unsigned int current_DisplayMode = fgState.DisplayMode ;
-        fgState.DisplayMode = GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH ;
-        window->Window.VisualInfo = fgChooseVisual( );
+    window->Window.VisualInfo = fgChooseVisual( );
+
+    if( window->IsMenu && ( ! fgStructure.MenuContext ) )
         fgState.DisplayMode = current_DisplayMode ;
-    }
 
     if( ! window->Window.VisualInfo )
     {
@@ -300,36 +321,9 @@ void fgOpenWindow( SFG_Window* window, const char* title,
          */
     }
 
-    /*
-     * XXX This seems to be abusing an assert() for error-checking.
-     * XXX It is possible that the visual simply can't be found,
-     * XXX in which case we should print an error and return a 0
-     * XXX for the window id, I think.
-     */
-    assert( window->Window.VisualInfo != NULL );
+    FREEGLUT_INTERNAL_ERROR_EXIT( window->Window.VisualInfo != NULL,
+                                  "Visual with necessary capabilities not found", "fgOpenWindow" );
 
-    window->State.IsOffscreen = GL_FALSE;
-    if( fgState.DisplayMode & GLUT_OFFSCREEN )
-    {
-        window->State.IsOffscreen = GL_TRUE;
-        window->Window.Pixmap = XCreatePixmap(
-            fgDisplay.Display, fgDisplay.RootWindow,
-            w, h,
-            window->Window.VisualInfo->depth
-        );
-        if( False != window->Window.Pixmap )
-        {
-            window->Window.Handle = glXCreateGLXPixmap(
-                fgDisplay.Display,
-                window->Window.VisualInfo,
-                window->Window.Pixmap
-            );
-            if( False == window->Window.Handle )
-                XFreePixmap( fgDisplay.Display, window->Window.Pixmap );
-        }
-    }
-    else
-    {
     /*
      * XXX HINT: the masks should be updated when adding/removing callbacks.
      * XXX       This might speed up message processing. Is that true?
@@ -337,13 +331,13 @@ void fgOpenWindow( SFG_Window* window, const char* title,
      * XXX A: Not appreciably, but it WILL make it easier to debug.
      * XXX    Try tracing old GLUT and try tracing freeglut.  Old GLUT
      * XXX    turns off events that it doesn't need and is a whole lot
-         * XXX    more pleasant to trace.  (Think mouse-motion!  Tons of
-         * XXX    ``bonus'' GUI events stream in.)
-         */
-        winAttr.event_mask        =
-            StructureNotifyMask | SubstructureNotifyMask | ExposureMask |
-            ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyRelease |
-            VisibilityChangeMask | EnterWindowMask | LeaveWindowMask |
+     * XXX    more pleasant to trace.  (Think mouse-motion!  Tons of
+     * XXX    ``bonus'' GUI events stream in.)
+     */
+    winAttr.event_mask        =
+        StructureNotifyMask | SubstructureNotifyMask | ExposureMask |
+        ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask |
+        VisibilityChangeMask | EnterWindowMask | LeaveWindowMask |
         PointerMotionMask | ButtonMotionMask;
     winAttr.background_pixmap = None;
     winAttr.background_pixel  = 0;
@@ -356,7 +350,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
 
     mask = CWBackPixmap | CWBorderPixel | CWColormap | CWEventMask;
 
-    if ( window->IsMenu )
+    if( window->IsMenu || ( gameMode == GL_TRUE ) )
     {
         winAttr.override_redirect = True;
         mask |= CWOverrideRedirect;
@@ -365,13 +359,13 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     window->Window.Handle = XCreateWindow(
         fgDisplay.Display,
         window->Parent == NULL ? fgDisplay.RootWindow :
-                                 window->Parent->Window.Handle,
+        window->Parent->Window.Handle,
         x, y, w, h, 0,
         window->Window.VisualInfo->depth, InputOutput,
         window->Window.VisualInfo->visual, mask,
         &winAttr
     );
-    }
+
     /*
      * The GLX context creation, possibly trying the direct context rendering
      *  or else use the current context if the user has so specified
@@ -389,14 +383,14 @@ void fgOpenWindow( SFG_Window* window, const char* title,
             fgStructure.MenuContext->VisualInfo = window->Window.VisualInfo;
             fgStructure.MenuContext->Context = glXCreateContext(
                 fgDisplay.Display, fgStructure.MenuContext->VisualInfo,
-                NULL, fgState.ForceDirectContext | fgState.TryDirectContext
+                NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
             );
         }
 
         /* window->Window.Context = fgStructure.MenuContext->Context; */
         window->Window.Context = glXCreateContext(
             fgDisplay.Display, window->Window.VisualInfo,
-            NULL, fgState.ForceDirectContext | fgState.TryDirectContext
+            NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
         );
     }
     else if( fgState.UseCurrentContext )
@@ -404,27 +398,28 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         window->Window.Context = glXGetCurrentContext( );
 
         if( ! window->Window.Context )
-        window->Window.Context = glXCreateContext(
-            fgDisplay.Display, window->Window.VisualInfo,
-            NULL, fgState.ForceDirectContext | fgState.TryDirectContext
-        );
+            window->Window.Context = glXCreateContext(
+                fgDisplay.Display, window->Window.VisualInfo,
+                NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
+            );
     }
     else
         window->Window.Context = glXCreateContext(
             fgDisplay.Display, window->Window.VisualInfo,
-            NULL, fgState.ForceDirectContext | fgState.TryDirectContext
+            NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
         );
 
-    if( fgState.ForceDirectContext &&
-        !glXIsDirect( fgDisplay.Display, window->Window.Context ) )
-        fgError( "unable to force direct context rendering for window '%s'",
+#if !defined( __FreeBSD__ ) && !defined( __NetBSD__ )
+    if(  !glXIsDirect( fgDisplay.Display, window->Window.Context ) )
+    {
+      if( fgState.DirectContext == GLUT_FORCE_DIRECT_CONTEXT )
+        fgError( "Unable to force direct context rendering for window '%s'",
                  title );
-
-    glXMakeCurrent(
-        fgDisplay.Display,
-        window->Window.Handle,
-        window->Window.Context
-    );
+      else if( fgState.DirectContext == GLUT_TRY_DIRECT_CONTEXT )
+        fgWarning( "Unable to create direct context rendering for window '%s'\nThis may hurt performance.",
+                 title );
+    }
+#endif
 
     /*
      * XXX Assume the new window is visible by default
@@ -440,7 +435,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
 
     /*
      * Fill in the size hints values now (the x, y, width and height
-     * settings are obsolote, are there any more WMs that support them?)
+     * settings are obsolete, are there any more WMs that support them?)
      * Unless the X servers actually stop supporting these, we should
      * continue to fill them in.  It is *not* our place to tell the user
      * that they should replace a window manager that they like, and which
@@ -453,11 +448,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
 
     wmHints.flags = StateHint;
     wmHints.initial_state = fgState.ForceIconic ? IconicState : NormalState;
-    if( GL_FALSE == window->State.IsOffscreen )
-    {
-    /*
-     * Prepare the window and iconified window names...
-     */
+    /* Prepare the window and iconified window names... */
     XStringListToTextProperty( (char **) &title, 1, &textProperty );
 
     XSetWMProperties(
@@ -471,30 +462,36 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         &wmHints,
         NULL
     );
+    XFree( textProperty.value );
 
     XSetWMProtocols( fgDisplay.Display, window->Window.Handle,
                      &fgDisplay.DeleteWindow, 1 );
 
-    XMapWindow( fgDisplay.Display, window->Window.Handle );
-    }
+    glXMakeCurrent(
+        fgDisplay.Display,
+        window->Window.Handle,
+        window->Window.Context
+    );
 
-#elif TARGET_HOST_WIN32
+    XMapWindow( fgDisplay.Display, window->Window.Handle );
+
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
     WNDCLASS wc;
-    int flags;
+    DWORD flags;
+    DWORD exFlags = 0;
     ATOM atom;
 
-    freeglut_assert_ready;
-
-    /*
-     * Grab the window class we have registered on glutInit():
-     */
-    atom = GetClassInfo( fgDisplay.Instance, "FREEGLUT", &wc );
-    assert( atom != 0 );
+    /* Grab the window class we have registered on glutInit(): */
+    atom = GetClassInfo( fgDisplay.Instance, _T("FREEGLUT"), &wc );
+    FREEGLUT_INTERNAL_ERROR_EXIT ( atom, "Window Class Info Not Found",
+                                   "fgOpenWindow" );
 
     if( gameMode )
     {
-        assert( window->Parent == NULL );
+        FREEGLUT_INTERNAL_ERROR_EXIT ( window->Parent == NULL,
+                                       "Game mode being invoked on a subwindow",
+                                       "fgOpenWindow" );
 
         /*
          * Set the window creation flags appropriately to make the window
@@ -504,6 +501,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     }
     else
     {
+#if !TARGET_HOST_WINCE
         if ( ( ! isSubWindow ) && ( ! window->IsMenu ) )
         {
             /*
@@ -515,6 +513,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
             h += (GetSystemMetrics( SM_CYSIZEFRAME ) )*2 +
                 GetSystemMetrics( SM_CYCAPTION );
         }
+#endif /* TARGET_HOST_WINCE */
 
         if( ! fgState.Position.Use )
         {
@@ -534,14 +533,45 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         flags = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
 
         if ( window->IsMenu )
-            flags |= WS_POPUP ;
+        {
+            flags |= WS_POPUP;
+            exFlags |= WS_EX_TOOLWINDOW;
+        }
+#if !TARGET_HOST_WINCE
         else if( window->Parent == NULL )
             flags |= WS_OVERLAPPEDWINDOW;
+#endif
         else
             flags |= WS_CHILD;
     }
 
-    window->Window.Handle = CreateWindow(
+#if TARGET_HOST_WINCE
+    {
+        wchar_t* wstr = fghWstrFromStr(title);
+
+        window->Window.Handle = CreateWindow(
+            _T("FREEGLUT"),
+            wstr,
+            WS_VISIBLE | WS_POPUP,
+            0,0, 240,320,
+            NULL,
+            NULL,
+            fgDisplay.Instance,
+            (LPVOID) window
+        );
+
+        free(wstr);
+
+        SHFullScreen(window->Window.Handle, SHFS_HIDESTARTICON);
+        SHFullScreen(window->Window.Handle, SHFS_HIDESIPBUTTON);
+        SHFullScreen(window->Window.Handle, SHFS_HIDETASKBAR);
+        MoveWindow(window->Window.Handle, 0, 0, 240, 320, TRUE);
+        ShowWindow(window->Window.Handle, SW_SHOW);
+        UpdateWindow(window->Window.Handle);
+    }
+#else
+    window->Window.Handle = CreateWindowEx(
+        exFlags,
         "FREEGLUT",
         title,
         flags,
@@ -551,13 +581,20 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         fgDisplay.Instance,
         (LPVOID) window
     );
+#endif /* TARGET_HOST_WINCE */
+
     if( !( window->Window.Handle ) )
         fgError( "Failed to create a window (%s)!", title );
 
+#if TARGET_HOST_WINCE
+    ShowWindow( window->Window.Handle, SW_SHOW );
+#else
     ShowWindow( window->Window.Handle,
                 fgState.ForceIconic ? SW_SHOWMINIMIZED : SW_SHOW );
+#endif /* TARGET_HOST_WINCE */
+
     UpdateWindow( window->Window.Handle );
-    ShowCursor( TRUE );  /* XXX Old comments say "hide cusror"! */
+    ShowCursor( TRUE );  /* XXX Old comments say "hide cursor"! */
 
 #endif
 
@@ -578,26 +615,16 @@ void fgOpenWindow( SFG_Window* window, const char* title,
  */
 void fgCloseWindow( SFG_Window* window )
 {
-    freeglut_assert_ready;
-
 #if TARGET_HOST_UNIX_X11
 
     glXDestroyContext( fgDisplay.Display, window->Window.Context );
-    if( GL_FALSE == window->State.IsOffscreen )
     XDestroyWindow( fgDisplay.Display, window->Window.Handle );
-    else
-    {
-        glXDestroyGLXPixmap( fgDisplay.Display, window->Window.Handle );
-        XFreePixmap( fgDisplay.Display, window->Window.Pixmap );
-    }
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    /*
-     * Make sure we don't close a window with current context active
-     */
-    if( fgStructure.Window == window )
+    /* Make sure we don't close a window with current context active */
+    if( fgStructure.CurrentWindow == window )
         wglMakeCurrent( NULL, NULL );
 
     /*
@@ -633,6 +660,14 @@ void fgCloseWindow( SFG_Window* window )
  */
 int FGAPIENTRY glutCreateWindow( const char* title )
 {
+    /* XXX GLUT does not exit; it simply calls "glutInit" quietly if the
+     * XXX application has not already done so.  The "freeglut" community
+     * XXX decided not to go this route (freeglut-developer e-mail from
+     * XXX Steve Baker, 12/16/04, 4:22 PM CST, "Re: [Freeglut-developer]
+     * XXX Desired 'freeglut' behaviour when there is no current window"
+     */
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutCreateWindow" );
+
     return fgCreateWindow( NULL, title, fgState.Position.X, fgState.Position.Y,
                            fgState.Size.X, fgState.Size.Y, GL_FALSE,
                            GL_FALSE )->ID;
@@ -644,18 +679,41 @@ int FGAPIENTRY glutCreateWindow( const char* title )
 int FGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
 {
     int ret = 0;
-
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
     SFG_Window* window = NULL;
     SFG_Window* parent = NULL;
 
-    freeglut_assert_ready;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutCreateSubWindow" );
     parent = fgWindowByID( parentID );
     freeglut_return_val_if_fail( parent != NULL, 0 );
-    window = fgCreateWindow( parent, "", x, y, w, h, GL_FALSE, GL_FALSE );
-        ret = window->ID;
+    if ( x < 0 )
+    {
+        x = parent->State.Width + x ;
+        if ( w >= 0 ) x -= w ;
     }
+
+    if ( w < 0 ) w = parent->State.Width - x + w ;
+    if ( w < 0 )
+    {
+        x += w ;
+        w = -w ;
+    }
+
+    if ( y < 0 )
+    {
+        y = parent->State.Height + y ;
+        if ( h >= 0 ) y -= h ;
+    }
+
+    if ( h < 0 ) h = parent->State.Height - y + h ;
+    if ( h < 0 )
+    {
+        y += h ;
+        h = -h ;
+    }
+
+    window = fgCreateWindow( parent, "", x, y, w, h, GL_FALSE, GL_FALSE );
+    ret = window->ID;
+
     return ret;
 }
 
@@ -664,7 +722,9 @@ int FGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
  */
 void FGAPIENTRY glutDestroyWindow( int windowID )
 {
-    SFG_Window* window = fgWindowByID( windowID );
+    SFG_Window* window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutDestroyWindow" );
+    window = fgWindowByID( windowID );
     freeglut_return_if_fail( window != NULL );
     {
         fgExecutionState ExecState = fgState.ExecState;
@@ -680,15 +740,15 @@ void FGAPIENTRY glutSetWindow( int ID )
 {
     SFG_Window* window = NULL;
 
-    freeglut_assert_ready;
-    if( fgStructure.Window != NULL )
-        if( fgStructure.Window->ID == ID )
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutSetWindow" );
+    if( fgStructure.CurrentWindow != NULL )
+        if( fgStructure.CurrentWindow->ID == ID )
             return;
 
     window = fgWindowByID( ID );
     if( window == NULL )
     {
-        fgWarning( "glutSetWindow(): window ID %i not found!", ID );
+        fgWarning( "glutSetWindow(): window ID %d not found!", ID );
         return;
     }
 
@@ -700,10 +760,10 @@ void FGAPIENTRY glutSetWindow( int ID )
  */
 int FGAPIENTRY glutGetWindow( void )
 {
-    freeglut_assert_ready;
-    if( fgStructure.Window == NULL )
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutGetWindow" );
+    if( fgStructure.CurrentWindow == NULL )
         return 0;
-    return fgStructure.Window->ID;
+    return fgStructure.CurrentWindow->ID;
 }
 
 /*
@@ -711,23 +771,21 @@ int FGAPIENTRY glutGetWindow( void )
  */
 void FGAPIENTRY glutShowWindow( void )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutShowWindow" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutShowWindow" );
 
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
 #if TARGET_HOST_UNIX_X11
 
-    XMapWindow( fgDisplay.Display, fgStructure.Window->Window.Handle );
+    XMapWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    ShowWindow( fgStructure.Window->Window.Handle, SW_SHOW );
+    ShowWindow( fgStructure.CurrentWindow->Window.Handle, SW_SHOW );
 
 #endif
-    }
-    fgStructure.Window->State.Redisplay = GL_TRUE;
+
+    fgStructure.CurrentWindow->State.Redisplay = GL_TRUE;
 }
 
 /*
@@ -735,29 +793,27 @@ void FGAPIENTRY glutShowWindow( void )
  */
 void FGAPIENTRY glutHideWindow( void )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutHideWindow" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutHideWindow" );
 
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
 #if TARGET_HOST_UNIX_X11
 
-    if( fgStructure.Window->Parent == NULL )
-            XWithdrawWindow( fgDisplay.Display,
-                             fgStructure.Window->Window.Handle,
+    if( fgStructure.CurrentWindow->Parent == NULL )
+        XWithdrawWindow( fgDisplay.Display,
+                         fgStructure.CurrentWindow->Window.Handle,
                          fgDisplay.Screen );
     else
-            XUnmapWindow( fgDisplay.Display,
-                          fgStructure.Window->Window.Handle );
+        XUnmapWindow( fgDisplay.Display,
+                      fgStructure.CurrentWindow->Window.Handle );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    ShowWindow( fgStructure.Window->Window.Handle, SW_HIDE );
+    ShowWindow( fgStructure.CurrentWindow->Window.Handle, SW_HIDE );
 
 #endif
-    }
-    fgStructure.Window->State.Redisplay = GL_FALSE;
+
+    fgStructure.CurrentWindow->State.Redisplay = GL_FALSE;
 }
 
 /*
@@ -765,25 +821,23 @@ void FGAPIENTRY glutHideWindow( void )
  */
 void FGAPIENTRY glutIconifyWindow( void )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutIconifyWindow" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutIconifyWindow" );
 
-    fgStructure.Window->State.Visible   = GL_FALSE;
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
+    fgStructure.CurrentWindow->State.Visible   = GL_FALSE;
 #if TARGET_HOST_UNIX_X11
 
-    XIconifyWindow( fgDisplay.Display, fgStructure.Window->Window.Handle,
+    XIconifyWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle,
                     fgDisplay.Screen );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
-    ShowWindow( fgStructure.Window->Window.Handle, SW_MINIMIZE );
+    ShowWindow( fgStructure.CurrentWindow->Window.Handle, SW_MINIMIZE );
 
 #endif
-    }
-    fgStructure.Window->State.Redisplay = GL_FALSE;
+
+    fgStructure.CurrentWindow->State.Redisplay = GL_FALSE;
 }
 
 /*
@@ -791,10 +845,9 @@ void FGAPIENTRY glutIconifyWindow( void )
  */
 void FGAPIENTRY glutSetWindowTitle( const char* title )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
-    if( ! fgStructure.Window->Parent &&
-        ( GL_FALSE == fgStructure.Window->State.IsOffscreen ) )
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutSetWindowTitle" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutSetWindowTitle" );
+    if( ! fgStructure.CurrentWindow->Parent )
     {
 #if TARGET_HOST_UNIX_X11
 
@@ -807,7 +860,7 @@ void FGAPIENTRY glutSetWindowTitle( const char* title )
 
         XSetWMName(
             fgDisplay.Display,
-            fgStructure.Window->Window.Handle,
+            fgStructure.CurrentWindow->Window.Handle,
             &text
         );
 
@@ -815,8 +868,16 @@ void FGAPIENTRY glutSetWindowTitle( const char* title )
 
 #elif TARGET_HOST_WIN32
 
-    SetWindowText( fgStructure.Window->Window.Handle, title );
+        SetWindowText( fgStructure.CurrentWindow->Window.Handle, title );
 
+#elif TARGET_HOST_WINCE
+        {
+            wchar_t* wstr = fghWstrFromStr(title);
+
+            SetWindowText( fgStructure.CurrentWindow->Window.Handle, wstr );
+
+            free(wstr);
+        }
 #endif
     }
 }
@@ -826,11 +887,10 @@ void FGAPIENTRY glutSetWindowTitle( const char* title )
  */
 void FGAPIENTRY glutSetIconTitle( const char* title )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutSetIconTitle" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutSetIconTitle" );
 
-    if( ! fgStructure.Window->Parent &&
-        GL_FALSE == fgStructure.Window->State.IsOffscreen )
+    if( ! fgStructure.CurrentWindow->Parent )
     {
 #if TARGET_HOST_UNIX_X11
 
@@ -843,7 +903,7 @@ void FGAPIENTRY glutSetIconTitle( const char* title )
 
         XSetWMIconName(
             fgDisplay.Display,
-            fgStructure.Window->Window.Handle,
+            fgStructure.CurrentWindow->Window.Handle,
             &text
         );
 
@@ -851,8 +911,16 @@ void FGAPIENTRY glutSetIconTitle( const char* title )
 
 #elif TARGET_HOST_WIN32
 
-    SetWindowText( fgStructure.Window->Window.Handle, title );
+        SetWindowText( fgStructure.CurrentWindow->Window.Handle, title );
 
+#elif TARGET_HOST_WINCE
+        {
+            wchar_t* wstr = fghWstrFromStr(title);
+
+            SetWindowText( fgStructure.CurrentWindow->Window.Handle, wstr );
+
+            free(wstr);
+        }
 #endif
     }
 }
@@ -862,16 +930,12 @@ void FGAPIENTRY glutSetIconTitle( const char* title )
  */
 void FGAPIENTRY glutReshapeWindow( int width, int height )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutReshapeWindow" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutReshapeWindow" );
 
-    /* XXX Could delete/create/set-window-id for offscreen. */
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
-    fgStructure.Window->State.NeedToResize = GL_TRUE;
-    fgStructure.Window->State.Width  = width ;
-    fgStructure.Window->State.Height = height;
-    }
+    fgStructure.CurrentWindow->State.NeedToResize = GL_TRUE;
+    fgStructure.CurrentWindow->State.Width  = width ;
+    fgStructure.CurrentWindow->State.Height = height;
 }
 
 /*
@@ -879,33 +943,33 @@ void FGAPIENTRY glutReshapeWindow( int width, int height )
  */
 void FGAPIENTRY glutPositionWindow( int x, int y )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutPositionWindow" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutPositionWindow" );
 
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
 #if TARGET_HOST_UNIX_X11
 
-        XMoveWindow( fgDisplay.Display, fgStructure.Window->Window.Handle,
-                     x, y );
+    XMoveWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle,
+                 x, y );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
+    {
         RECT winRect;
 
-        GetWindowRect( fgStructure.Window->Window.Handle, &winRect );
+        /* "GetWindowRect" returns the pixel coordinates of the outside of the window */
+        GetWindowRect( fgStructure.CurrentWindow->Window.Handle, &winRect );
         MoveWindow(
-            fgStructure.Window->Window.Handle,
+            fgStructure.CurrentWindow->Window.Handle,
             x,
             y,
             winRect.right - winRect.left,
             winRect.bottom - winRect.top,
             TRUE
         );
+    }
 
 #endif
-    }
 }
 
 /*
@@ -913,26 +977,23 @@ void FGAPIENTRY glutPositionWindow( int x, int y )
  */
 void FGAPIENTRY glutPushWindow( void )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutPushWindow" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutPushWindow" );
 
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
 #if TARGET_HOST_UNIX_X11
 
-    XLowerWindow( fgDisplay.Display, fgStructure.Window->Window.Handle );
+    XLowerWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle );
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
     SetWindowPos(
-        fgStructure.Window->Window.Handle,
+        fgStructure.CurrentWindow->Window.Handle,
         HWND_BOTTOM,
         0, 0, 0, 0,
         SWP_NOSIZE | SWP_NOMOVE
     );
 
 #endif
-    }
 }
 
 /*
@@ -940,26 +1001,23 @@ void FGAPIENTRY glutPushWindow( void )
  */
 void FGAPIENTRY glutPopWindow( void )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutPopWindow" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutPopWindow" );
 
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
-    {
 #if TARGET_HOST_UNIX_X11
 
-    XRaiseWindow( fgDisplay.Display, fgStructure.Window->Window.Handle );
+    XRaiseWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle );
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
     SetWindowPos(
-        fgStructure.Window->Window.Handle,
+        fgStructure.CurrentWindow->Window.Handle,
         HWND_TOP,
         0, 0, 0, 0,
         SWP_NOSIZE | SWP_NOMOVE
     );
 
 #endif
-    }
 }
 
 /*
@@ -967,10 +1025,9 @@ void FGAPIENTRY glutPopWindow( void )
  */
 void FGAPIENTRY glutFullScreen( void )
 {
-    freeglut_assert_ready;
-    freeglut_assert_window;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutFullScreen" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutFullScreen" );
 
-    if( GL_FALSE == fgStructure.Window->State.IsOffscreen )
     {
 #if TARGET_HOST_UNIX_X11
         int x, y;
@@ -978,7 +1035,7 @@ void FGAPIENTRY glutFullScreen( void )
 
         XMoveResizeWindow(
             fgDisplay.Display,
-            fgStructure.Window->Window.Handle,
+            fgStructure.CurrentWindow->Window.Handle,
             0, 0,
             fgDisplay.ScreenWidth,
             fgDisplay.ScreenHeight
@@ -988,7 +1045,7 @@ void FGAPIENTRY glutFullScreen( void )
 
         XTranslateCoordinates(
             fgDisplay.Display,
-            fgStructure.Window->Window.Handle,
+            fgStructure.CurrentWindow->Window.Handle,
             fgDisplay.RootWindow,
             0, 0, &x, &y, &w
         );
@@ -997,7 +1054,7 @@ void FGAPIENTRY glutFullScreen( void )
         {
             XMoveWindow(
                 fgDisplay.Display,
-                fgStructure.Window->Window.Handle,
+                fgStructure.CurrentWindow->Window.Handle,
                 -x, -y
             );
             XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
@@ -1025,7 +1082,7 @@ void FGAPIENTRY glutFullScreen( void )
          * SWP_NOZORDER       Retains the current Z order (ignore 2nd param)
          */
 
-        SetWindowPos( fgStructure.Window->Window.Handle,
+        SetWindowPos( fgStructure.CurrentWindow->Window.Handle,
                       HWND_TOP,
                       rect.left,
                       rect.top,
@@ -1043,12 +1100,16 @@ void FGAPIENTRY glutFullScreen( void )
  */
 void* FGAPIENTRY glutGetWindowData( void )
 {
-    return fgStructure.Window->UserData;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutGetWindowData" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutGetWindowData" );
+    return fgStructure.CurrentWindow->UserData;
 }
 
 void FGAPIENTRY glutSetWindowData(void* data)
 {
-    fgStructure.Window->UserData = data;
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutSetWindowData" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutSetWindowData" );
+    fgStructure.CurrentWindow->UserData = data;
 }
 
 /*** END OF FILE ***/

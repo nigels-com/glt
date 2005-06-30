@@ -25,10 +25,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
@@ -59,18 +55,17 @@ SFG_State fgState = { { -1, -1, GL_FALSE },  /* Position */
                       { 300, 300, GL_TRUE }, /* Size */
                       GLUT_RGBA | GLUT_SINGLE | GLUT_DEPTH,  /* DisplayMode */
                       GL_FALSE,              /* Initialised */
-                      GL_FALSE,              /* ForceDirectContext */
-                      GL_TRUE,               /* TryDirectContext */
+                      GLUT_TRY_DIRECT_CONTEXT,  /* DirectContext */
                       GL_FALSE,              /* ForceIconic */
                       GL_FALSE,              /* UseCurrentContext */
                       GL_FALSE,              /* GLDebugSwitch */
                       GL_FALSE,              /* XSyncSwitch */
-                      GL_FALSE,              /* IgnoreKeyRepeat */
+                      GLUT_KEY_REPEAT_ON,    /* KeyRepeat */
                       0xffffffff,            /* Modifiers */
                       0,                     /* FPSInterval */
                       0,                     /* SwapCount */
                       0,                     /* SwapTime */
-#if TARGET_HOST_WIN32
+#if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
                       { 0, GL_FALSE },       /* Time */
 #else
                       { { 0, 0 }, GL_FALSE },
@@ -86,7 +81,8 @@ SFG_State fgState = { { -1, -1, GL_FALSE },  /* Position */
                       72,                     /* GameModeRefresh */
                       GLUT_ACTION_EXIT,       /* ActionOnWindowClose */
                       GLUT_EXEC_STATE_INIT,   /* ExecState */
-                      NULL                    /* ProgramName */
+                      NULL,                   /* ProgramName */
+                      GL_FALSE                /* JoysticksInitialised */
 };
 
 
@@ -95,7 +91,7 @@ SFG_State fgState = { { -1, -1, GL_FALSE },  /* Position */
 /*
  * A call to this function should initialize all the display stuff...
  */
-void fgInitialize( const char* displayName )
+static void fghInitialize( const char* displayName )
 {
 #if TARGET_HOST_UNIX_X11
     fgDisplay.Display = XOpenDisplay( displayName );
@@ -133,26 +129,23 @@ void fgInitialize( const char* displayName )
 
     fgDisplay.Connection = ConnectionNumber( fgDisplay.Display );
 
-    /*
-     * Create the window deletion atom
-     */
+    /* Create the window deletion atom */
     fgDisplay.DeleteWindow = XInternAtom(
         fgDisplay.Display,
         "WM_DELETE_WINDOW",
         FALSE
     );
 
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
     WNDCLASS wc;
     ATOM atom;
 
-    /*
-     * What we need to do is to initialize the fgDisplay global structure here.
-     */
+    /* What we need to do is to initialize the fgDisplay global structure here. */
     fgDisplay.Instance = GetModuleHandle( NULL );
 
-    atom = GetClassInfo( fgDisplay.Instance, "FREEGLUT", &wc );
+    atom = GetClassInfo( fgDisplay.Instance, _T("FREEGLUT"), &wc );
+
     if( atom == 0 )
     {
         ZeroMemory( &wc, sizeof(WNDCLASS) );
@@ -165,30 +158,31 @@ void fgInitialize( const char* displayName )
          * XXX Old code had "| CS_DBCLCKS" commented out.  Plans for the
          * XXX future?  Dead-end idea?
          */
-        wc.style          = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
         wc.lpfnWndProc    = fgWindowProc;
         wc.cbClsExtra     = 0;
         wc.cbWndExtra     = 0;
         wc.hInstance      = fgDisplay.Instance;
-        wc.hIcon          = LoadIcon( fgDisplay.Instance, "GLUT_ICON" );
+        wc.hIcon          = LoadIcon( fgDisplay.Instance, _T("GLUT_ICON") );
+
+#if TARGET_HOST_WIN32
+        wc.style          = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
         if (!wc.hIcon)
           wc.hIcon        = LoadIcon( NULL, IDI_WINLOGO );
+#else /* TARGET_HOST_WINCE */
+        wc.style          = CS_HREDRAW | CS_VREDRAW;
+#endif
 
         wc.hCursor        = LoadCursor( NULL, IDC_ARROW );
         wc.hbrBackground  = NULL;
         wc.lpszMenuName   = NULL;
-        wc.lpszClassName  = "FREEGLUT";
+        wc.lpszClassName  = _T("FREEGLUT");
 
-        /*
-         * Register the window class
-         */
+        /* Register the window class */
         atom = RegisterClass( &wc );
-        assert( atom );
+        FREEGLUT_INTERNAL_ERROR_EXIT ( atom, "Window Class Not Registered", "fghInitialize" );
     }
 
-    /*
-     * The screen dimensions can be obtained via GetSystemMetrics() calls
-     */
+    /* The screen dimensions can be obtained via GetSystemMetrics() calls */
     fgDisplay.ScreenWidth  = GetSystemMetrics( SM_CXSCREEN );
     fgDisplay.ScreenHeight = GetSystemMetrics( SM_CYSCREEN );
 
@@ -202,10 +196,10 @@ void fgInitialize( const char* displayName )
         ReleaseDC( desktop, context );
     }
 
-#endif
+    /* Set the timer granularity to 1 ms */
+    timeBeginPeriod ( 1 );
 
-    fgJoystickInit( 0 );
-    fgJoystickInit( 1 );
+#endif
 
     fgState.Initialised = GL_TRUE;
 }
@@ -224,11 +218,7 @@ void fgDeinitialize( void )
         return;
     }
 
-    /* fgState.Initialised = GL_FALSE; */
-
-    /*
-     * If there was a menu created, destroy the rendering context
-     */
+    /* If there was a menu created, destroy the rendering context */
     if( fgStructure.MenuContext )
     {
         free( fgStructure.MenuContext );
@@ -237,19 +227,23 @@ void fgDeinitialize( void )
 
     fgDestroyStructure( );
 
-    while( (timer = fgState.Timers.First) )
+    while( ( timer = fgState.Timers.First) )
     {
         fgListRemove( &fgState.Timers, &timer->Node );
         free( timer );
     }
 
-    while( (timer = fgState.FreeTimers.First) )
+    while( ( timer = fgState.FreeTimers.First) )
     {
         fgListRemove( &fgState.FreeTimers, &timer->Node );
         free( timer );
     }
 
-    fgJoystickClose( );
+#if !TARGET_HOST_WINCE
+    if ( fgState.JoysticksInitialised )
+        fgJoystickClose( );
+#endif /* !TARGET_HOST_WINCE */
+    fgState.JoysticksInitialised = GL_FALSE;
 
     fgState.Initialised = GL_FALSE;
 
@@ -263,8 +257,7 @@ void fgDeinitialize( void )
 
     fgState.DisplayMode = GLUT_RGBA | GLUT_SINGLE | GLUT_DEPTH;
 
-    fgState.ForceDirectContext  = GL_FALSE;
-    fgState.TryDirectContext    = GL_TRUE;
+    fgState.DirectContext  = GLUT_TRY_DIRECT_CONTEXT;
     fgState.ForceIconic         = GL_FALSE;
     fgState.UseCurrentContext   = GL_FALSE;
     fgState.GLDebugSwitch       = GL_FALSE;
@@ -272,7 +265,7 @@ void fgDeinitialize( void )
     fgState.ActionOnWindowClose = GLUT_ACTION_EXIT;
     fgState.ExecState           = GLUT_EXEC_STATE_INIT;
 
-    fgState.IgnoreKeyRepeat = GL_TRUE;
+    fgState.KeyRepeat       = GLUT_KEY_REPEAT_ON;
     fgState.Modifiers       = 0xffffffff;
 
     fgState.GameModeSize.X  = 640;
@@ -299,7 +292,6 @@ void fgDeinitialize( void )
         fgState.ProgramName = NULL;
     }
 
-
 #if TARGET_HOST_UNIX_X11
 
     /*
@@ -314,14 +306,21 @@ void fgDeinitialize( void )
      */
     XCloseDisplay( fgDisplay.Display );
 
+#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+
+    /* Reset the timer granularity */
+    timeEndPeriod ( 1 );
+
 #endif
+
+    fgState.Initialised = GL_FALSE;
 }
 
 /*
  * Everything inside the following #ifndef is copied from the X sources.
  */
 
-#if TARGET_HOST_WIN32
+#if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 
 /*
 
@@ -516,6 +515,7 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
     fgElapsedTime( );
 
     /* check if GLUT_FPS env var is set */
+#if !TARGET_HOST_WINCE
     {
         const char *fps = getenv( "GLUT_FPS" );
         if( fps )
@@ -559,21 +559,21 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
         }
         else if( strcmp( argv[ i ], "-direct" ) == 0)
         {
-            if( ! fgState.TryDirectContext )
+            if( fgState.DirectContext == GLUT_FORCE_INDIRECT_CONTEXT )
                 fgError( "parameters ambiguity, -direct and -indirect "
                     "cannot be both specified" );
 
-            fgState.ForceDirectContext = GL_TRUE;
+            fgState.DirectContext = GLUT_FORCE_DIRECT_CONTEXT;
             argv[ i ] = NULL;
             ( *pargc )--;
         }
         else if( strcmp( argv[ i ], "-indirect" ) == 0 )
         {
-            if( fgState.ForceDirectContext )
+            if( fgState.DirectContext == GLUT_FORCE_DIRECT_CONTEXT )
                 fgError( "parameters ambiguity, -direct and -indirect "
                     "cannot be both specified" );
 
-            fgState.TryDirectContext = GL_FALSE;
+            fgState.DirectContext = GLUT_FORCE_INDIRECT_CONTEXT;
             argv[ i ] = NULL;
             (*pargc)--;
         }
@@ -597,27 +597,24 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
         }
     }
 
-    /*
-     * Compact {argv}.
-     */
-    j = 2;
-    for( i = 1; i < *pargc; i++, j++ )
+    /* Compact {argv}. */
+    for( i = j = 1; i < *pargc; i++, j++ )
     {
-        if( argv[ i ] == NULL )
-        {
-            /* Guaranteed to end because there are "*pargc" arguments left */
-            while ( argv[ j ] == NULL )
-                j++;
+        /* Guaranteed to end because there are "*pargc" arguments left */
+        while ( argv[ j ] == NULL )
+            j++;
+        if ( i != j )
             argv[ i ] = argv[ j ];
-        }
     }
+
+#endif /* TARGET_HOST_WINCE */
 
     /*
      * Have the display created now. If there wasn't a "-display"
      * in the program arguments, we will use the DISPLAY environment
      * variable for opening the X display (see code above):
      */
-    fgInitialize( displayName );
+    fghInitialize( displayName );
 
     /*
      * Geometry parsing deffered until here because we may need the screen
@@ -626,9 +623,13 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
 
     if (geometry )
     {
+        unsigned int parsedWidth, parsedHeight;
         int mask = XParseGeometry( geometry,
                                    &fgState.Position.X, &fgState.Position.Y,
-                                   &fgState.Size.X, &fgState.Size.Y );
+                                   &parsedWidth, &parsedHeight );
+        /* TODO: Check for overflow? */
+        fgState.Size.X = parsedWidth;
+        fgState.Size.Y = parsedHeight;
 
         if( (mask & (WidthValue|HeightValue)) == (WidthValue|HeightValue) )
             fgState.Size.Use = GL_TRUE;
@@ -677,33 +678,24 @@ void FGAPIENTRY glutInitWindowSize( int width, int height )
  */
 void FGAPIENTRY glutInitDisplayMode( unsigned int displayMode )
 {
-    /*
-     * We will make use of this value when creating a new OpenGL context...
-     */
+    /* We will make use of this value when creating a new OpenGL context... */
     fgState.DisplayMode = displayMode;
 }
 
 
 /* -- INIT DISPLAY STRING PARSING ------------------------------------------ */
 
-#define NUM_TOKENS             28
 static char* Tokens[] =
 {
     "alpha", "acca", "acc", "blue", "buffer", "conformant", "depth", "double",
     "green", "index", "num", "red", "rgba", "rgb", "luminance", "stencil",
-    "single", "stereo", "samples", "slow", "win32pdf", "xvisual",
+    "single", "stereo", "samples", "slow", "win32pdf", "win32pfd", "xvisual",
     "xstaticgray", "xgrayscale", "xstaticcolor", "xpseudocolor",
-    "xtruecolor", "xdirectcolor"
+    "xtruecolor", "xdirectcolor",
+    "xstaticgrey", "xgreyscale", "xstaticcolour", "xpseudocolour",
+    "xtruecolour", "xdirectcolour", "borderless", "aux"
 };
-
-static int TokenLengths[] =
-{
-    5,       4,      3,     4,      6,        10,           5,       6,
-    5,       5,       3,     3,     4,      3,     9,           7,
-    6,        6,        7,         4,      8,          7,
-    11,            10,           12,             12,
-    10,           12
-};
+#define NUM_TOKENS             (sizeof(Tokens) / sizeof(*Tokens))
 
 void FGAPIENTRY glutInitDisplayString( const char* displayMode )
 {
@@ -721,13 +713,11 @@ void FGAPIENTRY glutInitDisplayString( const char* displayMode )
     token = strtok ( buffer, " \t" );
     while ( token )
     {
-        /*
-         * Process this token
-         */
+        /* Process this token */
         int i ;
         for ( i = 0; i < NUM_TOKENS; i++ )
         {
-            if ( strncmp ( token, Tokens[i], TokenLengths[i] ) == 0 ) break ;
+            if ( strcmp ( token, Tokens[i] ) == 0 ) break ;
         }
 
         switch ( i )
@@ -821,56 +811,72 @@ void FGAPIENTRY glutInitDisplayString( const char* displayMode )
                       configuration is slow or not */
             break ;
 
-        case 20 :  /* "win32pdf":  matches the Win32 Pixel Format Descriptor by
+        case 20 :  /* "win32pdf": (incorrect spelling but was there before */
+        case 21 :  /* "win32pfd":  matches the Win32 Pixel Format Descriptor by
                       number */
 #if TARGET_HOST_WIN32
 #endif
             break ;
 
-        case 21 :  /* "xvisual":  matches the X visual ID by number */
+        case 22 :  /* "xvisual":  matches the X visual ID by number */
 #if TARGET_HOST_UNIX_X11
 #endif
             break ;
 
-        case 22 :  /* "xstaticgray":  boolean indicating if the frame buffer
+        case 23 :  /* "xstaticgray": */
+        case 29 :  /* "xstaticgrey":  boolean indicating if the frame buffer
                       configuration's X visual is of type StaticGray */
 #if TARGET_HOST_UNIX_X11
 #endif
             break ;
 
-        case 23 :  /* "xgrayscale":  boolean indicating if the frame buffer
+        case 24 :  /* "xgrayscale": */
+        case 30 :  /* "xgreyscale":  boolean indicating if the frame buffer
                       configuration's X visual is of type GrayScale */
 #if TARGET_HOST_UNIX_X11
 #endif
             break ;
 
-        case 24 :  /* "xstaticcolor":  boolean indicating if the frame buffer
+        case 25 :  /* "xstaticcolor": */
+        case 31 :  /* "xstaticcolour":  boolean indicating if the frame buffer
                       configuration's X visual is of type StaticColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break ;
 
-        case 25 :  /* "xpseudocolor":  boolean indicating if the frame buffer
+        case 26 :  /* "xpseudocolor": */
+        case 32 :  /* "xpseudocolour":  boolean indicating if the frame buffer
                       configuration's X visual is of type PseudoColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break ;
 
-        case 26 :  /* "xtruecolor":  boolean indicating if the frame buffer
+        case 27 :  /* "xtruecolor": */
+        case 33 :  /* "xtruecolour":  boolean indicating if the frame buffer
                       configuration's X visual is of type TrueColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break ;
 
-        case 27 :  /* "xdirectcolor":  boolean indicating if the frame buffer
+        case 28 :  /* "xdirectcolor": */
+        case 34 :  /* "xdirectcolour":  boolean indicating if the frame buffer
                       configuration's X visual is of type DirectColor */
 #if TARGET_HOST_UNIX_X11
 #endif
             break ;
 
-        case 28 :  /* Unrecognized */
-            printf ( "WARNING - Display string token not recognized:  %s\n",
-                     token );
+        case 35 :  /* "borderless":  windows should not have borders */
+#if TARGET_HOST_UNIX_X11
+#endif
+            break ;
+
+        case 36 :  /* "aux":  some number of aux buffers */
+            glut_state_flag |= GLUT_AUX1;
+            break ;
+
+        case 37 :  /* Unrecognized */
+            fgWarning ( "WARNING - Display string token not recognized:  %s",
+                        token );
             break ;
         }
 
@@ -879,9 +885,7 @@ void FGAPIENTRY glutInitDisplayString( const char* displayMode )
 
     free ( buffer );
 
-    /*
-     * We will make use of this value when creating a new OpenGL context...
-     */
+    /* We will make use of this value when creating a new OpenGL context... */
     fgState.DisplayMode = glut_state_flag;
 }
 
