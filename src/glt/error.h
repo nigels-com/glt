@@ -6,7 +6,6 @@
   GLT OpenGL C++ Toolkit (LGPL)
   Copyright (C) 2000-2004 Nigel Stewart
 
-
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -26,45 +25,19 @@
 
 */
 
+/* $Id: error.h,v 2.4 2005/07/01 03:17:35 nigels Exp $ */
+
 /*! \file
     \brief   OpenGL Debugging Tools
     \ingroup GLT
-
-    $Id: error.h,v 2.3 2004/08/11 05:20:18 nigels Exp $
-
-    $Log: error.h,v $
-    Revision 2.3  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.2  2004/02/16 01:26:18  nigels
-    Whitespace differences
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 1.14  2003/12/11 23:48:57  nigels
-    Fix potential buffer overflow
-    Check for current OpenGL context in GLERROR
-
-    Revision 1.12  2003/03/06 12:18:15  nigels
-    Documentation refinements
-
-    Revision 1.11  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.10  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.9  2002/10/07 16:27:46  nigels
-    Added CVS version control info
-
-
 */
 
 #include <string>
 
-void gltError  (const char *format, ...);    ///< Display error
-void gltWarning(const char *format, ...);    ///< Display warning
+extern void gltError  (const char *format, ...);    ///< Display error
+extern void gltWarning(const char *format, ...);    ///< Display warning
+
+extern bool gltCurrentContext();                    ///< Check for OpenGL context
 
 /*! \def     GLERROR
     \brief   Check OpenGL error state
@@ -75,16 +48,12 @@ void gltWarning(const char *format, ...);    ///< Display warning
 #if defined(NDEBUG)
     #define GLERROR
 #else
-    #include <glt/config.h>
     #include <glt/gl.h>
     #include <glt/glu.h>
 
-    #include <iostream>
-
-#if defined(WIN32)
     #define GLERROR                                          \
     {                                                        \
-        if (!wglGetCurrentContext())                         \
+        if (!gltCurrentContext())                            \
             gltError("No OpenGL rendering context.");        \
         else                                                 \
         {                                                    \
@@ -97,23 +66,6 @@ void gltWarning(const char *format, ...);    ///< Display warning
             }                                                \
         }                                                    \
     }
-#else
-    #define GLERROR                                          \
-    {                                                        \
-        if (0)  /* TODO - GLX rendering context check */     \
-            gltError("No OpenGL rendering context.");        \
-        else                                                 \
-        {                                                    \
-        GLenum code = glGetError();                          \
-        while (code!=GL_NO_ERROR)                            \
-        {                                                    \
-                gltError("glGetError %s:%d %s",              \
-                    __FILE__,__LINE__,gluErrorString(code)); \
-            code = glGetError();                             \
-        }                                                    \
-        }                                                    \
-    }
-#endif
 #endif
 
 #endif

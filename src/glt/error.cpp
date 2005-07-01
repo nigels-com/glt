@@ -1,3 +1,5 @@
+/* $Id: error.cpp,v 2.3 2005/07/01 03:17:34 nigels Exp $ */
+
 #include "error.h"
 
 #include <string>
@@ -10,38 +12,15 @@ using namespace std;
 
 /*! \file
     \ingroup GLT
-
-    $Id: error.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
-
-    $Log: error.cpp,v $
-    Revision 2.2  2004/02/16 01:26:18  nigels
-    Whitespace differences
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 1.8  2003/12/11 23:48:57  nigels
-    Fix potential buffer overflow
-    Check for current OpenGL context in GLERROR
-
-    Revision 1.6  2003/05/10 16:58:11  nigels
-    Last tweaks for 0.8
-
-    Revision 1.4  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.3  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.2  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
 */
 
 #include <misc/string.h>
 
 #include <cstdarg>
+
+#ifdef GLT_UNIX
+#include <GL/glx.h>
+#endif
 
 void
 gltError(const char *format, ...)
@@ -67,4 +46,18 @@ gltWarning(const char *format, ...)
     fprintf (stderr, "\n");
 
     va_end(argp);
+}
+
+bool
+gltCurrentContext()
+{
+    #ifdef GLT_WIN32
+    return wglGetCurrentContext()!=NULL;
+    #endif
+
+    #ifdef GLT_UNIX
+    return glXGetCurrentContext()!=NULL;
+    #endif
+
+    return false;
 }
