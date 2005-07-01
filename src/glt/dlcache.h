@@ -30,9 +30,12 @@
     \brief   Display List Cache
     \ingroup GLT
 
-    $Id: dlcache.h,v 2.4 2004/12/26 04:32:05 jgasseli Exp $
+    $Id: dlcache.h,v 2.5 2005/07/01 03:15:34 nigels Exp $
 
     $Log: dlcache.h,v $
+    Revision 2.5  2005/07/01 03:15:34  nigels
+    Debug tracing depends on iostream
+
     Revision 2.4  2004/12/26 04:32:05  jgasseli
     fixed namespace error in dlcache
 
@@ -94,6 +97,10 @@
 #include <glt/error.h>
 
 #include <misc/lru.h>
+
+#ifndef NDEBUG
+#include <iostream>
+#endif
 
 ///////////////////////////// GltDisplayListCache //////////////////////////////////
 
