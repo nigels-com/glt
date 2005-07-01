@@ -111,7 +111,6 @@ PlasmaScreenSaver::OnReshape(int width,int height)
     _plasma.init(width,height);
 
     glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
     glLoadIdentity();
     glOrtho(0,width,0,height,-1,1);
 
