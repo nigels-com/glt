@@ -79,7 +79,7 @@ struct tag_cursorCacheEntry {
 /*
  * Note: The arrangement of the table below depends on the fact that
  * the "normal" GLUT_CURSOR_* values start a 0 and are consecutive.
- */ 
+ */
 static cursorCacheEntry cursorCache[] = {
     { XC_arrow,               None }, /* GLUT_CURSOR_RIGHT_ARROW */
     { XC_top_left_arrow,      None }, /* GLUT_CURSOR_LEFT_ARROW */

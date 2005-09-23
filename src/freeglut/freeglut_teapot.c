@@ -82,7 +82,7 @@
 static void fghTeapot( GLint grid, GLdouble scale, GLenum type )
 {
 #if TARGET_HOST_WINCE
-		int i, numV=sizeof(strip_vertices)/4, numI=sizeof(strip_normals)/4;
+        int i, numV=sizeof(strip_vertices)/4, numI=sizeof(strip_normals)/4;
 #else
     double p[4][4][3], q[4][4][3], r[4][4][3], s[4][4][3];
     long i, j, k, l;

@@ -33,7 +33,10 @@
 
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
-#    include <sys/param.h>
+
+#include <sys/param.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 /*
  * Initial defines from "js.h" starting around line 33 with the existing "freeglut_joystick.c"
@@ -70,7 +73,9 @@
 #    if HAVE_SYS_IOCTL_H
 #        include <sys/ioctl.h>
 #    endif
+#    if HAVE_FCNTL_H
 #        include <fcntl.h>
+#    endif
 #    include <errno.h>
 #    if defined(__FreeBSD__) || defined(__NetBSD__)
 /* XXX The below hack is done until freeglut's autoconf is updated. */

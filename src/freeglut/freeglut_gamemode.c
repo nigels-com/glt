@@ -323,7 +323,7 @@ static GLboolean fghChangeDisplayMode( GLboolean haveToTest )
 
     success = GL_FALSE;
 
-    EnumDisplaySettings( NULL, -1, &devMode ); 
+    EnumDisplaySettings( NULL, -1, &devMode );
     devMode.dmFields |= DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY;
 
     devMode.dmPelsWidth  = fgState.GameModeSize.X;
@@ -339,11 +339,11 @@ static GLboolean fghChangeDisplayMode( GLboolean haveToTest )
 
         /* update vars in case if windows switched to proper mode */
         EnumDisplaySettings( NULL, FREEGLUT_ENUM_CURRENT_SETTINGS, &devMode );
-        fgState.GameModeSize.X  = devMode.dmPelsWidth;        
+        fgState.GameModeSize.X  = devMode.dmPelsWidth;
         fgState.GameModeSize.Y  = devMode.dmPelsHeight;
         fgState.GameModeDepth   = devMode.dmBitsPerPel;
         fgState.GameModeRefresh = devMode.dmDisplayFrequency;
-		break;
+        break;
     case DISP_CHANGE_RESTART:
         fggmstr = "The computer must be restarted for the graphics mode to work.";
         break;
