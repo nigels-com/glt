@@ -1514,6 +1514,7 @@ void doc_example()
 void variant_test()
 {
     pout.put("\n--- VARIANT\n");
+    return;
 
     variant v0 = 'A';
     variant v1 = short(33);
