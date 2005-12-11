@@ -189,7 +189,7 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
     \ingroup  state
     \param    eWhat    Enumerated parameter ID.
 
-              Query for the current value of one of many possible OpenGLUT 
+              Query for the current value of one of many possible OpenGLUT
               state variables.  The current list is:
 
               - \a GLUT_ACTION_ON_WINDOW_CLOSE \n
@@ -806,7 +806,7 @@ int OGAPIENTRY glutDeviceGet( GLenum eWhat )
     \brief    Query the Alt, Shift and Ctrl keys.
     \ingroup  inputstate
 
-              Return the logical \a OR combination of the 
+              Return the logical \a OR combination of the
               following symbolic bitmasks:
 
                - \a GLUT_ACTIVE_SHIFT

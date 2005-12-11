@@ -1617,7 +1617,7 @@ static void oghJoystickOpen( SOG_Joystick *joy )
 #   endif
 
     ogInformation
-    ( 
+    (
         "Joystick %d \"%s\" with %d axes and %d buttons.",
         joy->id,
         joy->name,
@@ -1933,7 +1933,7 @@ void ogSetJoystickMinRange( int ident, float *axes )
 {
     memcpy
     (
-        ogJoystick[ ident ]->min, 
+        ogJoystick[ ident ]->min,
         axes,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
@@ -1953,7 +1953,7 @@ void ogSetJoystickCenter( int ident, float *axes )
 {
     memcpy
     (
-        ogJoystick[ ident ]->center, 
+        ogJoystick[ ident ]->center,
         axes,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
@@ -1963,7 +1963,7 @@ void ogGetJoystickMinRange( int ident, float *axes )
 {
     memcpy
     (
-        axes, 
+        axes,
         ogJoystick[ ident ]->min,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
@@ -1973,7 +1973,7 @@ void ogGetJoystickMaxRange( int ident, float *axes )
 {
     memcpy
     (
-        axes, 
+        axes,
         ogJoystick[ ident ]->max,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );
@@ -1982,7 +1982,7 @@ void ogGetJoystickMaxRange( int ident, float *axes )
 void ogGetJoystickCenter( int ident, float *axes )
 {
     memcpy(
-        axes, 
+        axes,
         ogJoystick[ ident ]->center,
         ogJoystick[ ident ]->num_axes * sizeof( float )
     );

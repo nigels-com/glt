@@ -1115,7 +1115,7 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
     \param    w           Width of the new window.
     \param    h           Height of the new window.
 
-    Create a menu-like window, of requested dimensions, at a 
+    Create a menu-like window, of requested dimensions, at a
     position relative to the current window.
 
     The documentation for this function is currently the OpenGLUT
@@ -1603,7 +1603,7 @@ void OGAPIENTRY glutReshapeWindow( int width, int height )
 
     if( width<=0 || height<=0 )
         ogWarning( "glutReshapeWindow() only supports positive sizes." );
-    else 
+    else
         if( ogStructure.Window->State.IsOffscreen == GL_FALSE)
         {
             ogStructure.Window->State.StaleResize = GL_FALSE;
@@ -1929,7 +1929,7 @@ void OGAPIENTRY glutSetWindowStayOnTop( GLint enable )
     XEvent  e;
 
     /*
-     * Common XEvent setup 
+     * Common XEvent setup
      */
     e.xclient.type         = ClientMessage;
     e.xclient.display      = display;

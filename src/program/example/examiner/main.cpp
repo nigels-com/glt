@@ -2,7 +2,7 @@
 
   GLT OpenGL C++ Toolkit (LGPL)
   Copyright (C) 2000-2004 Nigel Stewart
-  
+
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
 
@@ -138,16 +138,16 @@ void ExaminerDemo::OnKeyboard(unsigned char key, int x, int y)
     // Create a new shape, according to the pressed key
     switch (key)
     {
-    case '1': _shape = new GlutSphere(false);        break;
-    case '2': _shape = new GlutCube(false);          break;
-    case '3': _shape = new GlutCylinder(false);      break;
-    case '4': _shape = new GlutCone(false);          break;
-    case '5': _shape = new GlutTorus(false);         break;
-    case '6': _shape = new GlutDodecahedron(false);  break;
-    case '7': _shape = new GlutOctahedron(false);    break;
-    case '8': _shape = new GlutTetrahedron(false);   break;
-    case '9': _shape = new GlutIcosahedron(false);   break;
-    case '0': _shape = new GlutTeapot(false);        break;
+        case '1': _shape = new GlutSphere(false);        break;
+        case '2': _shape = new GlutCube(false);          break;
+        case '3': _shape = new GlutCylinder(false);      break;
+        case '4': _shape = new GlutCone(false);          break;
+        case '5': _shape = new GlutTorus(false);         break;
+        case '6': _shape = new GlutDodecahedron(false);  break;
+        case '7': _shape = new GlutOctahedron(false);    break;
+        case '8': _shape = new GlutTetrahedron(false);   break;
+        case '9': _shape = new GlutIcosahedron(false);   break;
+        case '0': _shape = new GlutTeapot(false);        break;
     }
 
     // Configure shape

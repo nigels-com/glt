@@ -431,8 +431,8 @@ struct tagSOG_WindowState
     int             NewWidth;           /* Width for next notification         */
     int             NewHeight;          /* Height for next notification        */
     int             NewWindowStatus;    /* Status for next notification        */
-    
-    GLuint          CountResize;        /* Count the number of resize events   */ 
+
+    GLuint          CountResize;        /* Count the number of resize events   */
     GLuint          CountDisplay;       /* Count the number of display events  */
 };
 

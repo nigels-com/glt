@@ -245,7 +245,7 @@ static void oghcbDisplayWindow( SOG_Window *window, SOG_Enumerator *enumerator )
         ogSetWindow( window );
 
         if ( window->State.StaleWindowStatus )
-        {        
+        {
             window->State.StaleWindowStatus = GL_FALSE;
             window->State.WindowStatus = window->State.NewWindowStatus;
 
@@ -942,7 +942,7 @@ void oghDispatchEvent( SOG_Event *ev )
             if ( events>0 )
             {
                 XEvent nextEvent;
-                XPeekEvent( ogDisplay.Display, &nextEvent );            
+                XPeekEvent( ogDisplay.Display, &nextEvent );
                 if ( nextEvent.type==MotionNotify )
                     break;
             }
@@ -1362,7 +1362,7 @@ void OGAPIENTRY glutMainLoopEvent( void )
 {
     SOG_Event event;
     OPENGLUT_REQUIRE_READY( "glutMainLoopEvent" );
-    
+
     while( oghPendingWindowEvents( &event ) )
     {
         oghGetWindowEvent( &event );
@@ -1467,7 +1467,7 @@ void OGAPIENTRY glutMainLoop( void )
                 ogState.IdleCallback();
             }
             else
-                ogSleepForEvents( ); 
+                ogSleepForEvents( );
         }
     }
 
