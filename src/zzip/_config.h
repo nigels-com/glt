@@ -15,7 +15,7 @@
 
 /* Define if you have the <direct.h> header file. */
 #ifndef ZZIP_HAVE_DIRECT_H
-#define ZZIP_HAVE_DIRECT_H  1
+/* #define ZZIP_HAVE_DIRECT_H  1 */
 #endif
 
 /* Define if you have the <dirent.h> header file, and it defines `DIR'. */
