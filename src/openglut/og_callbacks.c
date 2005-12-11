@@ -297,7 +297,7 @@ void OGAPIENTRY glutTimerFunc(
 /*!
     \fn
     \brief    Sets the Visibility callback for the current window.
-    \ingroup  deprecated
+    \ingroup  compatability
     \param    callback    Client hook for visibility changes.
 
               OpenGLUT may call this function when your window's
@@ -311,8 +311,7 @@ void OGAPIENTRY glutTimerFunc(
     \note     This is not a polling mechanism.  You are only informed
               of transitions that OpenGLUT observes while your
               callback is in place.
-    \note     This function appears to be superceded by
-              glutWindowStatusFunc().
+    \note     This function is superceded by glutWindowStatusFunc().
     \note     This callback is mutually exclusive of glutWindowStatusFunc().
     \see      glutWindowStatusFunc()
 */
@@ -320,7 +319,6 @@ void OGAPIENTRY glutVisibilityFunc( void( *callback )( int status ) )
 {
     SET_CALLBACK( Visibility );
 
-    ogWarning( "glutVisibilityFunc() is deprecated; see the documentation" );
     if( callback )
         glutWindowStatusFunc( oghVisibility );
     else
@@ -447,8 +445,7 @@ void OGAPIENTRY glutJoystickFunc(
               inherited that support from freeglut.
     \note     Old GLUT defines the symbols \a GLUT_LEFT_BUTTON,
               \a GLUT_RIGHT_BUTTON, and \a GLUT_MIDDLE_BUTTON.
-              However, mice can have more than 3 buttons, so these
-              symbols are deprecated.
+              However, mice can have more than 3 buttons.
     \note     Windows created via glutCreateMenuWindow() always cascade
               keyboard and mouse events to their parent.
     \see      glutMotionFunc(), glutPassiveMotionFunc(), glutMouseWheelFunc()
@@ -581,10 +578,6 @@ void OGAPIENTRY glutEntryFunc( void( *callback )( int state ) )
 
               This callback is bound to the <i>current window</i>.
 
-    \note     This function is <b>exactly</b> the same as
-              glutWMCloseFunc(), which has been deprecated.
-              This function should be used instead.
-
     \todo     There needs to be some work to rationalize the
               behavior when a window is closed.  Presently,
               the handling is ad-hoc and sloppy.
@@ -599,10 +592,10 @@ void OGAPIENTRY glutCloseFunc( void( *callback )( void ) )
 /*!
     \fn
     \brief    Window destruction callback.
-    \ingroup  deprecated
+    \ingroup  compatability
     \param    callback    Client window destruction hook.
 
-              Deprecated - use glutCloseFunc instead.
+              Superceded by glutCloseFunc
 
               When a window is destroyed by user-action in
               traditional GLUT, the application terminates.
@@ -658,7 +651,7 @@ void OGAPIENTRY glutMenuDestroyFunc( void( *callback )( void ) )
 /*!
     \fn
     \brief    Deprecated variant of glutMenuStatusFunc()
-    \ingroup  deprecated
+    \ingroup  compatability
     \param    callback    Client menu status hook.
 
               Broadly, OpenGLUT operates in two modes.  At any
@@ -677,14 +670,12 @@ void OGAPIENTRY glutMenuDestroyFunc( void( *callback )( void ) )
               <i>current window</i> and
               the <i>current menu</i>.
 
-    \note     Obsolete.  Depcreated.
-    \bug      Your callback is not actually called presently.
+    \bug      The callback is not actually called presently.
     \see      glutMenuStatusFunc()
 */
 void OGAPIENTRY glutMenuStateFunc( void( *callback )( int status ) )
 {
     OPENGLUT_REQUIRE_READY( "glutMenuStateFunc" );
-    ogWarning( "glutMenuStateFunc() is deprecated; see the documentation" );
     ogState.MenuStateCallback = callback;
 }
 
@@ -777,7 +768,7 @@ void OGAPIENTRY glutOverlayDisplayFunc( void( *callback )( void ) )
 
               The callback is bound to the <i>current window</i>.
 
-    \note     Makes glutVisibilityFunc() obsolete.
+    \note     Supercedes glutVisibilityFunc()
     \see      glutVisibilityFunc()
 */
 void OGAPIENTRY glutWindowStatusFunc( void( *callback )( int state ) )

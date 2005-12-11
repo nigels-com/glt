@@ -50,6 +50,15 @@ extern "C"
 #define GLUT_BORDERLESS                     0x0800
 
 /*
+ * GLUT API Experimental macro definitions -- glutGet parameters
+ */
+
+#define  GLUT_PRINT_ERROR                   0x0200
+#define  GLUT_PRINT_WARNING                 0x0201
+#define  GLUT_PRINT_INFORMATION             0x0202
+#define  GLUT_PRINT_TRACE                   0x0203
+
+/*
  * OpenGLUT experimental functions.
  */
 OGAPI int glutCreateMenuWindow( int parent, int x, int y, int w, int h );

@@ -354,6 +354,9 @@ void ogSetWindow( SOG_Window *window )
     if( window && ( window != ogStructure.Window ) )
     {
 #if TARGET_HOST_UNIX_X11
+
+        ogTrace("[%u] GLX   glXMakeCurrent",window->ID);
+
         glXMakeCurrent(
             ogDisplay.Display,
             window->Window.Handle,
@@ -661,7 +664,7 @@ void ogOpenWindow( SOG_Window *window, const char *title,
        \todo Assume the new window is visible by default
         Is this a  safe assumption?
      */
-    window->State.Visible = GL_TRUE;
+    window->State.IsVisible = GL_TRUE;
 
     sizeHints.flags = 0;
     if( ogState.Position.Use )
@@ -900,7 +903,12 @@ void ogOpenWindow( SOG_Window *window, const char *title,
         window->Window.DoubleBuffered =
             ( ogState.DisplayMode & GLUT_DOUBLE ) ? 1 : 0;
 
-        if( ! window->Window.DoubleBuffered )
+        if( window->Window.DoubleBuffered )
+        {
+            glDrawBuffer ( GL_BACK );
+            glReadBuffer ( GL_BACK );
+        }
+        else
         {
             glDrawBuffer ( GL_FRONT );
             glReadBuffer ( GL_FRONT );
@@ -998,7 +1006,7 @@ void ogCloseWindow( SOG_Window *window )
     are ``small''; we do not reuse old <i>id</i>s, but do
     produce them sequentially.
 
-    You can change the title later via glutSetWindowTitle().
+    The title can be changed using glutSetWindowTitle().
 
     \see glutDestroyWindow(), glutCreateSubWindow(), glutSetWindowTitle(),
          glutCreateMenuWindow()
@@ -1093,8 +1101,10 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
  * XXX As the X/Y macros are no longer shared with anything else, we should
  * XXX probably remove them and replace with inline code.
  */
+
 #define X ( x + glutGet( GLUT_WINDOW_X ) )
 #define Y ( y + glutGet( GLUT_WINDOW_Y ) )
+
 /*!
     \fn
     \brief    Create a client-controlled menu window.
@@ -1105,17 +1115,12 @@ int OGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
     \param    w           Width of the new window.
     \param    h           Height of the new window.
 
-    This is a highly experimental function.  It creates a menu-like
-    window, of requested dimensions, and at a position relative
-    to your current window.
+    Create a menu-like window, of requested dimensions, at a 
+    position relative to the current window.
 
     The documentation for this function is currently the OpenGLUT
-    Menu Window proposal.  Variance from that proposal may generally
-    be explained by the fact that this feature is highly experimental.
-    It may also be explained by the fact that the implementation may
-    simply be incomplete.
+    Menu Window proposal.
 
-    \note   Did you notice that this feature is highly experimental?
     \see    glutCreateWindow(), glutCreateSubWindow(), glutDestroyWindow(),
             glutKeyboardFunc(), glutKeyboardUpFunc(), glutSpecialFunc(),
             glutSpecialUpFunc(), glutMotionFunc(), glutPassiveMotionFunc(),
@@ -1134,9 +1139,7 @@ int OGAPIENTRY glutCreateMenuWindow( int parentID, int x, int y, int w, int h )
         parent = ogWindowByID( parentID );
         if( parent )
         {
-            window = ogCreateWindow(
-                parent, "", X, Y, w, h, OG_CW_CLIENT_MENU
-            );
+            window = ogCreateWindow( parent, "", X, Y, w, h, OG_CW_CLIENT_MENU );
             if( window )
             {
                 /*
@@ -1316,15 +1319,10 @@ int OGAPIENTRY glutGetWindow( void )
     glutShowWindow() requests that the window system make
     the <i>current window</i> visible.
 
-    This is generally not necessary.  When you create a
-    window, it will normally become visible.  Unless you specifically
-    hide it, it will remain visible.  Though visible,
-    of course, it may be covered by other windows;
-    that would be an issue for window stacking order not
-    visibility.
+    When a window is created, it is normally visible.
 
-    When, and if, your window's visibility status changes,
-    you may find out via a glutWindowStatusFunc() callback.
+    Changes to window visibility status are notified via
+    the glutWindowStatusFunc() callback.
 
     \see      glutHideWindow(), glutPopWindow(), glutPushWindow(),
               glutWindowStatusFunc()
@@ -1347,21 +1345,13 @@ void OGAPIENTRY glutShowWindow( void )
 
 #endif
     }
-    ogStructure.Window->State.Redisplay = GL_TRUE;
+    ogStructure.Window->State.StaleDisplay = GL_TRUE;
 }
 
 /*!
     \fn
-    \brief    Make the current window hidden
+    \brief    Hide the current window
     \ingroup  window
-
-    Even if a window is ``open'', it need not be visible.
-    It may be convenient to hide a window rather than to close it,
-    if you want to re-display the window at the same location and
-    size, later.  Redefining all of the OpenGLUT features of a
-    window and adding its <i>window id</i> to your tracking
-    when re-opening a window may also be bothersome.  So, rather
-    than destroying it, you can simply ask for it to be hidden.
 
     \see      glutShowWindow()
 */
@@ -1389,18 +1379,13 @@ void OGAPIENTRY glutHideWindow( void )
 
 #endif
     }
-    ogStructure.Window->State.Redisplay = GL_FALSE;
+    ogStructure.Window->State.StaleDisplay = GL_FALSE;
 }
 
 /*!
     \fn
     \brief    Iconify the current window
     \ingroup  window
-    \note     Applies only to onscreen, top-level windows.
-    \note     Not guaranteed to have any effect; effect may be
-              arbitrarily delayed.
-    \note     There is no callback that specifically tells you
-              when (or if) your window is iconified.
 
     Most window systems have some kind of ``minimized'' or ``iconified''
     state for windows.  All systems currently supported by OpenGLUT
@@ -1419,6 +1404,13 @@ void OGAPIENTRY glutHideWindow( void )
     the user.  Use glutHideWindow() if you want to hide the window
     entirely.
 
+    \note     Applies only to onscreen, top-level windows.
+
+    \note     Not guaranteed to have any effect; effect may be
+              arbitrarily delayed.
+    \note     There is no callback that specifically tells you
+              when (or if) your window is iconified.
+
     \see      glutSetIconTitle(), glutHideWindow(), and glutShowWindow()
 */
 void OGAPIENTRY glutIconifyWindow( void )
@@ -1426,7 +1418,7 @@ void OGAPIENTRY glutIconifyWindow( void )
     OPENGLUT_REQUIRE_READY( "glutIconifyWindow" );
     OPENGLUT_REQUIRE_WINDOW( "glutIconifyWindow" );
 
-    ogStructure.Window->State.Visible   = GL_FALSE;
+    ogStructure.Window->State.IsVisible   = GL_FALSE;
     if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
     {
 #if TARGET_HOST_UNIX_X11
@@ -1441,17 +1433,14 @@ void OGAPIENTRY glutIconifyWindow( void )
 
 #endif
     }
-    ogStructure.Window->State.Redisplay = GL_FALSE;
+    ogStructure.Window->State.StaleDisplay = GL_FALSE;
 }
 
 /*!
     \fn
-    \brief    Request changing the title of the current window
+    \brief    Change the title of the current window
     \ingroup  window
     \param    title    New window title
-    \note     Only for managed, onscreen, top-level windows.
-    \note     Not all window systems display titles.
-    \note     May be ignored or delayed by window manager.
 
     glutSetWindowTitle() requests that the window system
     change the title of the window.
@@ -1475,6 +1464,10 @@ void OGAPIENTRY glutIconifyWindow( void )
     If you just want one title for the window over the window's
     entire life, you should set it when you open the window
     with glutCreateWindow().
+
+    \note     Only for managed, onscreen, top-level windows.
+    \note     Not all window systems display titles.
+    \note     May be ignored or delayed by window manager.
 
     \see glutCreateWindow(), glutSetIconTitle()
 */
@@ -1521,7 +1514,7 @@ void OGAPIENTRY glutSetWindowTitle( const char* title )
 
 /*!
     \fn
-    \brief    Requests changing the iconified title of the current window
+    \brief    Change the iconified title of the current window
     \ingroup  window
     \param    title    New window title
     \note     Effect is system-dependant.
@@ -1536,10 +1529,6 @@ void OGAPIENTRY glutSetWindowTitle( const char* title )
     likely to be obscured, and the only clue about the window
     contents may be the window title.
 
-    \note There Exactly what "iconified" means is system
-          dependant.  Iconification may not be supported, or
-          the title may not be available---or legible.  Avoid
-          putting essential information into the icon title.
     \see  glutSetWindowTitle(), glutIconifyWindow()
 
 */
@@ -1586,10 +1575,10 @@ void OGAPIENTRY glutSetIconTitle( const char* title )
 
 /*!
     \fn
-    \brief    Request changing the size of the current window
+    \brief    Change the size of the current window
     \ingroup  window
-    \param    width    Requested width of the current window
-    \param    height   Requested height of the current window
+    \param    width    Requested window width
+    \param    height   Requested window height
 
     The glutReshapeWindow() function adjusts the width and height of
     the <i>current window</i>, if it is an onscreen
@@ -1597,15 +1586,13 @@ void OGAPIENTRY glutSetIconTitle( const char* title )
     resized and repositioned in response to window resize events.
 
     The window system may delay or even alter your request.
-    Use the glutReshapeFunc() callback registration for the window
-    if you want
 
     If you try to make a subwindow smaller than its parent, the
     parent will not grow to accomodate the child.
 
-    \todo     Add support for offscreen windows.
     \see      glutInit(), glutInitWindowSize(), glutReshapeFunc() and
               glutCreateSubWindow()
+    \todo     Add support for offscreen windows.
 */
 void OGAPIENTRY glutReshapeWindow( int width, int height )
 {
@@ -1613,14 +1600,23 @@ void OGAPIENTRY glutReshapeWindow( int width, int height )
     OPENGLUT_REQUIRE_WINDOW( "glutReshapeWindow" );
 
     /*! \todo Could delete/create/set-window-id for offscreen. */
-    if( ( 1 > width ) || ( 1 > height ) )
+
+    if( width<=0 || height<=0 )
         ogWarning( "glutReshapeWindow() only supports positive sizes." );
-    else if( GL_FALSE == ogStructure.Window->State.IsOffscreen )
-    {
-        ogStructure.Window->State.NeedToResize = GL_TRUE;
-        ogStructure.Window->State.Width  = width;
-        ogStructure.Window->State.Height = height;
-    }
+    else 
+        if( ogStructure.Window->State.IsOffscreen == GL_FALSE)
+        {
+            ogStructure.Window->State.StaleResize = GL_FALSE;
+            ogStructure.Window->State.StaleDisplay = GL_TRUE;
+
+            ogStructure.Window->State.Width  = width;
+            ogStructure.Window->State.Height = height;
+
+#if TARGET_HOST_UNIX_X11
+            XResizeWindow( ogDisplay.Display, ogStructure.Window->Window.Handle, width, height );
+            XFlush( ogDisplay.Display );
+#endif
+        }
 }
 
 
@@ -1770,7 +1766,7 @@ void OGAPIENTRY glutFullScreen( void )
 
 /*!
     \fn
-    \brief    Request to lower the current window to the bottom.
+    \brief    Lower the current window to the bottom of the stack
     \ingroup  window
 
     This function requests that the <i>current window</i> be ``pushed''
@@ -1823,7 +1819,7 @@ void OGAPIENTRY glutPushWindow( void )
 
 /*!
     \fn
-    \brief    Request to raise the current window to the top
+    \brief    Raise the current window to the top of the stack
     \ingroup  window
 
     Request that the <i>current window</i> be ``popped'' to the top.
@@ -1838,15 +1834,8 @@ void OGAPIENTRY glutPushWindow( void )
     adjusted by the user, subwindow z-order is controlled entirely
     by the application.
 
-    If this has any effect on your window's visibility, you should
-    receive a glutWindowStatusFunc() callback and a
-    glutDisplayFunc() callback.
-
-    \note    The z-order of top-level windows is ultimately managed by
-             the windowing system.  Therefore, a push or pop request
-             by an OpenGLUT application may not necessarily succeed
-             or take immediate effect.
     \note    Not applicable to offscreen windows.
+
     \see     glutCreateWindow(), glutDisplayFunc(), glutPushWindow(),
              glutWindowStatusFunc()
 */
@@ -1918,26 +1907,13 @@ void OGAPIENTRY glutSetWindowData(void* data)
 
 /*!
     \fn
-    \brief   Set stay on top mode for current window
+    \brief   Set stay on top mode for the current window
     \ingroup experimental
     \param   enable Either \a GL_TRUE or \a GL_FALSE
 
-    \note    Does not work on all window managers.
-    \note    Sends the Icewm style message to all "other" window
-             managers (maybe including twm, blackbox, ratpoison,
-             amiwm, and whatever others you have).  Can we detect
-             Icewm reliably and only send the Icewm formatted
-             message for Icewm?  Possibly it is harmless as it stands,
-             but it looks wrong.
-    \todo    Can a glutGet() be defined to tell us whether
-             a window can be made to stay on top?  Or whether
-             a window has (successfully) been marked for staying
-             on top?
-    \todo    Should walk the tree of menus and glutPopWindow()
-             (or all windows that are of menu-window type?).
-    \todo    Investigate making a workalike variant using
-             glutPopWindow() to mimic the feature where not
-             directly supported.
+    \note    May not be supported by all windows managers.
+
+    \todo    A corresponding glutGet()
 */
 void OGAPIENTRY glutSetWindowStayOnTop( GLint enable )
 {
@@ -1953,8 +1929,7 @@ void OGAPIENTRY glutSetWindowStayOnTop( GLint enable )
     XEvent  e;
 
     /*
-     * Where this feature is supported, these seem to be common bits
-     * to set up an XEvent for requesting a top-most window.
+     * Common XEvent setup 
      */
     e.xclient.type         = ClientMessage;
     e.xclient.display      = display;

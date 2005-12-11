@@ -69,9 +69,10 @@ SOG_State ogState =
     GL_FALSE,               /* ForceIconic */
     GL_FALSE,               /* UseCurrentContext */
     GL_FALSE,               /* GLDebugSwitch */
-    GL_TRUE,                /* PrintErrors */
-    GL_TRUE,                /* PrintWarnings */
-    GL_FALSE,               /* PrintInforms */
+    GL_TRUE,                /* PrintError       */
+    GL_TRUE,                /* PrintWarning     */
+    GL_FALSE,               /* PrintInformation */
+    GL_FALSE,               /* PrintTrace       */
     GL_FALSE,               /* XSyncSwitch */
     GLUT_KEY_REPEAT_ON,     /* KeyRepeat */
     0xffffffff,             /* Modifiers */
@@ -273,9 +274,10 @@ void ogDeinitialize( void )
     ogState.ForceIconic         = GL_FALSE;
     ogState.UseCurrentContext   = GL_FALSE;
     ogState.GLDebugSwitch       = GL_FALSE;
-    ogState.PrintErrors         = GL_TRUE;
-    ogState.PrintWarnings       = GL_TRUE;
-    ogState.PrintInforms        = GL_FALSE;
+    ogState.PrintError          = GL_TRUE;
+    ogState.PrintWarning        = GL_TRUE;
+    ogState.PrintInformation    = GL_FALSE;
+    ogState.PrintTrace          = GL_FALSE;
     ogState.XSyncSwitch         = GL_FALSE;
     ogState.ActionOnWindowClose = GLUT_ACTION_EXIT;
     ogState.ExecState           = GLUT_EXEC_STATE_INIT;
@@ -721,25 +723,37 @@ void OGAPIENTRY glutInit( int *pargc, char **argv )
         }
         else if( strcmp( argv[ i ], "-no-warning" ) == 0 )
         {
-            ogState.PrintWarnings = GL_FALSE;
+            ogState.PrintWarning = GL_FALSE;
             argv[ i ] = NULL;
             ( *pargc )--;
         }
         else if( strcmp( argv[ i ], "-warning" ) == 0 )
         {
-            ogState.PrintWarnings = GL_TRUE;
+            ogState.PrintWarning = GL_TRUE;
             argv[ i ] = NULL;
             ( *pargc )--;
         }
-        else if( strcmp( argv[ i ], "-no-informs" ) == 0 )
+        else if( strcmp( argv[ i ], "-no-information" ) == 0 )
         {
-            ogState.PrintInforms = GL_FALSE;
+            ogState.PrintInformation = GL_FALSE;
             argv[ i ] = NULL;
             ( *pargc )--;
         }
-        else if( strcmp( argv[ i ], "-informs" ) == 0 )
+        else if( strcmp( argv[ i ], "-information" ) == 0 )
         {
-            ogState.PrintInforms = GL_TRUE;
+            ogState.PrintInformation = GL_TRUE;
+            argv[ i ] = NULL;
+            ( *pargc )--;
+        }
+        else if( strcmp( argv[ i ], "-no-trace" ) == 0 )
+        {
+            ogState.PrintTrace = GL_FALSE;
+            argv[ i ] = NULL;
+            ( *pargc )--;
+        }
+        else if( strcmp( argv[ i ], "-trace" ) == 0 )
+        {
+            ogState.PrintTrace = GL_TRUE;
             argv[ i ] = NULL;
             ( *pargc )--;
         }

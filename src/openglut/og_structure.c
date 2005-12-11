@@ -100,7 +100,6 @@ SOG_Window *ogCreateWindow(
         glutInit( &fakeArgc, NULL );
 
     window->ID = ++ogStructure.WindowID;
-    window->State.OldHeight = window->State.OldWidth = -1;
 
     ogListInit( &window->Children );
     if( !parent )
@@ -123,6 +122,9 @@ SOG_Window *ogCreateWindow(
 
     window->State.IgnoreKeyRepeat = GL_FALSE;
     window->State.KeyRepeating    = GL_FALSE;
+
+    window->State.CountDisplay = 0;
+    window->State.CountResize  = 0;
 
     ogOpenWindow(
         window, title, x, y, w, h, gameMode,

@@ -60,7 +60,8 @@ void OGAPIENTRY glutPostRedisplay( void )
 {
     OPENGLUT_REQUIRE_READY( "glutPostRedisplay" );
     OPENGLUT_REQUIRE_WINDOW( "glutPostRedisplay" );
-    ogStructure.Window->State.Redisplay = GL_TRUE;
+    ogTrace("[%u]      glutPostRedisplay",ogStructure.Window->ID);
+    ogStructure.Window->State.StaleDisplay = GL_TRUE;
 }
 
 /*!
@@ -93,6 +94,8 @@ void OGAPIENTRY glutSwapBuffers( void )
 {
     OPENGLUT_REQUIRE_READY( "glutSwapbuffers" );
     OPENGLUT_REQUIRE_WINDOW( "glutSwapbuffers" );
+
+    ogTrace("[%u]      glutSwapBuffers",ogStructure.Window->ID);
 
     glFlush( );
     if( ! ogStructure.Window->Window.DoubleBuffered )
@@ -147,5 +150,5 @@ void OGAPIENTRY glutPostWindowRedisplay( int windowID )
     OPENGLUT_REQUIRE_READY( "glutPostWindowRedisplay" );
     window = ogWindowByID( windowID );
     if( window )
-        window->State.Redisplay = GL_TRUE;
+        window->State.StaleDisplay = GL_TRUE;
 }

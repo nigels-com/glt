@@ -275,9 +275,10 @@ struct tagSOG_State
     GLboolean        UseCurrentContext;    /* New windows share with current */
 
     GLboolean        GLDebugSwitch;        /* OpenGL state debugging switch  */
-    GLboolean        PrintErrors;          /* Show errors                    */
-    GLboolean        PrintWarnings;        /* Show warnings                  */
-    GLboolean        PrintInforms;         /* Show informs                   */
+    GLboolean        PrintError;           /* Show errors                    */
+    GLboolean        PrintWarning;         /* Show warnings                  */
+    GLboolean        PrintInformation;     /* Show informational messages    */
+    GLboolean        PrintTrace;           /* Show trace information         */
     GLboolean        XSyncSwitch;          /* X11 sync protocol switch       */
 
     int              KeyRepeat;            /* Global key repeat mode.        */
@@ -401,32 +402,38 @@ struct tagSOG_Context
 };
 
 /*
- * Window state description. This structure should be kept portable.
+ * Portable window state.
  */
 typedef struct tagSOG_WindowState SOG_WindowState;
 struct tagSOG_WindowState
 {
-    int             Width;              /* Window's width in pixels          */
-    int             Height;             /* The same about the height         */
-    int             OldWidth;           /* Window width from before a resize */
-    int             OldHeight;          /*   "    height  "    "    "   "    */
+    int             Width;              /* Current window width in pixels      */
+    int             Height;             /* Current window height in pixels     */
+    int             WindowStatus;       /* Current window status               */
 
-    GLboolean       Redisplay;          /* Do we have to redisplay?          */
-    GLboolean       Visible;            /* Is the window visible now         */
+    int             Cursor;             /* Current cursor                      */
+    int             MouseX, MouseY;     /* Current mouse position              */
 
-    int             Cursor;             /* The currently selected cursor     */
+    GLboolean       IsVisible;          /* Is the window visible now?          */
+    GLboolean       IsGameMode;         /* Is this a game mode window?         */
+    GLboolean       IsOffscreen;        /* Is this an offscreen window?        */
 
-    long            JoystickPollRate;   /* The joystick polling rate         */
-    long            JoystickLastPoll;   /* When the last poll happened       */
+    long            JoystickPollRate;   /* The joystick polling rate           */
+    long            JoystickLastPoll;   /* When the last poll happened         */
 
-    int             MouseX, MouseY;     /* The most recent mouse position    */
+    GLboolean       IgnoreKeyRepeat;    /* Whether to ignore key repeat.       */
+    GLboolean       KeyRepeating;       /* Currently in repeat mode            */
 
-    GLboolean       IgnoreKeyRepeat;    /* Whether to ignore key repeat.     */
-    GLboolean       KeyRepeating;       /* Currently in repeat mode          */
+    GLboolean       StaleWindowStatus;  /* Do we need to notify window status? */
+    GLboolean       StaleResize;        /* Do we need to notify resize?        */
+    GLboolean       StaleDisplay;       /* Do we need to notify redisplay?     */
 
-    GLboolean       IsGameMode;         /* Is this the game mode window?     */
-    GLboolean       NeedToResize;       /* Do we need to resize the window?  */
-    GLboolean       IsOffscreen;        /* Tags a `window' as on/offscreen.  */
+    int             NewWidth;           /* Width for next notification         */
+    int             NewHeight;          /* Height for next notification        */
+    int             NewWindowStatus;    /* Status for next notification        */
+    
+    GLuint          CountResize;        /* Count the number of resize events   */ 
+    GLuint          CountDisplay;       /* Count the number of display events  */
 };
 
 
@@ -994,5 +1001,6 @@ char *ogStrDup( const char *str );
 void ogError( const char *fmt, ... );
 void ogWarning( const char *fmt, ... );
 void ogInformation( const char *fmt, ... );
+void ogTrace( const char *fmt, ... );
 
 #endif

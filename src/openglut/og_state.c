@@ -172,6 +172,11 @@ void OGAPIENTRY glutSetOption( GLenum eWhat, int value )
             glutSetCursor( value );
         break;
 
+    case GLUT_PRINT_ERROR:       ogState.PrintError       = value; break;
+    case GLUT_PRINT_WARNING:     ogState.PrintWarning     = value; break;
+    case GLUT_PRINT_INFORMATION: ogState.PrintInformation = value; break;
+    case GLUT_PRINT_TRACE:       ogState.PrintTrace       = value; break;
+
     default:
         ogWarning( "glutSetOption(): missing enum handle %i", eWhat );
         break;
@@ -606,6 +611,11 @@ int OGAPIENTRY glutGet( GLenum eWhat )
         return ogState.UseCurrentContext ?
             GLUT_USE_CURRENT_CONTEXT :
             GLUT_CREATE_NEW_CONTEXT;
+
+    case GLUT_PRINT_ERROR:       return ogState.PrintError       ? GL_TRUE : GL_FALSE;
+    case GLUT_PRINT_WARNING:     return ogState.PrintWarning     ? GL_TRUE : GL_FALSE;
+    case GLUT_PRINT_INFORMATION: return ogState.PrintInformation ? GL_TRUE : GL_FALSE;
+    case GLUT_PRINT_TRACE:       return ogState.PrintTrace       ? GL_TRUE : GL_FALSE;
 
     default:
         ogWarning( "glutGet(): missing enum handler %d", eWhat );

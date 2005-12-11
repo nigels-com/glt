@@ -495,7 +495,7 @@ int OGAPIENTRY glutEnterGameMode( void )
     );
 
     ogStructure.GameMode->State.IsGameMode   = GL_TRUE;
-    ogStructure.GameMode->State.NeedToResize = GL_TRUE;
+    ogStructure.GameMode->State.StaleResize  = GL_TRUE;
     ogStructure.GameMode->State.Width        = ogState.GameModeSize.X;
     ogStructure.GameMode->State.Height       = ogState.GameModeSize.Y;
 

@@ -97,7 +97,7 @@ static void oghReshapeWindowByHandle( SOG_WindowHandleType handle,
         return;
     assert( !( window->State.IsOffscreen ) );
 
-    window->State.NeedToResize = GL_FALSE;
+    window->State.StaleResize = GL_FALSE;
 
 #if TARGET_HOST_UNIX_X11
 
@@ -154,13 +154,15 @@ static void oghReshapeWindowByHandle( SOG_WindowHandleType handle,
         );
     }
 #endif
-    /*!
-         \note Should update {window->State.OldWidth, window->State.OldHeight}
-               to keep in lockstep with UNIX_X11 code.  (Actually, I think
-               that we can probably just remove the .Old* members, now.)
-    */
+
+    window->State.Width  = width;
+    window->State.Height = height;
+
     if( FETCH_WCB( *window, Reshape ) )
+    {
+        ogTrace("[%u] GLUT Reshape %d %d",window->ID,width,height);
         INVOKE_WCB( *window, Reshape, ( width, height ) );
+    }
     else
     {
         ogSetWindow( window );
@@ -178,9 +180,9 @@ static void oghReshapeWindowByHandle( SOG_WindowHandleType handle,
      */
     /*!
        \bug Shouldn't the client's callback invoke this if it is needed?
-            Or does GLUT also do this?  This seems *wrong*.
+            Or does GLUT also do this?
     */
-    window->State.Redisplay = GL_TRUE;
+    window->State.StaleDisplay = GL_TRUE;
 
     if( window->IsMenu )
         ogSetWindow( current_window );
@@ -213,7 +215,7 @@ static void oghRedrawWindowByHandle( SOG_WindowHandleType handle )
     if( !( window->State.Visible ) )
         return;
 
-    if( window->State.NeedToResize )
+    if( window->State.StaleResize )
     {
         SOG_Window *current_window = ogStructure.Window;
 
@@ -221,11 +223,12 @@ static void oghRedrawWindowByHandle( SOG_WindowHandleType handle )
 
         oghReshapeWindowByHandle(
             window->Window.Handle,
-            window->State.Width,
-            window->State.Height
+            window->State.NewWidth,
+            window->State.NewHeight
         );
         ogSetWindow( current_window );
     }
+
     INVOKE_WCB( *window, Display, ( ) );
 }
 #endif
@@ -233,34 +236,48 @@ static void oghRedrawWindowByHandle( SOG_WindowHandleType handle )
 /*
  * A static helper function to execute display callback for a window
  */
-static void oghcbDisplayWindow( SOG_Window *window,
-                                SOG_Enumerator *enumerator )
+static void oghcbDisplayWindow( SOG_Window *window, SOG_Enumerator *enumerator )
 {
-    if( window->State.NeedToResize )
+    if ( ( window->State.StaleWindowStatus || window->State.StaleResize || window->State.StaleDisplay )
+           && window->State.IsVisible)
     {
-        SOG_Window *current_window = ogStructure.Window;
-
+        ogPushWindow();
         ogSetWindow( window );
 
-        oghReshapeWindowByHandle(
-            window->Window.Handle,
-            window->State.Width,
-            window->State.Height
-        );
+        if ( window->State.StaleWindowStatus )
+        {        
+            window->State.StaleWindowStatus = GL_FALSE;
+            window->State.WindowStatus = window->State.NewWindowStatus;
 
-        ogSetWindow( current_window );
-    }
+            ogTrace("[%u] GLUT WindowStatus ",window->ID);
+            INVOKE_WCB( *window, WindowStatus, ( window->State.WindowStatus ) );
+        }
 
-    if( window->State.Redisplay &&
-        window->State.Visible )
-    {
-        SOG_Window *current_window = ogStructure.Window;
+        if ( window->State.StaleResize )
+        {
+            window->State.StaleResize = GL_FALSE;
+            window->State.Width  = window->State.NewWidth;
+            window->State.Height = window->State.NewHeight;
 
-        /* XXX Set this FALSE even if the window is not visible? */
-        window->State.Redisplay = GL_FALSE;
+            if( FETCH_WCB( *window, Reshape ) )
+            {
+                ogTrace("[%u] GLUT Reshape %d %d",window->State.Width,window->State.Height);
+                INVOKE_WCB( *window, Reshape, ( window->State.Width, window->State.Height ) );
+            }
+            else
+                glViewport( 0, 0, window->State.Width, window->State.Height );
+        }
 
-        INVOKE_WCB( *window, Display, ( ) );
-        ogSetWindow( current_window );
+        if ( window->State.StaleDisplay && window->State.IsVisible )
+        {
+            window->State.StaleDisplay = GL_FALSE;
+
+            window->State.CountDisplay++;
+            ogTrace("[%u] GLUT Display #%u",window->ID,window->State.CountDisplay);
+            INVOKE_WCB( *window, Display, ( ) );
+        }
+
+        ogPopWindow();
     }
 
     ogEnumSubWindows( window, oghcbDisplayWindow, enumerator );
@@ -282,16 +299,11 @@ static void oghDisplayAll( void )
 /*
  * Window enumerator callback to check for the joystick polling code
  */
-static void oghcbCheckJoystickPolls(
-    SOG_Window *window, SOG_Enumerator *enumerator
-)
+static void oghcbCheckJoystickPolls( SOG_Window *window, SOG_Enumerator *enumerator )
 {
     long int checkTime = ogElapsedTime( );
 
-    if(
-        window->State.JoystickLastPoll + window->State.JoystickPollRate <=
-        checkTime
-    )
+    if( (window->State.JoystickLastPoll + window->State.JoystickPollRate)<=checkTime )
     {
         ogJoystickPollWindow( window );
         window->State.JoystickLastPoll = checkTime;
@@ -399,7 +411,7 @@ static void oghOutput( const char *fmt, va_list ap )
  */
 void ogError( const char *fmt, ... )
 {
-    if( ogState.PrintErrors )
+    if( ogState.PrintError )
     {
         va_list ap;
 
@@ -425,7 +437,7 @@ void ogError( const char *fmt, ... )
  */
 void ogWarning( const char *fmt, ... )
 {
-    if( ogState.PrintWarnings )
+    if( ogState.PrintWarning )
     {
         va_list ap;
 
@@ -446,12 +458,32 @@ void ogWarning( const char *fmt, ... )
  */
 void ogInformation( const char *fmt, ... )
 {
-    if( ogState.PrintInforms )
+    if( ogState.PrintInformation )
     {
         va_list ap;
         va_start( ap, fmt );
 
         fprintf( stderr, "OpenGLUT Information " );
+        if( ogState.ProgramName )
+            fprintf( stderr, "(%s): ", ogState.ProgramName );
+        oghOutput( fmt, ap );
+        fprintf( stderr, "\n" );
+
+        va_end( ap );
+    }
+}
+
+/*
+ * Trace messages.
+ */
+void ogTrace( const char *fmt, ... )
+{
+    if( ogState.PrintTrace )
+    {
+        va_list ap;
+        va_start( ap, fmt );
+
+        fprintf( stderr, "OpenGLUT Trace " );
         if( ogState.ProgramName )
             fprintf( stderr, "(%s): ", ogState.ProgramName );
         oghOutput( fmt, ap );
@@ -492,7 +524,7 @@ static int ogHaveJoystick( void )
 }
 static void ogHavePendingRedisplaysCallback( SOG_Window *w, SOG_Enumerator *e)
 {
-    if( w->State.Redisplay )
+    if( w->State.StaleDisplay )
     {
         e->found = GL_TRUE;
         e->data = w;
@@ -637,6 +669,7 @@ typedef enum EOG_EventClass
     OG_E_CREATE,  /* Window creation; have new window dimensions */
     OG_E_COUNT    /* Dummy event; keep as LAST event class */
 } EOG_EventClass;
+
 typedef struct SOG_Event
 {
 #if TARGET_HOST_UNIX_X11
@@ -646,6 +679,7 @@ typedef struct SOG_Event
 #endif
     EOG_EventClass class;
 } SOG_Event;
+
 int oghPendingWindowEvents( SOG_Event *event )
 {
 #if TARGET_HOST_UNIX_X11
@@ -673,6 +707,7 @@ SOG_Event *oghGetWindowEvent( SOG_Event *event )
 #endif
     return event;
 }
+
 void oghDispatchEvent( SOG_Event *ev )
 {
 #if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
@@ -684,11 +719,12 @@ void oghDispatchEvent( SOG_Event *ev )
     XEvent *event = &( ev->rawEvent );
 
     SOG_Window *window;
-    /* This code was used constantly, so here it goes into a definition: */
-#define GETWINDOW(a)                              \
-    window = ogWindowByHandle( event->a.window ); \
-    if( window == NULL )                          \
-        break;
+    int         ID = -1;
+
+    window = ogWindowByHandle( event->xany.window );
+    if ( window )
+        ID = window->ID;
+
 #define GETMOUSE(a)                               \
     window->State.MouseX = event->a.x;            \
     window->State.MouseY = event->a.y;            \
@@ -700,14 +736,16 @@ void oghDispatchEvent( SOG_Event *ev )
     switch( event->type )
     {
     case ClientMessage:
+
         /* Destroy the window when the WM_DELETE_WINDOW message arrives */
-        if( ( Atom )event->xclient.data.l[ 0 ] == ogDisplay.DeleteWindow )
+        if ( window && ( Atom )event->xclient.data.l[ 0 ] == ogDisplay.DeleteWindow )
         {
-            GETWINDOW( xclient );
+            ogTrace("[%u] X11 ClientMessage DeleteWindow",ID);
+
             ogDestroyWindow( window );
             oghTakeActionOnWindowClose( );
         }
-        break;
+        return;
 
         /*
          * CreateNotify causes a configure-event so that sub-windows are
@@ -727,7 +765,8 @@ void oghDispatchEvent( SOG_Event *ev )
     case CreateNotify:
     case ConfigureNotify:
     case MapNotify:
-        GETWINDOW( xconfigure );
+
+        if ( window && window->State.IsVisible )
         {
             int width = 0;
             int height = 0;
@@ -737,11 +776,16 @@ void oghDispatchEvent( SOG_Event *ev )
             case CreateNotify:
                 width = event->xcreatewindow.width;
                 height = event->xcreatewindow.height;
+                ogTrace("[%u] X11  CreateNotify %d %d",ID,width,height);
                 break;
+
             case ConfigureNotify:
+
                 width = event->xconfigure.width;
                 height = event->xconfigure.height;
+                ogTrace("[%u] X11  ConfigureNotify %d %d",ID,width,height);
                 break;
+
             case MapNotify:
                 {
                     int dummy;
@@ -760,34 +804,25 @@ void oghDispatchEvent( SOG_Event *ev )
                     );
                     width = ( int )uwidth;
                     height = ( int )uheight;
-                }
 
+                    ogTrace("[%u] X11  MapNotify %d %d",ID,width,height);
+                }
                 break;
+
             default:
-                ogError( "Impossible code has been reached.");
                 break;
             }
 
-            if(
-                ( width != window->State.OldWidth ) ||
-                ( height != window->State.OldHeight )
-            )
+            if ( window->State.Width!=width || window->State.Height!=height || window->State.StaleResize )
             {
-                window->State.OldWidth = width;
-                window->State.OldHeight = height;
-                if( FETCH_WCB( *window, Reshape ) )
-                    INVOKE_WCB( *window, Reshape, ( width, height ) );
-                else
-                {
-                    ogSetWindow( window );
-                    glViewport( 0, 0, width, height );
-                }
-                glutPostRedisplay( );
+                window->State.NewWidth  = width;
+                window->State.NewHeight = height;
+
+                window->State.StaleResize  = GL_TRUE;
+                window->State.StaleDisplay = GL_TRUE;
             }
-            if( ( window->IsMenu ) || ( window->IsClientMenu ) )
-                glutSetWindowStayOnTop( GL_TRUE );
         }
-        break;
+        return;
 
     case DestroyNotify:
         /*
@@ -795,26 +830,22 @@ void oghDispatchEvent( SOG_Event *ev )
          *
          * XXX WHY is this commented out?  Should we re-enable it?
          */
+
+        ogTrace("[%u] X11  DestroyNotify",ID);
+
         /* ogAddToWindowDestroyList ( window ); */
         break;
 
     case Expose:
-        /*
-         * Partial exposes are not of particular interest to us...
-         *
-         * Potentially we could do some culling in single-buffered
-         * mode, but the API provides no way to pass this information
-         * back to the application - so we mark the entire window
-         * for redisplay.
-         *
-         */
-        if( event->xexpose.count == 0 )
-        {
-            GETWINDOW( xexpose );
-            ogSetWindow( window );
-            glutPostRedisplay( );
-        }
-        break;
+
+        ogTrace("[%u] X11  Expose",ID);
+
+        /* Skip the the subareas and trigger a full redisplay */
+
+        if ( window && event->xexpose.count == 0 )
+            window->State.StaleDisplay = GL_TRUE;
+
+        return;
 
     case MappingNotify:
         /*
@@ -826,7 +857,12 @@ void oghDispatchEvent( SOG_Event *ev )
 
     case EnterNotify:
     case LeaveNotify:
-        GETWINDOW( xcrossing );
+
+        ogTrace("[%u] X11  %s",ID, event->type==EnterNotify ? "EnterNotify" : "LeaveNotify");
+
+        if ( !window )
+            break;
+
         GETMOUSE( xcrossing );  /* XXX Why do we need the mouse info? */
 
         /*
@@ -864,6 +900,8 @@ void oghDispatchEvent( SOG_Event *ev )
             }
         }
 
+        ogTrace("[%u] GLUT Entry %s",ID,EnterNotify==event->type ? "GLUT_ENTERED" : "GLUT_LEFT");
+
         INVOKE_WCB(
             *window,
             Entry,
@@ -872,7 +910,12 @@ void oghDispatchEvent( SOG_Event *ev )
         break;
 
     case MotionNotify:
-        GETWINDOW( xmotion );
+
+        ogTrace("[%u] X11  MotionNotify",ID);
+
+        if ( !window )
+            break;
+
         GETMOUSE( xmotion );
 
         if( window->ActiveMenu )
@@ -884,10 +927,25 @@ void oghDispatchEvent( SOG_Event *ev )
                 window->ActiveMenu->Window->State.MouseY =
                     event->xmotion.y_root - window->ActiveMenu->Y;
             }
-            window->ActiveMenu->Window->State.Redisplay = GL_TRUE;
+            window->ActiveMenu->Window->State.StaleDisplay = GL_TRUE;
             ogSetWindow( window->ActiveMenu->ParentWindow );
 
             break;
+        }
+
+        /* If the next event is also a MotionNotifiy, let's skip this one  */
+        /* If our queue is flooded, skipping this might help us catch up */
+
+        {
+            int events = XEventsQueued( ogDisplay.Display, QueuedAlready );
+
+            if ( events>0 )
+            {
+                XEvent nextEvent;
+                XPeekEvent( ogDisplay.Display, &nextEvent );            
+                if ( nextEvent.type==MotionNotify )
+                    break;
+            }
         }
 
         /*
@@ -898,6 +956,7 @@ void oghDispatchEvent( SOG_Event *ev )
          */
 #define BUTTON_MASK \
   ( Button1Mask | Button2Mask | Button3Mask | Button4Mask | Button5Mask )
+
         if( event->xmotion.state & BUTTON_MASK )
             INVOKE_WCB(
                 *window, Motion, ( event->xmotion.x, event->xmotion.y )
@@ -910,6 +969,10 @@ void oghDispatchEvent( SOG_Event *ev )
 
     case ButtonRelease:
     case ButtonPress:
+
+        ogTrace("[%u] X11  %s",ID,event->type==ButtonRelease ? "ButtonRelease" : "ButtonPress");
+
+        if ( window )
         {
             GLboolean pressed = GL_TRUE;
             int button;
@@ -921,7 +984,6 @@ void oghDispatchEvent( SOG_Event *ev )
              * A mouse button has been pressed or released. Traditionally,
              * break if the window was found within the OpenGLUT structures.
              */
-            GETWINDOW( xbutton );
             GETMOUSE( xbutton );
 
             /*
@@ -987,7 +1049,7 @@ void oghDispatchEvent( SOG_Event *ev )
                  * XXX it probably should do so; if not, a comment should
                  * XXX explain it.
                  */
-                window->State.Redisplay = GL_TRUE;
+                window->State.StaleDisplay = GL_TRUE;
                 break;
             }
 
@@ -998,7 +1060,7 @@ void oghDispatchEvent( SOG_Event *ev )
                 pressed )
             {
                 /* XXX Posting a Redisplay seems bogus. */
-                window->State.Redisplay = GL_TRUE;
+                window->State.StaleDisplay = GL_TRUE;
                 ogSetWindow( window );
                 ogActivateMenu( window, button );
                 break;
@@ -1024,12 +1086,16 @@ void oghDispatchEvent( SOG_Event *ev )
                 ( glutDeviceGet( GLUT_NUM_MOUSE_BUTTONS ) > button ) ||
                 ( !FETCH_WCB( *window, MouseWheel ) )
             )
+            {
+                ogTrace("[%u] GLUT Mouse %d %s",ID,button,pressed ? "GLUT_DOWN" : "GLUT_UP");
+
                 INVOKE_WCB(
                     *window, Mouse, (
                         button, pressed ? GLUT_DOWN : GLUT_UP,
                         event->xbutton.x, event->xbutton.y
                     )
                 );
+            }
             else
             {
                 /*
@@ -1051,6 +1117,9 @@ void oghDispatchEvent( SOG_Event *ev )
                     direction = 1;
 
                 if( pressed )
+                {
+                    ogTrace("[%u] GLUT MouseWheel %d %d",ID,wheel_number,direction);
+
                     INVOKE_WCB(
                         *window, MouseWheel, (
                             wheel_number,
@@ -1059,6 +1128,7 @@ void oghDispatchEvent( SOG_Event *ev )
                             event->xbutton.y
                         )
                     );
+                }
             }
 
             /* Trash the modifiers state */
@@ -1068,12 +1138,15 @@ void oghDispatchEvent( SOG_Event *ev )
 
     case KeyRelease:
     case KeyPress:
+
+        if ( window )
         {
             OGCBKeyboard keyboard_cb;
             OGCBSpecial special_cb;
 
-            GETWINDOW( xkey );
             GETMOUSE( xkey );
+
+            ogTrace("[%u] X11  %s",ID,event->type==KeyRelease ? "KeyRelease" : "KeyPress");
 
             /* Detect repeated keys if configured globally or per-window */
 
@@ -1158,10 +1231,6 @@ void oghDispatchEvent( SOG_Event *ev )
                      * ...and one for all the others, which need to be
                      * translated to GLUT_KEY_Xs...
                      *
-                     * XXX This is a very ugly bit of code, especially
-                     * XXX the way that multiple statements get stacked
-                     * XXX onto single lines.  We should use a lookup
-                     * XXX table, instead.
                      */
                     switch( keySym )
                     {
@@ -1219,44 +1288,40 @@ void oghDispatchEvent( SOG_Event *ev )
         break;
 
     case VisibilityNotify:
-        GETWINDOW( xvisibility );
-        /* XXX INVOKE_WCB() does this check for us. */
-        if( !FETCH_WCB( *window, WindowStatus ) )
-            break;
-        ogSetWindow( window );
+
+        if ( !window )
+            return;
 
         /*
-         * Sending this event, the X server can notify us that the window
-         * has just acquired one of the three possible visibility states:
-         * VisibilityUnobscured, VisibilityPartiallyObscured or
-         * VisibilityFullyObscured
+         * The X server notifies that the window has become either:
+         * unobscured, partially obscured or fully obscured
          */
         switch( event->xvisibility.state )
         {
         case VisibilityUnobscured:
-            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_RETAINED ) );
-            window->State.Visible = GL_TRUE;
-            break;
+            window->State.IsVisible         = GL_TRUE;
+            window->State.StaleWindowStatus = GL_TRUE;
+            window->State.WindowStatus      = GLUT_FULLY_RETAINED;
+            ogTrace("[%u] X11  VisibilityNotify VisibilityUnobscured",ID);
+            return;
 
         case VisibilityPartiallyObscured:
-            INVOKE_WCB(
-                *window, WindowStatus, ( GLUT_PARTIALLY_RETAINED )
-            );
-            window->State.Visible = GL_TRUE;
-            break;
+            window->State.IsVisible         = GL_TRUE;
+            window->State.StaleWindowStatus = GL_TRUE;
+            window->State.WindowStatus      = GLUT_PARTIALLY_RETAINED;
+            ogTrace("[%u] X11  VisibilityNotify VisibilityPartiallyUnobscured",ID);
+            return;
 
         case VisibilityFullyObscured:
-            INVOKE_WCB( *window, WindowStatus, ( GLUT_FULLY_COVERED ) );
-            window->State.Visible = GL_FALSE;
-            break;
+            window->State.IsVisible         = GL_FALSE;
+            window->State.StaleWindowStatus = GL_TRUE;
+            window->State.WindowStatus      = GLUT_FULLY_COVERED;
+            ogTrace("[%u] X11  VisibilityNotify VisibilityFullyObscured",ID);
+            return;
 
         default:
-            ogWarning(
-                "Unknown X visibility state: %d", event->xvisibility.state
-            );
-            break;
+            return;
         }
-        break;
 
     default:
         ogWarning( "Unknown X event type: %d", event->type );
@@ -1297,15 +1362,14 @@ void OGAPIENTRY glutMainLoopEvent( void )
 {
     SOG_Event event;
     OPENGLUT_REQUIRE_READY( "glutMainLoopEvent" );
-
+    
     while( oghPendingWindowEvents( &event ) )
     {
         oghGetWindowEvent( &event );
         oghDispatchEvent( &event );
     }
 
-    if( ogState.Timers.First )
-        oghCheckTimers( );
+    oghCheckTimers( );
     oghCheckJoystickPolls( );
     oghDisplayAll( );
 
@@ -1366,7 +1430,7 @@ void OGAPIENTRY glutMainLoop( void )
         {
             SOG_Window *current_window = ogStructure.Window;
 
-            INVOKE_WCB( *window, Visibility, ( window->State.Visible ) );
+            INVOKE_WCB( *window, Visibility, ( window->State.IsVisible ) );
             ogSetWindow( current_window );
         }
 
@@ -1398,9 +1462,12 @@ void OGAPIENTRY glutMainLoop( void )
         else
         {
             if( ogState.IdleCallback )
-                ogState.IdleCallback( );
-
-            ogSleepForEvents( );
+            {
+                ogTrace("         glutIdleFunc");
+                ogState.IdleCallback();
+            }
+            else
+                ogSleepForEvents( ); 
         }
     }
 
@@ -1534,8 +1601,6 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
                         wglCreateContext( window->Window.Device );
             }
         }
-        if( ( window->IsMenu ) || ( window->IsClientMenu ) )
-            glutSetWindowStayOnTop( GL_TRUE );
 
         /*
          * XXX These do not seem to really be required.  I had to
@@ -1543,7 +1608,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          * XXX from being forced to resize (overriding the dimensions
          * XXX passed to glutCreateMenuWindow()).
          *
-         * window->State.NeedToResize = GL_TRUE;
+         * window->State.StaleResize = GL_TRUE;
          */
          window->State.Width  = ogState.Size.X;
          window->State.Height = ogState.Size.Y;
@@ -1576,15 +1641,16 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          * If it is not, then it is the system sending us a dummy resize with
          * zero dimensions on a "glutIconifyWindow" call.
          */
-        if( window->State.Visible )
+        if( window->State.IsVisible )
         {
-            window->State.NeedToResize = GL_TRUE;
+            window->State.StaleResize  = GL_TRUE;
+            window->State.StaleDisplay = GL_TRUE;
 #if TARGET_HOST_WINCE
-            window->State.Width  = HIWORD(lParam);
-            window->State.Height = LOWORD(lParam);
+            window->State.NewWidth  = HIWORD(lParam);
+            window->State.NewHeight = LOWORD(lParam);
 #else
-            window->State.Width  = LOWORD(lParam);
-            window->State.Height = HIWORD(lParam);
+            window->State.NewWidth  = LOWORD(lParam);
+            window->State.NewHeight = HIWORD(lParam);
 #endif
         }
 
@@ -1658,15 +1724,15 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         break;
 
     case WM_SHOWWINDOW:
-        window->State.Visible = GL_TRUE;
-        window->State.Redisplay = GL_TRUE;
+        window->State.IsVisible = GL_TRUE;
+        window->State.StaleDisplay = GL_TRUE;
         break;
 
     case WM_PAINT:
         /* Turn on the visibility in case it was turned off somehow */
-        window->State.Visible = GL_TRUE;
+        window->State.IsVisible = GL_TRUE;
         BeginPaint( hWnd, &ps );
-        window->State.Redisplay = GL_TRUE;
+        window->State.StaleDisplay = GL_TRUE;
         EndPaint( hWnd, &ps );
         break;
 
@@ -1693,7 +1759,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
         if( window->ActiveMenu )
         {
-            window->State.Redisplay = GL_TRUE;
+            window->State.StaleDisplay = GL_TRUE;
             ogSetWindow( window->ActiveMenu->ParentWindow );
             break;
         }
@@ -1835,14 +1901,14 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
              * click and menu activity.
              */
             if( !window->IsMenu )
-                window->State.Redisplay = GL_TRUE;
+                window->State.StaleDisplay = GL_TRUE;
 
             break;
         }
 
         if( window->Menu[ button ] && pressed )
         {
-            window->State.Redisplay = GL_TRUE;
+            window->State.StaleDisplay = GL_TRUE;
             ogSetWindow( window );
             ogActivateMenu( window, button );
 
@@ -2138,7 +2204,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          * XXX Probably should instead post a "window resized" event.
          * XXX Let the cliet call glutPostRedisplay() if needed.
          */
-        window->State.Redisplay = GL_TRUE;
+        window->State.StaleDisplay = GL_TRUE;
 
         /*lRet = DefWindowProc( hWnd, uMsg, wParam, lParam ); */
         break;
@@ -2172,7 +2238,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 #if !TARGET_HOST_WINCE
     case WM_SYNCPAINT:  /* 0x0088 */
         /* Another window has moved, need to update this one */
-        window->State.Redisplay = GL_TRUE;
+        window->State.StaleDisplay = GL_TRUE;
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
         /* Help screen says this message must be passed to "DefWindowProc" */
         break;
@@ -2224,7 +2290,7 @@ LRESULT CALLBACK ogWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             case SC_MINIMIZE:
                 /* User has clicked on the "-" to minimize the window */
                 /* Turn off the visibility */
-                window->State.Visible = GL_FALSE;
+                window->State.IsVisible = GL_FALSE;
 
                 break;
 

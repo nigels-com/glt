@@ -62,11 +62,7 @@
 /*! \todo Stuff these into global state variables */
 /*! \todo Maybe support runtime selection between bitmapped and stroked? */
 
-#if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
 #define  OPENGLUT_MENU_FONT    GLUT_BITMAP_8_BY_13
-#else
-#define  OPENGLUT_MENU_FONT    GLUT_BITMAP_HELVETICA_18
-#endif
 
 #define  OPENGLUT_MENU_HEIGHT  (                                  \
     glutBitmapHeight( OPENGLUT_MENU_FONT ) + OPENGLUT_MENU_BORDER \
@@ -412,11 +408,7 @@ void ogDisplayMenu( void )
         glMatrixMode( GL_PROJECTION );
         glPushMatrix( );
         glLoadIdentity( );
-        glOrtho(
-            0, glutGet( GLUT_WINDOW_WIDTH  ),
-            glutGet( GLUT_WINDOW_HEIGHT ), 0,
-            -1, 1
-        );
+        glOrtho( 0, glutGet( GLUT_WINDOW_WIDTH  ), glutGet( GLUT_WINDOW_HEIGHT ), 0, -1, 1 );
 
         glMatrixMode( GL_MODELVIEW );
         glPushMatrix( );
@@ -464,6 +456,7 @@ void ogActivateMenu( SOG_Window *window, int button )
     glutReshapeWindow( menu->Width, menu->Height );
     glutPopWindow( );
     glutShowWindow( );
+
     menu->Window->ActiveMenu = menu;
 }
 
@@ -571,33 +564,30 @@ void ogDeactivateSubMenu( SOG_MenuEntry *menuEntry )
 void oghCalculateMenuBoxSize( void )
 {
     SOG_MenuEntry *menuEntry;
-    int width = 0, height = 0;
+
+    int width = 0;
+    int height = 0;
 
     OPENGLUT_ASSERT_READY;
     if( ogStructure.Menu )
     {
         /* The menu's box size depends on the menu entries: */
-        for(
+        for
+        (
             menuEntry = ( SOG_MenuEntry * )ogStructure.Menu->Entries.First;
             menuEntry;
             menuEntry = ( SOG_MenuEntry * )menuEntry->Node.Next
         )
         {
             /* Update the menu entry's width value */
-            menuEntry->Width = glutBitmapLength(
-                OPENGLUT_MENU_FONT,
-                ( unsigned char * )menuEntry->Text
-            );
+            menuEntry->Width = glutBitmapLength( OPENGLUT_MENU_FONT, ( unsigned char * ) menuEntry->Text );
 
             /*
              * If the entry is a submenu, then it needs to be wider to
              * accomodate the arrow. JCJ 31 July 2003
              */
             if( menuEntry->SubMenu )
-                menuEntry->Width += glutBitmapLength(
-                    OPENGLUT_MENU_FONT,
-                    ( unsigned char * )"_"
-                );
+                menuEntry->Width += glutBitmapLength( OPENGLUT_MENU_FONT, ( unsigned char * ) "_" );
 
             /* Check if it's the biggest we've found */
             if( menuEntry->Width > width )
@@ -607,11 +597,13 @@ void oghCalculateMenuBoxSize( void )
         }
 
         /* Store the menu's box size now: */
+
         ogStructure.Menu->Height = height + 2 * OPENGLUT_MENU_BORDER;
         ogStructure.Menu->Width  = width  + 4 * OPENGLUT_MENU_BORDER;
+
+        ogTrace("<%u> oghCalculateMenuBoxSize %d %d",ogStructure.Menu->ID,width,height);
     }
 }
-
 
 /* -- INTERFACE FUNCTIONS -------------------------------------------------- */
 
