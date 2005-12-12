@@ -127,7 +127,7 @@ int GltSocket::send(const void *message, const size_t size)
     while (total<size)
     {
         // Send a message
-        size_t bytes = ::send(_socket,buff+total, MIN(_messageSize,size-total), 0);
+        size_t bytes = ::send(_socket,buff+total, std::min(_messageSize,size-total), 0);
 
         // Check for an error
 //      assert(!_blocking || bytes!=SOCKET_ERROR);
