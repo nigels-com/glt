@@ -313,7 +313,7 @@ GlutMaster::reshapeWindow(GlutWindow *window,int width,int height)
 }
 
 void
-GlutMaster::setIdle(GlutTimer *target,bool idle)
+GlutMaster::setIdle(GlutTimer *target, bool idle)
 {
     assert(target);
     if (!target)
@@ -340,15 +340,15 @@ GlutMaster::setIdle(GlutTimer *target,bool idle)
                 if (GlutTimer::_idleCount)
                     glutIdleFunc(GlutTimer::idleCallback);
                 else
-                glutIdleFunc(NULL);
-        }
+                    glutIdleFunc(NULL);
+            }
         }
 
     target->_idle = idle;
 }
 
 void
-GlutMaster::setTick(GlutTimer *target,unsigned int msec)
+GlutMaster::setTick(GlutTimer *target, unsigned int msec)
 {
     assert(target);
     if (!target)

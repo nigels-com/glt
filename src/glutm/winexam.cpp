@@ -189,9 +189,9 @@ void GlutWindowExaminer::OnMouse(int button, int state, int x, int y)
     if (state==GLUT_UP)
         switch (button)
         {
-        case GLUT_LEFT_BUTTON:   _mouseLeft   = false; break;
-        case GLUT_MIDDLE_BUTTON: _mouseMiddle = false; break;
-        case GLUT_RIGHT_BUTTON:  _mouseRight  = false; break;
+            case GLUT_LEFT_BUTTON:   _mouseLeft   = false; break;
+            case GLUT_MIDDLE_BUTTON: _mouseMiddle = false; break;
+            case GLUT_RIGHT_BUTTON:  _mouseRight  = false; break;
         }
     else
     {
@@ -199,9 +199,9 @@ void GlutWindowExaminer::OnMouse(int button, int state, int x, int y)
 
         switch (button)
         {
-        case GLUT_LEFT_BUTTON:      _mouseLeft   = true; break;
-        case GLUT_MIDDLE_BUTTON:    _mouseMiddle = true; break;
-        case GLUT_RIGHT_BUTTON:     _mouseRight  = true; break;
+            case GLUT_LEFT_BUTTON:   _mouseLeft   = true; break;
+            case GLUT_MIDDLE_BUTTON: _mouseMiddle = true; break;
+            case GLUT_RIGHT_BUTTON:  _mouseRight  = true; break;
         }
     }
 
