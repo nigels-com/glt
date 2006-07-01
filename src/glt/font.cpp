@@ -3,37 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: font.cpp,v 2.1 2004/05/03 03:27:06 nigels Exp $
-
-    $Log: font.cpp,v $
-    Revision 2.1  2004/05/03 03:27:06  nigels
-    Migrating from MIN/MAX to std::min and std::max
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.15  2003/06/02 07:04:43  nigels
-    Tweak things for gcc 3.0.1
-
-    Revision 1.14  2003/02/07 09:57:10  nigels
-    Added GltChar and GltString
-
-    Revision 1.13  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.12  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.11  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
+    $Id: font.cpp,v 2.2 2006/07/01 13:40:18 nigels Exp $
 */
 
 #include <math/real.h>
@@ -108,9 +78,9 @@ GltFont::size(int &w,int &h,const GltString &str) const
 int
 GltFont::width(const GltChar ch) const
 {
+    GLT_UNUSED(ch);
     return _hStep;
 }
 
 const int GltFont::hStep()  const { return _hStep; }
 const int GltFont::vStep()  const { return _vStep; }
-

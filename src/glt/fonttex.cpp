@@ -3,34 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fonttex.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
-
-    $Log: fonttex.cpp,v $
-    Revision 2.2  2004/05/03 03:27:06  nigels
-    Migrating from MIN/MAX to std::min and std::max
-
-    Revision 2.1  2004/02/16 01:09:31  nigels
-    Tweak the horizontal spacing of characters
-    Tweak the GREY_ALPHA texture to improve appearance
-
-    Revision 1.7  2003/08/05 08:03:34  nigels
-    *** empty log message ***
-
-    Revision 1.6  2003/02/07 09:57:10  nigels
-    Added GltChar and GltString
-
-    Revision 1.5  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.4  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.3  2002/11/06 15:27:23  nigels
-    gcc 3.2 -Wall noise
-
-    Revision 1.2  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
+    $Id: fonttex.cpp,v 2.3 2006/07/01 13:40:59 nigels Exp $
 */
 
 #include <algorithm>
@@ -267,6 +240,7 @@ GltFontTexture::clear()
 void
 GltFontTexture::compileLists(void *data)
 {
+    GLT_UNUSED(data);
 }
 
 bool
