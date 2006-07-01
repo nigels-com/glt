@@ -1,11 +1,11 @@
     /* inffixed.h -- table for decoding fixed codes
      * Generated automatically by makefixed().
- */
+     */
 
     /* WARNING: this file should *not* be used by applications. It
        is part of the implementation of the compression library and
        is subject to change. Applications should only use zlib.h.
- */
+     */
 
     static const code lenfix[512] = {
         {96,7,0},{0,8,80},{0,8,16},{20,8,115},{18,7,31},{0,8,112},{0,8,48},
@@ -82,7 +82,7 @@
         {0,8,95},{0,8,31},{0,9,159},{20,7,99},{0,8,127},{0,8,63},{0,9,223},
         {18,7,27},{0,8,111},{0,8,47},{0,9,191},{0,8,15},{0,8,143},{0,8,79},
         {0,9,255}
-  };
+    };
 
     static const code distfix[32] = {
         {16,5,1},{23,5,257},{19,5,17},{27,5,4097},{17,5,5},{25,5,1025},
@@ -91,4 +91,4 @@
         {19,5,25},{27,5,6145},{17,5,7},{25,5,1537},{21,5,97},{29,5,24577},
         {16,5,4},{24,5,769},{20,5,49},{28,5,12289},{18,5,13},{26,5,3073},
         {22,5,193},{64,5,0}
-  };
+    };

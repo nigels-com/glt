@@ -1,5 +1,5 @@
 /* inffast.c -- fast decoding
- * Copyright (C) 1995-2003 Mark Adler
+ * Copyright (C) 1995-2004 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -19,7 +19,7 @@
    - none
    No measurable difference:
    - Pentium III (Anderson)
-   - 68060 (Nikl)
+   - M68060 (Nikl)
  */
 #ifdef POSTINC
 #  define OFF 0
@@ -74,6 +74,9 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     unsigned char FAR *out;     /* local strm->next_out */
     unsigned char FAR *beg;     /* inflate()'s initial strm->next_out */
     unsigned char FAR *end;     /* while out < end, enough space available */
+#ifdef INFLATE_STRICT
+    unsigned dmax;              /* maximum distance from zlib header */
+#endif
     unsigned wsize;             /* window size or zero if not using window */
     unsigned whave;             /* valid bytes in the window */
     unsigned write;             /* window write index */
@@ -98,6 +101,9 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
     out = strm->next_out - OFF;
     beg = out - (start - strm->avail_out);
     end = out + (strm->avail_out - 257);
+#ifdef INFLATE_STRICT
+    dmax = state->dmax;
+#endif
     wsize = state->wsize;
     whave = state->whave;
     write = state->write;
@@ -167,6 +173,13 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                     }
                 }
                 dist += (unsigned)hold & ((1U << op) - 1);
+#ifdef INFLATE_STRICT
+                if (dist > dmax) {
+                    strm->msg = (char *)"invalid distance too far back";
+                    state->mode = BAD;
+                    break;
+                }
+#endif
                 hold >>= op;
                 bits -= op;
                 Tracevv((stderr, "inflate:         distance %u\n", dist));
@@ -177,13 +190,13 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                         strm->msg = (char *)"invalid distance too far back";
                         state->mode = BAD;
                         break;
-    }
+                    }
                     from = window - OFF;
                     if (write == 0) {           /* very common case */
                         from += wsize - op;
                         if (op < len) {         /* some from window */
                             len -= op;
-    do {
+                            do {
                                 PUP(out) = PUP(from);
                             } while (--op);
                             from = out - dist;  /* rest from output */
@@ -194,25 +207,25 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                         op -= write;
                         if (op < len) {         /* some from end of window */
                             len -= op;
-        do {
+                            do {
                                 PUP(out) = PUP(from);
                             } while (--op);
                             from = window - OFF;
                             if (write < len) {  /* some from start of window */
                                 op = write;
                                 len -= op;
-              do {
+                                do {
                                     PUP(out) = PUP(from);
                                 } while (--op);
                                 from = out - dist;      /* rest from output */
                             }
                         }
-              }
+                    }
                     else {                      /* contiguous in window */
                         from += write - op;
                         if (op < len) {         /* some from window */
                             len -= op;
-                do {
+                            do {
                                 PUP(out) = PUP(from);
                             } while (--op);
                             from = out - dist;  /* rest from output */
@@ -242,8 +255,8 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                         PUP(out) = PUP(from);
                         if (len > 1)
                             PUP(out) = PUP(from);
-              }
-            }
+                    }
+                }
             }
             else if ((op & 64) == 0) {          /* 2nd level distance code */
                 this = dcode[this.val + (hold & ((1U << op) - 1))];
@@ -252,9 +265,9 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             else {
                 strm->msg = (char *)"invalid distance code";
                 state->mode = BAD;
-            break;
-          }
-          }
+                break;
+            }
+        }
         else if ((op & 64) == 0) {              /* 2nd level length code */
             this = lcode[this.val + (hold & ((1U << op) - 1))];
             goto dolen;
@@ -262,12 +275,12 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
         else if (op & 32) {                     /* end-of-block */
             Tracevv((stderr, "inflate:         end of block\n"));
             state->mode = TYPE;
-        break;
-      }
+            break;
+        }
         else {
             strm->msg = (char *)"invalid literal/length code";
             state->mode = BAD;
-          break;
+            break;
         }
     } while (in < last && out < end);
 
