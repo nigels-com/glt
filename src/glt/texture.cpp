@@ -3,46 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: texture.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
-
-    $Log: texture.cpp,v $
-    Revision 2.2  2004/02/16 01:26:18  nigels
-    Whitespace differences
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 1.40  2003/12/09 05:45:23  nigels
-    Added defined() query to GltTexture
-
-    Revision 1.39  2003/11/12 06:44:42  nigels
-    Expand
-
-    Revision 1.38  2003/10/15 11:56:55  nigels
-    Return false if GLT format not recognised
-
-    Revision 1.37  2003/07/29 08:32:17  nigels
-    Bug-fix
-
-    Revision 1.35  2003/05/10 16:58:11  nigels
-    Last tweaks for 0.8
-
-    Revision 1.33  2003/03/06 12:22:44  nigels
-    Fixed zero width height bug
-
-    Revision 1.31  2003/02/07 09:58:13  nigels
-    Added unpack row-length support
-
-    Revision 1.28  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.27  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.26  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
+    $Id: texture.cpp,v 2.3 2006/07/01 13:47:10 nigels Exp $
 */
 
 #include <glt/gl.h>
@@ -178,7 +139,7 @@ GltTexture::init(const std::string &filename,const bool mipmap)
 
     string image;
     if (decode(width,height,image,data))
-        return init(width,height,image);
+        return init(width,height,image,mipmap);
 
     return false;
 }
