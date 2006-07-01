@@ -9,22 +9,7 @@
 
     \ingroup GLT
 
-    $Id: mcubes.cpp,v 2.2 2004/03/07 04:49:17 nigels Exp $
-
-    $Log: mcubes.cpp,v $
-    Revision 2.2  2004/03/07 04:49:17  nigels
-    Further code refinements
-    There appears to be a limitation/bug with some cell configurations.
-    It is not always possible to reconnect the face segments into polygons.
-    Also, non-planar polygons may be passed to OpenGL in some situations.
-
-    Revision 2.1  2004/03/05 05:51:03  nigels
-    Resolved gaps in sphere and heart when gcc optimisations (-O3) enabled
-    General tidy-up of code, more to follow, optimistations also possible
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
+    $Id: mcubes.cpp,v 2.3 2006/07/01 13:43:09 nigels Exp $
 */
 
 #include <glt/gl.h>
@@ -49,7 +34,6 @@ static GltFunc3d func3d = NULL;
 static Sample **level0 = NULL;
 static Sample **level1 = NULL;
 
-
 static void write_polygon(Vector3 *poly, int size);
 static bool allocate_cubes(void);
 static void free_cubes(void);
@@ -64,11 +48,19 @@ static void vect_sub  (Vector3 *v1, const Vector3 *v2, const Vector3 *v3);
 static void vect_scale(Vector3 *v1, const Vector3 *v2, const float k);
 
 bool
-GltMarchingCubes(
+GltMarchingCubes
+(
     GltFunc3d func,
-    float minx, float miny, float minz,
-    float maxx, float maxy, float maxz,
-    int xsteps, int ysteps, int zsteps)
+    float minx,
+    float miny,
+    float minz,
+    float maxx,
+    float maxy,
+    float maxz,
+    int xsteps,
+    int ysteps,
+    int zsteps
+)
 {
     int ix, iy, iz;
     Sample **temp;
@@ -457,12 +449,13 @@ static void write_polygon(Vector3 *poly, int size)
         normal.x = a.y*b.z - a.z*b.y;
         normal.y = a.z*b.x - a.x*b.z;
         normal.z = a.x*b.y - a.y*b.x;
+
+        glNormal3f(normal.x,normal.y,normal.z);
     }
 
     //
 
     glBegin(GL_POLYGON);
-        glNormal3f(normal.x,normal.y,normal.z);
         for (int i=size-1; i>=0; i--)
             glVertex3f(poly[i].x,poly[i].y,poly[i].z);
     glEnd();
