@@ -38,7 +38,7 @@ class ptpublic _varray: protected tobjlist<_varitem>
 protected:
     int refcount;
 
-    virtual int _varray::compare(const void* key, const void* item) const;
+    virtual int compare(const void* key, const void* item) const;
 
     friend class variant;
 
