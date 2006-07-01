@@ -30,51 +30,7 @@
     \brief GLT Configuration File
     \ingroup GLT
 
-    $Id: config.h,v 2.3 2005/05/22 16:57:18 nigels Exp $
-
-    $Log: config.h,v $
-    Revision 2.3  2005/05/22 16:57:18  nigels
-    Bump version to 0.8-rc4
-
-    Revision 2.2  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 1.32  2003/12/11 23:46:48  nigels
-    Added PolyFont library
-
-    Revision 1.31  2003/10/03 06:49:41  nigels
-    64bit integers for Linux
-
-    Revision 1.30  2003/07/22 03:39:08  nigels
-    Added compile-time color name lookup option
-
-    Revision 1.29  2003/05/10 17:47:29  nigels
-    *** empty log message ***
-
-    Revision 1.28  2003/03/06 12:16:38  nigels
-    *** empty log message ***
-
-    Revision 1.26  2003/02/07 09:52:47  nigels
-    Added mingw support and optional UNICODE
-
-    Revision 1.25  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.24  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.23  2002/10/07 16:27:46  nigels
-    Added CVS version control info
-
-    Revision 1.22  2002/10/07 16:16:36  nigels
-    Mark GLT for "gamma" (nearly 0.7) release version
-
-    Revision 1.21  2002/10/07 16:13:35  nigels
-    *** empty log message ***
-
+    $Id: config.h,v 2.4 2006/07/01 13:39:43 nigels Exp $
 */
 
 #include <string>
@@ -220,5 +176,7 @@ typedef std::string  GltString;
 /// NULL pointer
 #define NULL (0)
 #endif
+
+#define GLT_UNUSED(x) (void)x;
 
 #endif
