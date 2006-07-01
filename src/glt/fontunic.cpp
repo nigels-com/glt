@@ -3,37 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fontunic.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
-
-    $Log: fontunic.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.22  2003/08/05 08:03:42  nigels
-    *** empty log message ***
-
-    Revision 1.20  2003/06/26 09:58:08  nigels
-    *** empty log message ***
-
-    Revision 1.19  2003/06/02 07:05:12  nigels
-    Tweak things for gcc 3.0.1
-
-    Revision 1.18  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.17  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.16  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
+    $Id: fontunic.cpp,v 2.1 2006/07/01 13:42:27 nigels Exp $
 */
 
 #include <iosfwd>
@@ -161,7 +131,7 @@ GltFontUnicode::width(const GltChar ch) const
     assert(_init);
 
     if (_init)
-        return (_index[ch+1] - _index[ch])>>1;
+        return (_index[int(ch+1)] - _index[int(ch)])>>1;
     else
         return 0;
 }
