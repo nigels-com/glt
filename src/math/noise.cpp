@@ -3,24 +3,7 @@
 /*! \file
     \ingroup Math
 
-    $Id: noise.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
-
-    $Log: noise.cpp,v $
-    Revision 2.1  2004/02/16 02:40:33  nigels
-    Whitespace differences
-
-    Revision 2.0  2004/02/08 19:44:12  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.3  2003/05/10 17:00:41  nigels
-    Tidy and document
-
+    $Id: noise.cpp,v 2.2 2006/07/09 15:08:39 nigels Exp $
 */
 
 #include <math/round.h>
