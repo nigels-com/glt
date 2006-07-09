@@ -4,21 +4,7 @@
     \brief   Routines for converting data to C/C++ source code
     \ingroup Misc
 
-    $Id: text2src.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
-
-    $Log: text2src.cpp,v $
-    Revision 2.1  2004/02/10 13:43:46  nigels
-    no message
-
-    Revision 1.13  2003/10/01 02:36:10  nigels
-    Tidy for GLT 0.8
-
-    Revision 1.12  2003/03/06 12:34:47  nigels
-    *** empty log message ***
-
-    Revision 1.10  2003/02/07 10:04:38  nigels
-    Improved robustness of text2src
-
+    $Id: text2src.cpp,v 2.2 2006/07/09 15:13:46 nigels Exp $
 */
 
 #include <misc/string.h>
@@ -177,6 +163,6 @@ text2source(string &output,const string &input)
         // Check our sanity
 
         assert(i==end || i==(end+1));
-        assert((j-output.c_str())==output.size());
+        assert((j-output.c_str())==int(output.size()));
     }
 }
