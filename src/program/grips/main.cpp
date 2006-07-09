@@ -27,7 +27,7 @@ bool GlutMain(const std::vector<std::string> &arg)
     glutInit(&argc,argv);
 #endif
 
-    static Grips *window = new Grips(480,480,20,20);
+    static Grips *window = new Grips(640,480,20,20);
 
     if (arg.size()>1)
     {
