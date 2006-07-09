@@ -147,9 +147,11 @@ void fgSetCursor ( SFG_Window *window, int cursorID )
             }
         }
 
+#if 0
         if ( ( cursorIDToUse != GLUT_CURSOR_NONE ) && ( cursor == None ) ) {
             fgError( "Failed to create cursor" );
         }
+#endif
         XDefineCursor( fgDisplay.Display,
                        window->Window.Handle, cursor );
     }
