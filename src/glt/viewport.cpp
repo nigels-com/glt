@@ -3,32 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: viewport.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
-
-    $Log: viewport.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.15  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.14  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.13  2002/10/11 08:33:12  nigels
-    Added GLint *() operator
-    Added resize to (image-space) bounding box
-
-    Revision 1.12  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
+    $Id: viewport.cpp,v 2.1 2006/07/09 15:10:18 nigels Exp $
 */
 
 #include <glt/texture.h>
