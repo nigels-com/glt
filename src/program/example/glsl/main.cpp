@@ -22,6 +22,8 @@
 
 */
 
+#include <GL/glew.h>
+
 #include <glutm/glut.h>
 #include <glutm/master.h>
 #include <glutm/winexam.h>
@@ -83,13 +85,53 @@ static const char *vs =
 "}";
 
 static const char *fs =
-"uniform sampler2D texture"
+"uniform sampler2D texture;"
+""
+"vec3 rgb2hsv(vec3 RGB)"
+"{"
+"    float MIN = min(RGB.x,min(RGB.y,RGB.z));"
+"    float MAX = max(RGB.x,max(RGB.y,RGB.z));"
+"    float DELTA = MAX-MIN;"
+"    vec3 HSV;"
+"    HSV.z = MAX;"
+"    if (DELTA!=0.0)"
+"    {"
+"        HSV.y = DELTA/MAX;"
+"        vec3 delRGB = ( ( ( MAX.xxx - RGB) / 6.0 ) + ( DELTA / 2.0 ) ) / DELTA;"
+"        if      ( RGB.x == MAX ) HSV.x = delRGB.z - delRGB.y;"
+"        else if ( RGB.y == MAX ) HSV.x = ( 1.0/3.0) + delRGB.x - delRGB.z;"
+"        else if ( RGB.z == MAX ) HSV.x = ( 2.0/3.0) + delRGB.y - delRGB.x;"
+"        if ( HSV.x < 0.0 ) { HSV.x += 1.0; }"
+"        if ( HSV.x > 1.0 ) { HSV.x -= 1.0; }"
+"    }"
+"    return HSV;"
+"}"
+""
+"vec3 hsv2rgb(vec3 HSV)"
+"{"
+"    vec3 RGB = HSV.z;"
+"    if ( HSV.y != 0.0 ) {"
+"       float var_h = HSV.x * 6.0;"
+"       float var_i = floor(var_h);"
+"       float var_1 = HSV.z * (1.0 - HSV.y);"
+"       float var_2 = HSV.z * (1.0 - HSV.y * (var_h-var_i));"
+"       float var_3 = HSV.z * (1.0 - HSV.y * (1-(var_h-var_i)));"
+"       if      (var_i == 0) { RGB = vec3(HSV.z, var_3, var_1); }"
+"       else if (var_i == 1) { RGB = vec3(var_2, HSV.z, var_1); }"
+"       else if (var_i == 2) { RGB = vec3(var_1, HSV.z, var_3); }"
+"       else if (var_i == 3) { RGB = vec3(var_1, var_2, HSV.z); }"
+"       else if (var_i == 4) { RGB = vec3(var_3, var_1, HSV.z); }"
+"       else                 { RGB = vec3(HSV.z, var_1, var_2); }"
+"   }"
+"   return RGB;"
+"}"
 ""
 "void main(void)"
 "{"
-"    vec3 color;"
-"    color = texture2D(theTexture,gl_TexCoord[0].st);"
-"    gl_FragColor = vec4(color, 1.0);"
+"    vec3 color = texture2D(texture,gl_TexCoord[0].st);"
+"    vec3 hsv = rgb2hsv(color);"
+"    hsv.x = fract(hsv.x+0.6);"
+"    gl_FragColor = vec4(hsv2rgb(hsv), 1.0);"
 "}";
 
 void
@@ -140,6 +182,14 @@ GlutWindowGlslDemo::OnOpen()
         glCompileShader(v);
         glCompileShader(f);
     
+        const int len = 1024;
+        GLchar buffer[1024];
+        glGetShaderInfoLog(v,len,NULL,buffer);
+        cout << buffer << endl;
+
+        glGetShaderInfoLog(f,len,NULL,buffer);
+        cout << buffer << endl;
+
         p = glCreateProgram();
         glAttachShader(p,f);
         glAttachShader(p,v);
