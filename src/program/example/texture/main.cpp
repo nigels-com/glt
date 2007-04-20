@@ -61,18 +61,17 @@ public:
     void OnIdle();
 
 protected:
+    GltTexture         _glt;
+    GltTexture         _opengl;
+    GltTexture         _vrml;
+    GltTexture         _linux;
+    GltTexture         _inventor;
+    GltTexture         _raypp;
 
-    GltTexture      _glt;
-    GltTexture      _opengl;
-    GltTexture      _vrml;
-    GltTexture      _linux;
-    GltTexture      _inventor;
-    GltTexture      _raypp;
+    GltTexture         _background;
+    GltTextureViewport _tiled;
 
-    GltTexture  _background;
-    GltTextureViewport  _tiled;
-
-    Timer           _timer;
+    Timer              _timer;
 };
 
 GlutWindowTextureDemo::GlutWindowTextureDemo(int width,int height,int x,int y,unsigned int displayMode)
@@ -100,28 +99,29 @@ GlutWindowTextureDemo::OnOpen()
 
     glRotateX(45);
 
-    _glt.init(gltTexture);
-    _opengl.init(openglTexture);
-    _vrml.init(vrmlTexture);
-    _linux.init(linuxTexture);
-    _inventor.init(inventorTexture);
-    _raypp.init(rayppTexture);
+    _glt       .init(gltTexture);
+    _opengl    .init(openglTexture);
+    _vrml      .init(vrmlTexture);
+    _linux     .init(linuxTexture);
+    _inventor  .init(inventorTexture);
+    _raypp     .init(rayppTexture);
     _background.init(backgroundTexture);
 }
 
 void
 GlutWindowTextureDemo::OnClose()
 {
-    _glt.init(NULL);
-    _opengl.init(NULL);
-    _vrml.init(NULL);
-    _linux.init(NULL);
-    _inventor.init(NULL);
-    _raypp.init(NULL);
+    _glt       .init(NULL);
+    _opengl    .init(NULL);
+    _vrml      .init(NULL);
+    _linux     .init(NULL);
+    _inventor  .init(NULL);
+    _raypp     .init(NULL);
     _background.init(NULL);
 }
 
-void drawFace(const GltTexture &texture,const Matrix &matrix)
+void 
+drawFace(const GltTexture &texture,const Matrix &matrix)
 {
     GLERROR;
 
@@ -140,7 +140,8 @@ void drawFace(const GltTexture &texture,const Matrix &matrix)
     GLERROR;
 }
 
-void GlutWindowTextureDemo::OnDisplay()
+void 
+GlutWindowTextureDemo::OnDisplay()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -156,7 +157,8 @@ void GlutWindowTextureDemo::OnDisplay()
     drawFace(_raypp   ,matrixRotate(VectorX,-90));
 }
 
-void GlutWindowTextureDemo::OnIdle()
+void 
+GlutWindowTextureDemo::OnIdle()
 {
     glRotateY(_timer.elapsed()*30.0);
     _timer.start();
@@ -181,10 +183,8 @@ GlutWindowTextureDemo::OnReshape(int w, int h)
 
 bool GlutMain(const std::vector<std::string> &arg)
 {
-    static GlutWindow *main = new GlutWindowTextureDemo(450,450,10,10);
+    static GlutWindow *main = new GlutWindowTextureDemo(600,600,10,10);
     main->open();
 
     return true;
 }
-
-
