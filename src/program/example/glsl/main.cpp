@@ -116,11 +116,11 @@ static const char *fs =
 "       float var_1 = HSV.z * (1.0 - HSV.y);"
 "       float var_2 = HSV.z * (1.0 - HSV.y * (var_h-var_i));"
 "       float var_3 = HSV.z * (1.0 - HSV.y * (1-(var_h-var_i)));"
-"       if      (var_i == 0) { RGB = vec3(HSV.z, var_3, var_1); }"
-"       else if (var_i == 1) { RGB = vec3(var_2, HSV.z, var_1); }"
-"       else if (var_i == 2) { RGB = vec3(var_1, HSV.z, var_3); }"
-"       else if (var_i == 3) { RGB = vec3(var_1, var_2, HSV.z); }"
-"       else if (var_i == 4) { RGB = vec3(var_3, var_1, HSV.z); }"
+"       if      (var_i == 0.0) { RGB = vec3(HSV.z, var_3, var_1); }"
+"       else if (var_i == 1.0) { RGB = vec3(var_2, HSV.z, var_1); }"
+"       else if (var_i == 2.0) { RGB = vec3(var_1, HSV.z, var_3); }"
+"       else if (var_i == 3.0) { RGB = vec3(var_1, var_2, HSV.z); }"
+"       else if (var_i == 4.0) { RGB = vec3(var_3, var_1, HSV.z); }"
 "       else                 { RGB = vec3(HSV.z, var_1, var_2); }"
 "   }"
 "   return RGB;"
@@ -128,10 +128,14 @@ static const char *fs =
 ""
 "void main(void)"
 "{"
-"    vec3 color = texture2D(texture,gl_TexCoord[0].st);"
-"    vec3 hsv = rgb2hsv(color);"
-"    hsv.x = fract(hsv.x+0.6);"
-"    gl_FragColor = vec4(hsv2rgb(hsv), 1.0);"
+"    vec3 RGB = texture2D(texture,gl_TexCoord[0].st);"
+"    vec3 HSV = rgb2hsv(RGB);"
+//"    if (HSV.x<0.5) { HSV.x = fract(gl_TexCoord[0].s/2); HSV.y = fract(gl_TexCoord[0].t/2); } else { HSV.x = 0.65; }"
+//"    if (HSV.y<0.5) { HSV.x = fract(gl_TexCoord[0].s/4); HSV.y = fract(gl_TexCoord[0].t/4); } else { HSV.y = 0.7; }"
+//"    if (HSV.y<0.5) { HSV.x = 0.45; HSV.y = 0.14; } else { HSV.y = 0.5; }"
+"    if (HSV.y<0.5) { gl_FragColor = vec4(hsv2rgb(vec3(0.05,0.4,HSV.z)),1.0); } else { gl_FragColor = vec4(0.0,0.0,1.0,1.0); }"
+//"    gl_FragColor = vec4(HSV.xxx,0);"
+//"    gl_FragColor = vec4(hsv2rgb(HSV), 1.0);"
 "}";
 
 void
@@ -218,15 +222,17 @@ GlutWindowGlslDemo::OnDisplay()
     white.glColor();
 //    glutSolidTeapot(0.5);
 
+    const int n = 4;
+
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
     _texture.set();
     glBegin(GL_QUADS);
         glNormal3i(0,0,1);
         glTexCoord2i(0,0); glVertex2i(-1,-1);
-        glTexCoord2i(1,0); glVertex2i( 1,-1);
-        glTexCoord2i(1,1); glVertex2i( 1, 1);
-        glTexCoord2i(0,1); glVertex2i(-1, 1);
+        glTexCoord2i(n,0); glVertex2i( 1,-1);
+        glTexCoord2i(n,n); glVertex2i( 1, 1);
+        glTexCoord2i(0,n); glVertex2i(-1, 1);
     glEnd();
 }
 
