@@ -53,10 +53,10 @@ class UnMatrix;
 class Matrix
 {
     friend Matrix matrixScale(const real scaleFactor);
-    friend Matrix matrixScale(const real scaleX,const real scaleY,const real scaleZ = 1.0);
+    friend Matrix matrixScale(const real scaleX,const real scaleY,const real scaleZ);
     friend Matrix matrixScale(const Vector3 &sf);
     friend Matrix matrixTranslate(const Vector3 &trans);
-    friend Matrix matrixTranslate(const real x,const real y,const real z = 0.0);
+    friend Matrix matrixTranslate(const real x,const real y,const real z);
     friend Matrix matrixRotate(const Vector3 &axis,const double angle);
     friend Matrix matrixRotate(const double azimuth,const double elevation);
     friend Matrix matrixOrient(const Vector3 &x,const Vector3 &y,const Vector3 &z);
@@ -182,5 +182,20 @@ private:
         const double d
     ) const;
 };
+
+Matrix matrixScale(const real scaleFactor);
+Matrix matrixScale(const real scaleX,const real scaleY,const real scaleZ = 1.0);
+Matrix matrixScale(const Vector3 &sf);
+Matrix matrixTranslate(const Vector3 &trans);
+Matrix matrixTranslate(const real x,const real y,const real z = 0.0);
+Matrix matrixRotate(const Vector3 &axis,const double angle);
+Matrix matrixRotate(const double azimuth,const double elevation);
+Matrix matrixOrient(const Vector3 &x,const Vector3 &y,const Vector3 &z);
+Matrix matrixOrient(const Vector3 &direction,const Vector3 &up);
+Matrix matrixShadow(const Vector4 &plane,const Vector4 &light);
+Matrix matrixMirror(const Vector3 &point,const Vector3 &norm);
+
+std::ostream &operator<<(std::ostream &os,const Matrix &m);
+std::istream &operator>>(std::istream &is,      Matrix &m);
 
 #endif
