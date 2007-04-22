@@ -64,12 +64,36 @@ protected:
     GltTexture         _texture;
 
     bool               _shader;
-    GLuint v,f,f2,p;
+
+    GLuint _vShader;
+    GLuint _fShader;
+    GLuint _program;
+    GLuint _uniformWallHue;
+    GLuint _uniformWallSaturation;
+    GLuint _uniformWallContrast;
+    GLuint _uniformWallBrightness;
+
+    void drawWall
+    (
+        const GLint   n, 
+        const GLfloat z, 
+        const GLfloat hue, 
+        const GLfloat saturation, 
+        const GLfloat contrast, 
+        const GLfloat brightness
+    );
 };
 
 GlutWindowGlslDemo::GlutWindowGlslDemo(int width,int height,int x,int y,unsigned int displayMode)
-: GlutWindowExaminer("GLT GLSL Demo",width,height,x,y,displayMode),
-  _shader(true)
+:   GlutWindowExaminer("GLT GLSL Demo",width,height,x,y,displayMode),
+    _shader(true),
+    _vShader(0),
+    _fShader(0),
+    _program(0),
+    _uniformWallHue(0),
+    _uniformWallSaturation(0),
+    _uniformWallContrast(0),
+    _uniformWallBrightness(0)
 {
 }
 
@@ -86,6 +110,10 @@ static const char *vs =
 
 static const char *fs =
 "uniform sampler2D texture;"
+"uniform float WallHue;"
+"uniform float WallSaturation;"
+"uniform float WallContrast;"
+"uniform float WallBrightness;"
 ""
 "vec3 rgb2hsv(vec3 RGB)"
 "{"
@@ -97,7 +125,7 @@ static const char *fs =
 "    if (DELTA!=0.0)"
 "    {"
 "        HSV.y = DELTA/MAX;"
-"        vec3 delRGB = ( ( ( MAX.xxx - RGB) / 6.0 ) + ( DELTA / 2.0 ) ) / DELTA;"
+"        vec3 delRGB = ( ((vec3(MAX,MAX,MAX)-RGB)/6.0) + (vec3(DELTA,DELTA,DELTA)/2.0) )/DELTA;"
 "        if      ( RGB.x == MAX ) HSV.x = delRGB.z - delRGB.y;"
 "        else if ( RGB.y == MAX ) HSV.x = ( 1.0/3.0) + delRGB.x - delRGB.z;"
 "        else if ( RGB.z == MAX ) HSV.x = ( 2.0/3.0) + delRGB.y - delRGB.x;"
@@ -109,31 +137,60 @@ static const char *fs =
 ""
 "vec3 hsv2rgb(vec3 HSV)"
 "{"
-"    vec3 RGB = HSV.z;"
+"    vec3 RGB = HSV.zzz;"
 "    if ( HSV.y != 0.0 ) {"
 "       float var_h = HSV.x * 6.0;"
 "       float var_i = floor(var_h);"
 "       float var_1 = HSV.z * (1.0 - HSV.y);"
 "       float var_2 = HSV.z * (1.0 - HSV.y * (var_h-var_i));"
-"       float var_3 = HSV.z * (1.0 - HSV.y * (1-(var_h-var_i)));"
+"       float var_3 = HSV.z * (1.0 - HSV.y * (1.0-(var_h-var_i)));"
 "       if      (var_i == 0.0) { RGB = vec3(HSV.z, var_3, var_1); }"
 "       else if (var_i == 1.0) { RGB = vec3(var_2, HSV.z, var_1); }"
 "       else if (var_i == 2.0) { RGB = vec3(var_1, HSV.z, var_3); }"
 "       else if (var_i == 3.0) { RGB = vec3(var_1, var_2, HSV.z); }"
 "       else if (var_i == 4.0) { RGB = vec3(var_3, var_1, HSV.z); }"
-"       else                 { RGB = vec3(HSV.z, var_1, var_2); }"
+"       else                   { RGB = vec3(HSV.z, var_1, var_2); }"
 "   }"
 "   return RGB;"
 "}"
 ""
+"vec3 fsGrey(float T)"
+"{"
+"    return vec3(T,T,T);"
+"}"
+""
+"vec3 fsRGB(vec3 T)"
+"{"
+"    return T;"
+"}"
+""
+"vec3 fsHSV(vec3 T)"
+"{"
+"    return hsv2rgb(T);"
+"}"
+""
+"vec4 fsWall1(vec4 RGBA, float Hue, float Saturation, float Contrast, float Brightness)"
+"{"
+"    vec3 HSV= rgb2hsv(RGBA.xyz);"
+"    if (HSV.y<0.5)"
+"        return vec4(hsv2rgb(vec3(Hue,Saturation,(HSV.z-0.5)*Contrast+0.5+Brightness)),RGBA.a);"
+"    else"
+"        return RGBA;"
+"}"
+""
 "void main(void)"
 "{"
-"    vec3 RGB = texture2D(texture,gl_TexCoord[0].st);"
-"    vec3 HSV = rgb2hsv(RGB);"
+"    gl_FragColor = vec4(fsGrey(gl_TexCoord[0].s),1.0);"
+"    gl_FragColor = vec4(fsRGB(gl_TexCoord[0].xyz),1.0);"
+"    gl_FragColor = vec4(fsRGB(vec3(gl_TexCoord[0].s,0,gl_TexCoord[0].t)),1.0);"
+"    gl_FragColor = fsWall1(texture2D(texture,gl_TexCoord[0].st),WallHue,WallSaturation,WallContrast,WallBrightness);"
+//"    gl_FragColor = vec4(fsHSV(gl_TexCoord[0].st,1.0).xyz,1.0);"
+//"    vec3 RGB = texture2D(texture,gl_TexCoord[0].st);"
+//"    vec3 HSV = rgb2hsv(RGB);"
 //"    if (HSV.x<0.5) { HSV.x = fract(gl_TexCoord[0].s/2); HSV.y = fract(gl_TexCoord[0].t/2); } else { HSV.x = 0.65; }"
 //"    if (HSV.y<0.5) { HSV.x = fract(gl_TexCoord[0].s/4); HSV.y = fract(gl_TexCoord[0].t/4); } else { HSV.y = 0.7; }"
 //"    if (HSV.y<0.5) { HSV.x = 0.45; HSV.y = 0.14; } else { HSV.y = 0.5; }"
-"    if (HSV.y<0.5) { gl_FragColor = vec4(hsv2rgb(vec3(0.05,0.4,HSV.z)),1.0); } else { gl_FragColor = vec4(0.0,0.0,1.0,1.0); }"
+//"    if (HSV.y<0.5) { gl_FragColor = vec4(hsv2rgb(vec3(0.05,0.2,HSV.z)),1.0); } else { gl_FragColor = vec4(0.0,0.0,1.0,1.0); }"
 //"    gl_FragColor = vec4(HSV.xxx,0);"
 //"    gl_FragColor = vec4(hsv2rgb(HSV), 1.0);"
 "}";
@@ -173,35 +230,41 @@ GlutWindowGlslDemo::OnOpen()
     glewInit();
     if (glewIsSupported("GL_VERSION_2_0"))
     {
-        v  = glCreateShader(GL_VERTEX_SHADER);
-        f  = glCreateShader(GL_FRAGMENT_SHADER);
-        f2 = glCreateShader(GL_FRAGMENT_SHADER);
+        _vShader  = glCreateShader(GL_VERTEX_SHADER);
+        _fShader  = glCreateShader(GL_FRAGMENT_SHADER);
     
-        const char * ff = fs;
-        const char * vv = vs;
+        const char *ff = fs;
+        const char *vv = vs;
     
-        glShaderSource(v, 1, &vv,NULL);
-        glShaderSource(f, 1, &ff,NULL);
+        glShaderSource(_fShader, 1, &ff,NULL);
+        glShaderSource(_vShader, 1, &vv,NULL);
     
-        glCompileShader(v);
-        glCompileShader(f);
+        glCompileShader(_fShader);
+        glCompileShader(_vShader);
     
         const int len = 1024;
         GLchar buffer[1024];
-        glGetShaderInfoLog(v,len,NULL,buffer);
+        glGetShaderInfoLog(_fShader,len,NULL,buffer);
         cout << buffer << endl;
 
-        glGetShaderInfoLog(f,len,NULL,buffer);
+        glGetShaderInfoLog(_vShader,len,NULL,buffer);
         cout << buffer << endl;
 
-        p = glCreateProgram();
-        glAttachShader(p,f);
-        glAttachShader(p,v);
+        _program = glCreateProgram();
+        glAttachShader(_program,_fShader);
+        glAttachShader(_program,_vShader);
     
-        glLinkProgram(p);
+        glLinkProgram(_program);
 
         if (_shader)
-            glUseProgram(p);
+        {
+            glUseProgram(_program);
+
+            _uniformWallHue        = glGetUniformLocation(_program,"WallHue");
+            _uniformWallSaturation = glGetUniformLocation(_program,"WallSaturation");
+            _uniformWallContrast   = glGetUniformLocation(_program,"WallContrast");
+            _uniformWallBrightness = glGetUniformLocation(_program,"WallBrightness");
+        }
     }
 
     //
@@ -215,25 +278,48 @@ GlutWindowGlslDemo::OnClose()
     _texture.init(NULL);
 }
 
+void
+GlutWindowGlslDemo::drawWall
+(
+    const GLint n, 
+    const GLfloat x, 
+    const GLfloat hue, 
+    const GLfloat saturation,
+    const GLfloat contrast,
+    const GLfloat brightness
+)
+{
+    if (_shader)
+    {
+        glUniform1f(_uniformWallHue,       hue);
+        glUniform1f(_uniformWallSaturation,saturation);
+        glUniform1f(_uniformWallContrast,  contrast);
+        glUniform1f(_uniformWallBrightness,brightness);
+    }
+
+    glBegin(GL_QUADS);
+        glNormal3i(0,0,1);
+        glTexCoord2i(0,0); glVertex2f(x,      0.0f);
+        glTexCoord2i(n,0); glVertex2f(x+1.0f, 0.0f);
+        glTexCoord2i(n,n); glVertex2f(x+1.0f, 1.0f);
+        glTexCoord2i(0,n); glVertex2f(x,      1.0f);
+    glEnd();
+}
+
 void 
 GlutWindowGlslDemo::OnDisplay()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     white.glColor();
-//    glutSolidTeapot(0.5);
-
-    const int n = 4;
 
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
     _texture.set();
-    glBegin(GL_QUADS);
-        glNormal3i(0,0,1);
-        glTexCoord2i(0,0); glVertex2i(-1,-1);
-        glTexCoord2i(n,0); glVertex2i( 1,-1);
-        glTexCoord2i(n,n); glVertex2i( 1, 1);
-        glTexCoord2i(0,n); glVertex2i(-1, 1);
-    glEnd();
+
+    drawWall(2,0.0f,0.1f,0.30f,1.0f, 0.0f);
+    drawWall(2,1.0f,0.3f,0.05f,1.5f, 0.2f);
+    drawWall(2,2.0f,0.8f,0.05f,0.5f, 0.1f);
+    drawWall(2,3.0f,0.8f,0.05f,1.0f,-0.4f);
 }
 
 bool 
