@@ -4,9 +4,12 @@
     \brief   PNG image encoding and decoding
     \ingroup Misc
 
-    $Id: png.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
+    $Id: png.cpp,v 2.2 2007/04/22 19:47:37 nigels Exp $
 
     $Log: png.cpp,v $
+    Revision 2.2  2007/04/22 19:47:37  nigels
+    Extra error checking
+
     Revision 2.1  2004/02/10 13:43:46  nigels
     no message
 
@@ -249,7 +252,7 @@ encodePNG(std::string &data,const uint32 &width,const uint32 &height,const std::
 
         const int channels   = image.size()/(width*height);
         const int bit_depth  = 8;
-              int color_type = 0;
+              int color_type = -1;
 
         switch (channels)
         {
@@ -259,7 +262,7 @@ encodePNG(std::string &data,const uint32 &width,const uint32 &height,const std::
             case 4: color_type = PNG_COLOR_TYPE_RGB_ALPHA;  break;
         }
 
-        assert(color_type);
+        assert(color_type!=-1);
 
         png_set_IHDR(
             png_ptr,info_ptr,width,height,bit_depth,color_type,
