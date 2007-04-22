@@ -36,39 +36,7 @@
     Other necessary dependencies such as windows.h
     are handled here.
 
-    $Id: gl.h,v 2.2 2004/08/11 05:20:18 nigels Exp $
-
-    $Log: gl.h,v $
-    Revision 2.2  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.13  2003/03/06 12:19:05  nigels
-    *** empty log message ***
-
-    Revision 1.12  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.11  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.10  2002/10/09 15:18:17  nigels
-    Tidy
-
-    Revision 1.9  2002/10/07 16:27:46  nigels
-    Added CVS version control info
-
+    $Id: gl.h,v 2.3 2007/04/22 19:44:55 nigels Exp $
 */
 
 #include <glt/config.h>
