@@ -83,9 +83,6 @@ namespace std
 }
 #endif
 
-//#define MAX(x,y) (((x)>(y)) ? (x) : (y))
-//#define MIN(x,y) (((x)<(y)) ? (x) : (y))
-
 /*!
     \brief   Square of two numbers: x^2
     \ingroup Math
