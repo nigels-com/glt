@@ -4,36 +4,7 @@
     \brief   Image utility routines
     \ingroup Misc
 
-    $Id: image.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
-
-    $Log: image.cpp,v $
-    Revision 2.1  2004/02/10 13:43:46  nigels
-    no message
-
-    Revision 1.40  2003/11/12 06:46:37  nigels
-    Expand
-
-    Revision 1.39  2003/10/15 11:58:32  nigels
-    Some tidy-up of channel extraction
-
-    Revision 1.38  2003/08/21 04:29:03  nigels
-    *** empty log message ***
-
-    Revision 1.37  2003/08/05 08:42:07  nigels
-    *** empty log message ***
-
-    Revision 1.36  2003/07/22 03:55:55  nigels
-    *** empty log message ***
-
-    Revision 1.35  2003/06/26 09:59:01  nigels
-    *** empty log message ***
-
-    Revision 1.34  2003/05/10 17:03:08  nigels
-    int -> uint32
-
-    Revision 1.32  2003/03/06 12:34:46  nigels
-    *** empty log message ***
-
+    $Id: image.cpp,v 2.2 2007/04/27 06:01:30 nigels Exp $
 */
 
 #include <misc/endian.h>
@@ -246,7 +217,7 @@ adjustHSV
 )
 {
     const int channels = image.size()/(width*height);
-    assert(channels*width*height==image.size());
+    assert(channels*width*height==int(image.size()));
 
           byte *i   =       (byte *) image.data();
     const byte *end = (const byte *) image.data() + image.size();
