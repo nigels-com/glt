@@ -2,10 +2,8 @@
 #define GLT_LIGHTM_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,32 +24,11 @@
 
 */
 
+/* $Id: lightm.h,v 2.3 2007/05/06 16:46:24 nigels Exp $ */
+
 /*! \file
     \brief OpenGL Lighting Model Class
     \ingroup GLT
-
-    $Id: lightm.h,v 2.2 2004/08/11 05:20:18 nigels Exp $
-
-    $Log: lightm.h,v $
-    Revision 2.2  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 1.9  2003/03/06 12:21:05  nigels
-    Documentation refinements
-
-    Revision 1.8  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.7  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.6  2002/10/07 16:33:35  nigels
-    Added CVS info
-
-
 */
 
 #include <glt/config.h>

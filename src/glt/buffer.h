@@ -2,10 +2,8 @@
 #define GLT_BUFFER_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,56 +24,11 @@
 
 */
 
+/* $Id: buffer.h,v 2.4 2007/05/06 16:46:23 nigels Exp $ */
+
 /*! \file
     \brief   OpenGL Framebuffer Classes
     \ingroup GLT
-
-    $Id: buffer.h,v 2.3 2005/05/22 16:57:40 nigels Exp $
-
-    $Log: buffer.h,v $
-    Revision 2.3  2005/05/22 16:57:40  nigels
-    Whitespace
-
-    Revision 2.2  2004/12/26 05:24:01  jgasseli
-    Fixed compile errors, Nigel needs to check that the semantics are correct.
-
-    Revision 2.1  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.28  2003/05/10 16:58:11  nigels
-    Last tweaks for 0.8
-
-    Revision 1.27  2003/03/06 12:15:54  nigels
-    Documentation refinements
-
-    Revision 1.26  2003/01/22 08:38:21  nigels
-    *** empty log message ***
-
-    Revision 1.25  2003/01/22 08:12:50  nigels
-    Added JPEG support
-
-    Revision 1.24  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.23  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.22  2002/10/11 08:32:05  nigels
-    Added operator[] to stencil buffer
-
-    Revision 1.21  2002/10/07 16:27:46  nigels
-    Added CVS version control info
-
-
 */
 
 #include <glt/config.h>

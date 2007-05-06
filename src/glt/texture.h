@@ -2,10 +2,8 @@
 #define GLT_TEXTURE_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,11 +24,11 @@
 
 */
 
+/* $Id: texture.h,v 2.5 2007/05/06 16:46:24 nigels Exp $ */
+
 /*! \file
     \brief OpenGL Texture Class
     \ingroup GLT
-
-    $Id: texture.h,v 2.4 2007/05/06 03:03:32 nigels Exp $
 */
 
 #include <glt/config.h>

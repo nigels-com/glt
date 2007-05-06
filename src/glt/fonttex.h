@@ -2,10 +2,8 @@
 #define GLT_FONTTEX_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,38 +24,11 @@
 
 */
 
+/* $Id: fonttex.h,v 2.3 2007/05/06 16:46:24 nigels Exp $ */
+
 /*! \file
     \brief   Textured OpenGL Font
     \ingroup GLT
-
-    $Id: fonttex.h,v 2.2 2004/08/11 05:20:18 nigels Exp $
-
-    $Log: fonttex.h,v $
-    Revision 2.2  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.1  2004/02/16 01:09:31  nigels
-    Tweak the horizontal spacing of characters
-    Tweak the GREY_ALPHA texture to improve appearance
-
-    Revision 1.7  2003/03/06 12:18:45  nigels
-    *** empty log message ***
-
-    Revision 1.6  2003/02/07 09:57:10  nigels
-    Added GltChar and GltString
-
-    Revision 1.5  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.4  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.3  2002/11/06 15:27:23  nigels
-    gcc 3.2 -Wall noise
-
-    Revision 1.2  2002/10/07 16:27:46  nigels
-    Added CVS version control info
-
 */
 
 #include <glt/config.h>

@@ -2,10 +2,8 @@
 #define GLT_INFO_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,37 +24,11 @@
 
 */
 
+/* $Id: info.h,v 2.2 2007/05/06 16:46:24 nigels Exp $ */
+
 /*! \file
     \brief Output OpenGL information
     \ingroup GLT
-
-    $Id: info.h,v 2.1 2004/08/11 05:20:18 nigels Exp $
-
-    $Log: info.h,v $
-    Revision 2.1  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.11  2003/08/05 08:04:02  nigels
-    *** empty log message ***
-
-    Revision 1.10  2003/03/06 12:20:35  nigels
-    *** empty log message ***
-
-    Revision 1.8  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.7  2002/10/07 16:27:46  nigels
-    Added CVS version control info
-
 */
 
 #include <string>

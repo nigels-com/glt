@@ -2,10 +2,8 @@
 #define GLT_DLCACHE_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,66 +24,11 @@
 
 */
 
+/* $Id: dlcache.h,v 2.6 2007/05/06 16:46:24 nigels Exp $ */
+
 /*! \file
     \brief   Display List Cache
     \ingroup GLT
-
-    $Id: dlcache.h,v 2.5 2005/07/01 03:15:34 nigels Exp $
-
-    $Log: dlcache.h,v $
-    Revision 2.5  2005/07/01 03:15:34  nigels
-    Debug tracing depends on iostream
-
-    Revision 2.4  2004/12/26 04:32:05  jgasseli
-    fixed namespace error in dlcache
-
-    Revision 2.3  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.2  2004/02/16 01:26:18  nigels
-    Whitespace differences
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.13  2003/07/22 03:36:40  nigels
-    *** empty log message ***
-
-    Revision 1.12  2003/06/26 09:57:19  nigels
-    Display List Cache becomes templated
-
-    Revision 1.11  2003/05/31 11:35:27  nigels
-    Caching can be disabled
-
-    Revision 1.10  2003/05/16 08:21:16  nigels
-    Added facility to disable caching.
-    Due to need to facilitate interactive editing.
-    DAC 2003
-
-    Revision 1.9  2003/03/06 12:17:55  nigels
-    *** empty log message ***
-
-    Revision 1.8  2003/02/07 09:55:52  nigels
-    Tidy up
-
-    Revision 1.7  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.6  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.5  2002/10/07 16:27:46  nigels
-    Added CVS version control info
-
 */
 
 #ifdef _MSC_VER

@@ -2,10 +2,8 @@
 #define GLT_CONFIG_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,17 +24,17 @@
 
 */
 
+/* $Id: config.h,v 2.5 2007/05/06 16:46:24 nigels Exp $ */
+
 /*! \file
     \brief GLT Configuration File
     \ingroup GLT
-
-    $Id: config.h,v 2.4 2006/07/01 13:39:43 nigels Exp $
 */
 
 #include <string>
 
 /// GLT Version string
-#define GLT_VERSION_STRING "0.8-rc4"
+#define GLT_VERSION_STRING "0.9"
 
 //
 // General config options

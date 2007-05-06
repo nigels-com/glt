@@ -2,10 +2,8 @@
 #define GLT_COLOR_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,11 +24,11 @@
 
 */
 
+/* $Id: color.h,v 2.4 2007/05/06 16:46:23 nigels Exp $ */
+
 /*! \file
     \brief   OpenGL Color Interface
     \ingroup GLT
-
-    $Id: color.h,v 2.3 2007/04/22 19:44:55 nigels Exp $
 */
 
 #include <glt/config.h>

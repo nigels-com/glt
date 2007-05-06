@@ -2,9 +2,8 @@
 #define GLT_ERROR_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -25,7 +24,7 @@
 
 */
 
-/* $Id: error.h,v 2.4 2005/07/01 03:17:35 nigels Exp $ */
+/* $Id: error.h,v 2.5 2007/05/06 16:46:24 nigels Exp $ */
 
 /*! \file
     \brief   OpenGL Debugging Tools
