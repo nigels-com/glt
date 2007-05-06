@@ -3,37 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: project.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
-
-    $Log: project.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.16  2003/03/14 15:34:31  nigels
-    Some cleanup, added mult(), rethinking tiling
-
-    Revision 1.15  2003/01/22 08:38:21  nigels
-    *** empty log message ***
-
-    Revision 1.14  2003/01/22 08:14:31  nigels
-    *** empty log message ***
-
-    Revision 1.11  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.10  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.9  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
+    $Id: project.cpp,v 2.1 2007/05/06 03:04:14 nigels Exp $
 */
 
 #include <glt/glu.h>
@@ -59,7 +29,7 @@ GltOrtho::set() const
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(_left,_right,_bottom,_top,_zNear,_zFar);
+    glOrtho(_left,_right,_bottom,_top,-_zNear,-_zFar);
     glMatrixMode(GL_MODELVIEW);
 }
 
