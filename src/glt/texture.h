@@ -30,43 +30,7 @@
     \brief OpenGL Texture Class
     \ingroup GLT
 
-    $Id: texture.h,v 2.3 2004/08/11 05:20:18 nigels Exp $
-
-    $Log: texture.h,v $
-    Revision 2.3  2004/08/11 05:20:18  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.2  2004/02/16 01:26:18  nigels
-    Whitespace differences
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 1.32  2003/12/09 05:45:23  nigels
-    Added defined() query to GltTexture
-
-    Revision 1.31  2003/08/21 04:27:53  nigels
-    *** empty log message ***
-
-    Revision 1.30  2003/07/29 08:32:17  nigels
-    Bug-fix
-
-    Revision 1.28  2003/03/06 12:22:52  nigels
-    *** empty log message ***
-
-    Revision 1.26  2003/02/07 09:58:13  nigels
-    Added unpack row-length support
-
-    Revision 1.24  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.23  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.22  2002/10/07 16:33:35  nigels
-    Added CVS info
-
-
+    $Id: texture.h,v 2.4 2007/05/06 03:03:32 nigels Exp $
 */
 
 #include <glt/config.h>
@@ -93,11 +57,8 @@ public:
     // Constructor/Destructor
     //
 
-    /// Constructor
-    GltTexture(const GLenum target = GL_TEXTURE_2D);
-    /// Destructor
-    ~GltTexture();
-
+    GltTexture(const GLenum target = GL_TEXTURE_2D); ///< Constructor
+    ~GltTexture();                                   ///< Destructor
 
     //
     // Textures can't be copied
@@ -105,28 +66,55 @@ public:
 
 private:
 
-    /// Copy constructor is private to prevent copying
-    GltTexture(const GltTexture &);
-    /// Assignment operator is private to prevent copying
-    GltTexture &operator=(const GltTexture &);
+    GltTexture(const GltTexture &);              ///< Copy constructor is private to prevent copying
+    GltTexture &operator=(const GltTexture &);   ///< Assignment operator is private to prevent copying
 
 public:
 
-    /// Reset texture and release OpenGL resources
-    void clear();
-
     /// Initialise from PPM, PNG or TGA file
-    bool init(const std::string &filename,const bool mipmap = true);
+    bool 
+    init
+    (
+        const std::string &filename,
+        const bool         mipmap   = true,
+        const GLenum       target   = GL_TEXTURE_2D
+    );
+
     /// Initialise from compressed GLT format
-    bool init(const void *,const bool mipmap = true);
+    bool 
+    init
+    (
+        const void  *buffer,
+        const bool   mipmap = true,
+        const GLenum target = GL_TEXTURE_2D
+    );
+
     /// Initialise from raw string buffer
-    bool init(const GLsizei width,const GLsizei height,const std::string &image,const bool mipmap = true);
+    bool
+    init
+    (
+        const GLsizei      width,
+        const GLsizei      height,
+        const std::string &image,
+        const bool         mipmap = true,
+        const GLenum       target = GL_TEXTURE_2D
+    );
+
     /// Initialise from raw memory buffer
-    bool init(const GLsizei width,const GLsizei height,const byte *image,const GLsizei channels,const bool mipmap = true);
+    bool
+    init
+    (
+        const GLsizei  width,
+        const GLsizei  height,
+        const byte    *image,
+        const GLsizei  channels,
+        const bool     mipmap = true,
+        const GLenum   target = GL_TEXTURE_2D
+    );
 
-    /// Set the current OpenGL texture
-    void set() const;
+    void clear();           /// Reset texture and release OpenGL resources
 
+    void set() const;       ///< Set the current OpenGL texture
     bool defined() const;   ///< Is the texture object defined?
 
     /*!
@@ -140,7 +128,7 @@ public:
         <tr><td><b>GL_REPEAT   </b></td><td> Ignore integer part of coordinate.</td></tr>
         </table>
     */
-    void setWrap(const GLenum s,const GLenum t);
+    void setWrap(const GLenum s,const GLenum t,const GLenum r = GL_REPEAT);
 
     /*!
         \brief      Set filtering of OpenGL texture
@@ -172,14 +160,9 @@ public:
     //
     //
 
-    /// Texture width
-    const GLsizei &width()  const;
-
-    /// Texture height
-    const GLsizei &height() const;
-
-    /// OpenGL texture identifier
-    const GLuint   id() const;
+    const GLsizei width()  const;      ///< Texture width
+    const GLsizei height() const;      ///< Texture height
+    const GLuint  id()     const;      ///< OpenGL texture identifier
 
     // Serialisation
 
@@ -247,13 +230,27 @@ private:
     GLint   _alignment;
 
     GLint   _rowLength;
-    GLenum  _wrapS,_wrapT;
-    GLenum  _filterMin,_filterMag;
+    GLenum  _wrapS;
+    GLenum  _wrapT;
+    GLenum  _wrapR;
+    GLenum  _filterMin;
+    GLenum  _filterMag;
 
     real _gamma;
     real _hue,_saturation,_value;
 
-    GLuint  _id;            // OpenGL texture ID
+    GLuint  _name;          ///< OpenGL texture name
+
+    //
+
+    void genTexture();        ///< Generate texture name using glGenTextures, if necessary
+    void bindTexture() const; ///< Bind texture using glBindTexture
+    void deleteTexture();     ///< Delete texture name and resources using glDeleteTextures
+
+    static bool targetIs2D       (const GLenum target);  
+    static bool targetIs2DCubeMap(const GLenum target);
+
+    static GLenum textureBinding (const GLenum target);
 };
 
 #endif

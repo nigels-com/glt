@@ -3,7 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: texture.cpp,v 2.3 2006/07/01 13:47:10 nigels Exp $
+    $Id: texture.cpp,v 2.4 2007/05/06 03:03:32 nigels Exp $
 */
 
 #include <glt/gl.h>
@@ -37,14 +37,15 @@ GltTexture::GltTexture(const GLenum target)
     _rowLength(0),
     _wrapS(GL_REPEAT),
     _wrapT(GL_REPEAT),
-    _filterMin(GL_LINEAR),
+    _wrapR(GL_REPEAT),
+    _filterMin(GL_NEAREST_MIPMAP_LINEAR),
     _filterMag(GL_LINEAR),
     _gamma(1.0),
     _hue(0.0),
     _saturation(0.0),
     _value(0.0),
 
-    _id(0)
+    _name(0)
 {
 }
 
@@ -57,7 +58,7 @@ GltTexture::GltTexture(const GltTexture &)
 GltTexture::~GltTexture()
 {
     #if !defined(NDEBUG)
-    if (_id)
+    if (_name)
         cerr << "WARNING: Potential OpenGL texture leak (" << this << ")" << endl;
     #endif
 
@@ -73,18 +74,27 @@ GltTexture::operator=(const GltTexture &)
 }
 
 void
-GltTexture::setWrap(const GLenum s,const GLenum t)
+GltTexture::setWrap(const GLenum s,const GLenum t,const GLenum r)
 {
     _wrapS = s;
     _wrapT = t;
+    _wrapR = r;
 
-    if (_id!=0)
+    if (_name)
     {
-        glPushAttrib(GL_TEXTURE_BIT);
-            glBindTexture(_target,_id);
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,_wrapS);
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,_wrapT);
-        glPopAttrib();
+        GLint name;
+        glGetIntegerv(textureBinding(_target),&name);
+        if (name!=_name)
+            glBindTexture(_target,_name);
+
+            set();
+            glTexParameteri(_target,GL_TEXTURE_WRAP_S,_wrapS);
+            glTexParameteri(_target,GL_TEXTURE_WRAP_T,_wrapT);
+            glTexParameteri(_target,GL_TEXTURE_WRAP_R,_wrapR);
+
+
+        if (name!=_name)
+            glBindTexture(_target,name);
     }
 }
 
@@ -94,13 +104,18 @@ GltTexture::setFilter(const GLenum min,const GLenum mag)
     _filterMin = min;
     _filterMag = mag;
 
-    if (_id!=0)
+    if (_name)
     {
-        glPushAttrib(GL_TEXTURE_BIT);
-            glBindTexture(_target,_id);
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,_filterMin);
-            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,_filterMag);
-        glPopAttrib();
+        GLint name;
+        glGetIntegerv(textureBinding(_target),&name);
+        if (name!=_name)
+            glBindTexture(_target,_name);
+
+        glTexParameteri(_target,GL_TEXTURE_MIN_FILTER,_filterMin);
+        glTexParameteri(_target,GL_TEXTURE_MAG_FILTER,_filterMag);
+
+        if (name!=_name)
+            glBindTexture(_target,name);
     }
 }
 
@@ -125,7 +140,7 @@ GltTexture::setHSVAdjust(const real hue,const real saturation,const real value)
 }
 
 bool
-GltTexture::init(const std::string &filename,const bool mipmap)
+GltTexture::init(const std::string &filename,const bool mipmap,const GLenum target)
 {
     if (!filename.size())
         return false;
@@ -139,17 +154,18 @@ GltTexture::init(const std::string &filename,const bool mipmap)
 
     string image;
     if (decode(width,height,image,data))
-        return init(width,height,image,mipmap);
+        return init(width,height,image,mipmap,target);
 
     return false;
 }
 
 bool
-GltTexture::init(const void *data,const bool mipmap)
+GltTexture::init(const void *data,const bool mipmap,const GLenum target)
 {
     GLERROR
 
-    clear();
+    if (!targetIs2DCubeMap(target))
+        clear();
 
 #if 1
     uint32 format,components,width,height;
@@ -175,24 +191,33 @@ GltTexture::init(const void *data,const bool mipmap)
         {
             GLERROR
 
-            if (_target==GL_TEXTURE_2D)
+            if (targetIs2D(_target))
             {
-                glGenTextures(1,&_id);
-                glBindTexture(GL_TEXTURE_2D,_id);
+                genTexture();
+                set();
                 glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,_filterMin);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,_filterMag);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _wrapS);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _wrapT);
+//              glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+                glTexParameteri(_target, GL_TEXTURE_MIN_FILTER,_filterMin);
+                glTexParameteri(_target, GL_TEXTURE_MAG_FILTER,_filterMag);
+                glTexParameteri(_target, GL_TEXTURE_WRAP_S, _wrapS);
+                glTexParameteri(_target, GL_TEXTURE_WRAP_T, _wrapT);
+                glTexParameteri(_target, GL_TEXTURE_WRAP_R, _wrapR);
             }
 
             glPixelStorei(GL_UNPACK_ROW_LENGTH,_rowLength);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
             if (mipmap)
-                gluBuild2DMipmaps(_target,_components,_width,_height,_format,_type,&image[0]);
+                gluBuild2DMipmaps(target,_components,_width,_height,_format,_type,&image[0]);
             else
-                glTexImage2D(_target,0,_components,_width,_height,_border,_format,_type,&image[0]);
+            {
+                cout << _components << endl;
+                cout << _width << endl;
+                cout << _height << endl;
+                cout << _border << endl;
+
+                glTexImage2D(target,0,_components,_width,_height,_border,_format,_type,&image[0]);
+            }
 
             GLERROR
 
@@ -310,13 +335,14 @@ GltTexture::init(const void *data,const bool mipmap)
 
         if (_target==GL_TEXTURE_2D)
         {
-            glGenTextures(1,&_id);
-            glBindTexture(GL_TEXTURE_2D,_id);
+            genTexture();
+            set();
             glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,_filterMin);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,_filterMag);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _wrapS);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _wrapT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, _wrapR);
         }
 
         glPixelStorei(GL_UNPACK_ROW_LENGTH,_rowLength);
@@ -342,9 +368,10 @@ GltTexture::init(const void *data,const bool mipmap)
 }
 
 bool
-GltTexture::init(const GLsizei width,const GLsizei height,const std::string &image,const bool mipmap)
+GltTexture::init(const GLsizei width,const GLsizei height,const std::string &image,const bool mipmap,const GLenum target)
 {
-    clear();
+    if (!targetIs2DCubeMap(target))
+        clear();
 
     GLenum mode = 0;
     int    channels = 0;
@@ -357,24 +384,25 @@ GltTexture::init(const GLsizei width,const GLsizei height,const std::string &ima
     if (!mode || !channels)
         return false;
 
-    if (_target==GL_TEXTURE_2D)
+    if (targetIs2D(_target))
     {
-        glGenTextures(1,&_id);
-        glBindTexture(GL_TEXTURE_2D,_id);
+        genTexture();
+        set();
         glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,_filterMin);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,_filterMag);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _wrapS);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _wrapT);
+        glTexParameteri(_target, GL_TEXTURE_MIN_FILTER,_filterMin);
+        glTexParameteri(_target, GL_TEXTURE_MAG_FILTER,_filterMag);
+        glTexParameteri(_target, GL_TEXTURE_WRAP_S, _wrapS);
+        glTexParameteri(_target, GL_TEXTURE_WRAP_T, _wrapT);
+        glTexParameteri(_target, GL_TEXTURE_WRAP_R, _wrapR);
     }
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH,_rowLength);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     if (mipmap)
-        gluBuild2DMipmaps(_target,channels,width,height,mode,GL_UNSIGNED_BYTE,image.data());
+        gluBuild2DMipmaps(target,channels,width,height,mode,GL_UNSIGNED_BYTE,image.data());
     else
-        glTexImage2D(_target,0,channels,width,height,0,mode,GL_UNSIGNED_BYTE,image.data());
+        glTexImage2D(target,0,channels,width,height,0,mode,GL_UNSIGNED_BYTE,image.data());
 
     _width = width;
     _height = height;
@@ -383,9 +411,10 @@ GltTexture::init(const GLsizei width,const GLsizei height,const std::string &ima
 }
 
 bool
-GltTexture::init(const GLsizei width,const GLsizei height,const byte *image,const GLsizei channels,const bool mipmap)
+GltTexture::init(const GLsizei width,const GLsizei height,const byte *image,const GLsizei channels,const bool mipmap,const GLenum target)
 {
-    clear();
+    if (!targetIs2DCubeMap(target))
+        clear();
 
     GLenum mode = 0;
 
@@ -398,24 +427,25 @@ GltTexture::init(const GLsizei width,const GLsizei height,const byte *image,cons
         default: return false;
     }
 
-    if (_target==GL_TEXTURE_2D)
+    if (targetIs2D(_target))
     {
-        glGenTextures(1,&_id);
-        glBindTexture(GL_TEXTURE_2D,_id);
+        genTexture();
+        set();
         glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,_filterMin);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,_filterMag);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _wrapS);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _wrapT);
+        glTexParameteri(_target, GL_TEXTURE_MIN_FILTER,_filterMin);
+        glTexParameteri(_target, GL_TEXTURE_MAG_FILTER,_filterMag);
+        glTexParameteri(_target, GL_TEXTURE_WRAP_S, _wrapS);
+        glTexParameteri(_target, GL_TEXTURE_WRAP_T, _wrapT);
+        glTexParameteri(_target, GL_TEXTURE_WRAP_R, _wrapR);
     }
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH,_rowLength);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     if (mipmap)
-        gluBuild2DMipmaps(_target,channels,width,height,mode,GL_UNSIGNED_BYTE,image);
+        gluBuild2DMipmaps(target,channels,width,height,mode,GL_UNSIGNED_BYTE,image);
     else
-        glTexImage2D(_target,0,channels,width,height,0,mode,GL_UNSIGNED_BYTE,image);
+        glTexImage2D(target,0,channels,width,height,0,mode,GL_UNSIGNED_BYTE,image);
 
     _width = width;
     _height = height;
@@ -426,10 +456,8 @@ GltTexture::init(const GLsizei width,const GLsizei height,const byte *image,cons
 void
 GltTexture::clear()
 {
-    if (_id)
-        glDeleteTextures(1,&_id);
+    deleteTexture();
 
-    _id = 0;
     _components = 0;
     _width = 0;
     _height = 0;
@@ -442,19 +470,18 @@ GltTexture::clear()
 void
 GltTexture::set() const
 {
-    if (_id!=0 && _target==GL_TEXTURE_2D)
-        glBindTexture(_target,_id);
+    bindTexture();
 }
 
 bool
 GltTexture::defined() const
 {
-    return _id!=0;
+    return _name!=0;
 }
 
-const GLsizei &GltTexture::width()  const { return _width; }
-const GLsizei &GltTexture::height() const { return _height; }
-const GLuint   GltTexture::id()     const { return _id; }
+const GLsizei GltTexture::width()  const { return _width;  }
+const GLsizei GltTexture::height() const { return _height; }
+const GLuint  GltTexture::id()     const { return _name;   }
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -599,4 +626,63 @@ GltTexture::decodeImage
     }
 
     return false;
+}
+
+void
+GltTexture::genTexture()
+{
+    if (!_name)
+        glGenTextures(1,&_name);
+    assert(_name);
+}
+
+void 
+GltTexture::bindTexture() const
+{
+    if (_name)
+        glBindTexture(_target,_name);
+}
+
+void
+GltTexture::deleteTexture()
+{
+    if (_name)
+        glDeleteTextures(1,&_name);
+    _name = 0;
+}
+
+bool 
+GltTexture::targetIs2D(const GLenum target)
+{
+    return 
+        targetIs2DCubeMap(target)              ||
+        target==GL_TEXTURE_2D                  ||
+        target==GL_PROXY_TEXTURE_2D            ||
+        target==GL_PROXY_TEXTURE_CUBE_MAP;
+}
+
+bool
+GltTexture::targetIs2DCubeMap(const GLenum target)
+{
+    return
+        target==GL_TEXTURE_CUBE_MAP_POSITIVE_X ||
+        target==GL_TEXTURE_CUBE_MAP_NEGATIVE_X ||
+        target==GL_TEXTURE_CUBE_MAP_POSITIVE_Y ||
+        target==GL_TEXTURE_CUBE_MAP_NEGATIVE_Y ||
+        target==GL_TEXTURE_CUBE_MAP_POSITIVE_Z ||
+        target==GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+}
+
+GLenum
+GltTexture::textureBinding(const GLenum target)
+{
+    switch (target)
+    {
+        case GL_TEXTURE_1D:       return GL_TEXTURE_BINDING_1D;
+        case GL_TEXTURE_2D:       return GL_TEXTURE_BINDING_2D;
+        case GL_TEXTURE_3D:       return GL_TEXTURE_BINDING_3D;
+        case GL_TEXTURE_CUBE_MAP: return GL_TEXTURE_BINDING_CUBE_MAP;
+        default:
+            return 0;
+    }
 }
