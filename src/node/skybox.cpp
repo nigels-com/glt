@@ -13,9 +13,17 @@
 #include <glt/viewport.h>
 
 GltSkyBox::GltSkyBox()
-: _fov(65.0)
+:   _fov(65.0),
+    _mode(MODE_OPENGL)
 {
     color() = white;
+
+    _positiveX.setFilter(GL_LINEAR,GL_LINEAR);
+    _negativeX.setFilter(GL_LINEAR,GL_LINEAR);
+    _positiveY.setFilter(GL_LINEAR,GL_LINEAR);
+    _negativeY.setFilter(GL_LINEAR,GL_LINEAR);
+    _positiveZ.setFilter(GL_LINEAR,GL_LINEAR);
+    _negativeZ.setFilter(GL_LINEAR,GL_LINEAR);
 
     _positiveX.setWrap(GL_CLAMP,GL_CLAMP);
     _negativeX.setWrap(GL_CLAMP,GL_CLAMP);
@@ -76,7 +84,7 @@ GltSkyBox::draw() const
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
-    Matrix      matrix(GL_MODELVIEW_MATRIX);
+    Matrix matrix(GL_MODELVIEW_MATRIX);
 
     // No translation
 
@@ -92,6 +100,7 @@ GltSkyBox::draw() const
     //
 
     matrix.glLoadMatrix();
+    transformation().glMultMatrix();
 
     //
     //
@@ -121,63 +130,191 @@ GltSkyBox::draw() const
 
             // +X
 
-            _positiveX.set();
-            glBegin(GL_QUADS);
-                glTexCoord2f(0,0);  glVertex3f( 1,-1,-1);
-                glTexCoord2f(1,0);  glVertex3f( 1,-1, 1);
-                glTexCoord2f(1,1);  glVertex3f( 1, 1, 1);
-                glTexCoord2f(0,1);  glVertex3f( 1, 1,-1);
-            glEnd();
+            if (_positiveX.id())
+            {
+                _positiveX.set();
+                glBegin(GL_QUADS);
+                switch (_mode)
+                {
+                    default:
+                    case MODE_OPENGL:
+                        glTexCoord2f(0,0);  glVertex3f( 1, 1, 1);
+                        glTexCoord2f(1,0);  glVertex3f( 1, 1,-1);
+                        glTexCoord2f(1,1);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(0,1);  glVertex3f( 1,-1, 1);
+                        break;
+                    case MODE_VRML:
+                    case MODE_UNREAL:
+                    case MODE_DARKBASIC:
+                        glTexCoord2f(0,0);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(1,0);  glVertex3f( 1,-1, 1);
+                        glTexCoord2f(1,1);  glVertex3f( 1, 1, 1);
+                        glTexCoord2f(0,1);  glVertex3f( 1, 1,-1);
+                        break;
+                    case MODE_DIRECTX:
+                        glTexCoord2f(1,0);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(0,0);  glVertex3f( 1,-1, 1);
+                        glTexCoord2f(0,1);  glVertex3f( 1, 1, 1);
+                        glTexCoord2f(1,1);  glVertex3f( 1, 1,-1);
+                        break;
+                }
+                glEnd();
+            }
 
             // -X
 
-            _negativeX.set();
-            glBegin(GL_QUADS);
-                glTexCoord2f(0,0);  glVertex3f(-1,-1, 1);
-                glTexCoord2f(1,0);  glVertex3f(-1,-1,-1);
-                glTexCoord2f(1,1);  glVertex3f(-1, 1,-1);
-                glTexCoord2f(0,1);  glVertex3f(-1, 1, 1);
-            glEnd();
+            if (_negativeX.id())
+            {
+                _negativeX.set();
+                glBegin(GL_QUADS);
+                switch (_mode)
+                {
+                    default:
+                    case MODE_OPENGL:
+                        glTexCoord2f(1,0);  glVertex3f(-1, 1, 1);
+                        glTexCoord2f(1,1);  glVertex3f(-1,-1, 1);
+                        glTexCoord2f(0,1);  glVertex3f(-1,-1,-1);
+                        glTexCoord2f(0,0);  glVertex3f(-1, 1,-1);
+                        break;
+                    case MODE_VRML:
+                    case MODE_UNREAL:
+                    case MODE_DARKBASIC:
+                        glTexCoord2f(0,0);  glVertex3f(-1,-1, 1);
+                        glTexCoord2f(1,0);  glVertex3f(-1,-1,-1);
+                        glTexCoord2f(1,1);  glVertex3f(-1, 1,-1);
+                        glTexCoord2f(0,1);  glVertex3f(-1, 1, 1);
+                        break;
+                    case MODE_DIRECTX:
+                        glTexCoord2f(1,0);  glVertex3f(-1,-1, 1);
+                        glTexCoord2f(0,0);  glVertex3f(-1,-1,-1);
+                        glTexCoord2f(0,1);  glVertex3f(-1, 1,-1);
+                        glTexCoord2f(1,1);  glVertex3f(-1, 1, 1);
+                        break;
+                }
+                glEnd();
+            }
 
             // +Y
 
-            _positiveY.set();
-            glBegin(GL_QUADS);
-                glTexCoord2f(0,0);  glVertex3f(-1, 1,-1);
-                glTexCoord2f(1,0);  glVertex3f( 1, 1,-1);
-                glTexCoord2f(1,1);  glVertex3f( 1, 1, 1);
-                glTexCoord2f(0,1);  glVertex3f(-1, 1, 1);
-            glEnd();
+            if (_positiveY.id())
+            {
+                _positiveY.set();
+                glBegin(GL_QUADS);
+                switch (_mode)
+                {
+                    default:
+                    case MODE_OPENGL:
+                    case MODE_VRML:
+                        glTexCoord2f(0,0);  glVertex3f(-1, 1,-1);
+                        glTexCoord2f(1,0);  glVertex3f( 1, 1,-1);
+                        glTexCoord2f(1,1);  glVertex3f( 1, 1, 1);
+                        glTexCoord2f(0,1);  glVertex3f(-1, 1, 1);
+                        break;
+                    case MODE_DIRECTX:
+                    case MODE_UNREAL:
+                        glTexCoord2f(1,0);  glVertex3f(-1, 1,-1);
+                        glTexCoord2f(1,1);  glVertex3f( 1, 1,-1);
+                        glTexCoord2f(0,1);  glVertex3f( 1, 1, 1);
+                        glTexCoord2f(0,0);  glVertex3f(-1, 1, 1);
+                        break;
+                    case MODE_DARKBASIC:
+                        glTexCoord2f(1,1);  glVertex3f(-1, 1,-1);
+                        glTexCoord2f(0,1);  glVertex3f( 1, 1,-1);
+                        glTexCoord2f(0,0);  glVertex3f( 1, 1, 1);
+                        glTexCoord2f(1,0);  glVertex3f(-1, 1, 1);
+                        break;
+                }
+                glEnd();
+            }
 
             // -Y
 
-            _negativeY.set();
-            glBegin(GL_QUADS);
-                glTexCoord2f(0,0);  glVertex3f(-1,-1, 1);
-                glTexCoord2f(1,0);  glVertex3f( 1,-1, 1);
-                glTexCoord2f(1,1);  glVertex3f( 1,-1,-1);
-                glTexCoord2f(0,1);  glVertex3f(-1,-1,-1);
-            glEnd();
+            if (_negativeY.id())
+            {
+                _negativeY.set();
+                glBegin(GL_QUADS);
+                switch (_mode)
+                {
+                    default:
+                    case MODE_OPENGL:
+                    case MODE_VRML:
+                        glTexCoord2f(0,0);  glVertex3f(-1,-1, 1);
+                        glTexCoord2f(1,0);  glVertex3f( 1,-1, 1);
+                        glTexCoord2f(1,1);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(0,1);  glVertex3f(-1,-1,-1);
+                        break;
+                    case MODE_DIRECTX:
+                    case MODE_UNREAL:
+                        glTexCoord2f(0,1);  glVertex3f(-1,-1, 1);
+                        glTexCoord2f(0,0);  glVertex3f( 1,-1, 1);
+                        glTexCoord2f(1,0);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(1,1);  glVertex3f(-1,-1,-1);
+                        break;
+                    case MODE_DARKBASIC:
+                        glTexCoord2f(1,1);  glVertex3f(-1,-1, 1);
+                        glTexCoord2f(0,1);  glVertex3f( 1,-1, 1);
+                        glTexCoord2f(0,0);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(1,0);  glVertex3f(-1,-1,-1);
+                        break;
+                }
+                glEnd();
+            }
 
             // +Z
 
-            _positiveZ.set();
-            glBegin(GL_QUADS);
-                glTexCoord2f(0,0);  glVertex3f( 1,-1, 1);
-                glTexCoord2f(1,0);  glVertex3f(-1,-1, 1);
-                glTexCoord2f(1,1);  glVertex3f(-1, 1, 1);
-                glTexCoord2f(0,1);  glVertex3f( 1, 1, 1);
-            glEnd();
+            if (_positiveZ.id())
+            {
+                _positiveZ.set();
+                glBegin(GL_QUADS);
+                switch (_mode)
+                {
+                    default:
+                    case MODE_OPENGL:
+                        glTexCoord2f(0,0);  glVertex3f(-1, 1, 1);
+                        glTexCoord2f(1,0);  glVertex3f( 1, 1, 1);
+                        glTexCoord2f(1,1);  glVertex3f( 1,-1, 1);
+                        glTexCoord2f(0,1);  glVertex3f(-1,-1, 1);
+                        break;
+                    case MODE_VRML:
+                    case MODE_DIRECTX:
+                    case MODE_DARKBASIC:
+                    case MODE_UNREAL:
+                        glTexCoord2f(0,0);  glVertex3f( 1,-1, 1);
+                        glTexCoord2f(1,0);  glVertex3f(-1,-1, 1);
+                        glTexCoord2f(1,1);  glVertex3f(-1, 1, 1);
+                        glTexCoord2f(0,1);  glVertex3f( 1, 1, 1);
+                        break;
+                }
+                glEnd();
+            }
 
             // -Z
 
-            _negativeZ.set();
-            glBegin(GL_QUADS);
-                glTexCoord2f(0,0);  glVertex3f(-1,-1,-1);
-                glTexCoord2f(1,0);  glVertex3f( 1,-1,-1);
-                glTexCoord2f(1,1);  glVertex3f( 1, 1,-1);
-                glTexCoord2f(0,1);  glVertex3f(-1, 1,-1);
-            glEnd();
+            if (_negativeZ.id())
+            {
+                _negativeZ.set();
+                glBegin(GL_QUADS);
+                switch (_mode)
+                {
+                    default:
+                    case MODE_OPENGL:
+                        glTexCoord2f(0,1);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(0,0);  glVertex3f( 1, 1,-1);
+                        glTexCoord2f(1,0);  glVertex3f(-1, 1,-1);
+                        glTexCoord2f(1,1);  glVertex3f(-1,-1,-1);
+                        break;
+                    case MODE_VRML:
+                    case MODE_DIRECTX:
+                    case MODE_DARKBASIC:
+                    case MODE_UNREAL:
+                        glTexCoord2f(0,0);  glVertex3f(-1,-1,-1);
+                        glTexCoord2f(1,0);  glVertex3f( 1,-1,-1);
+                        glTexCoord2f(1,1);  glVertex3f( 1, 1,-1);
+                        glTexCoord2f(0,1);  glVertex3f(-1, 1,-1);
+                        break;
+                }
+                glEnd();
+            }
 
         glPopAttrib();
 
@@ -200,3 +337,6 @@ GltTexture &GltSkyBox::negativeZ() { return _negativeZ; }
 
       GLdouble &GltSkyBox::fov()        { return _fov; }
 const GLdouble  GltSkyBox::fov() const  { return _fov; }
+
+      GltSkyBox::Mode &GltSkyBox::mode()       { return _mode; }
+const GltSkyBox::Mode &GltSkyBox::mode() const { return _mode; }

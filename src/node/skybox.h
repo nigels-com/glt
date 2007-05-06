@@ -78,6 +78,18 @@ public:
     /// Field of view
     const GLdouble  fov() const;
 
+    enum Mode
+    {
+        MODE_OPENGL = 0,
+        MODE_VRML,
+        MODE_DIRECTX,
+        MODE_DARKBASIC,
+        MODE_UNREAL
+    };
+
+          Mode &mode();
+    const Mode &mode() const;
+
 private:
 
     GltTexture _positiveX;
@@ -88,6 +100,7 @@ private:
     GltTexture _negativeZ;
 
     GLdouble   _fov;
+    Mode       _mode;
 };
 
 #endif
