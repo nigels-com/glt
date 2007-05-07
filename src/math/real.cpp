@@ -1,18 +1,9 @@
 #include "real.h"
 
+/* $Id: real.cpp,v 2.2 2007/05/07 03:38:49 nigels Exp $ */
+
 /*! \file
     \ingroup Math
-
-    $Id: real.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
-
-    $Log: real.cpp,v $
-    Revision 2.1  2004/02/16 02:40:33  nigels
-    Whitespace differences
-
-    Revision 1.2  2003/08/05 08:06:16  nigels
-    *** empty log message ***
-
-
 */
 
 #include <cmath>
