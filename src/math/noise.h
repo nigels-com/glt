@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: noise.h,v 2.2 2007/05/06 16:47:28 nigels Exp $ */
+/* $Id: noise.h,v 2.3 2007/05/07 03:29:54 nigels Exp $ */
 
 /*! \file
     \brief   Perlin Noise Functions
@@ -155,16 +155,16 @@ public:
 
     typedef enum
     {
-        NOISE_PERLIN =0,
+        NOISE_PERLIN = 0,
         NOISE_FBM,
         NOISE_TURBULENCE
     } NoiseType;
 
-       NoiseType &type();            ///< Noise type
-          uint32 &seed();            ///< Unique seed for noise field
-          uint32 &octaves();         ///< Number of harmonics
-          uint32 &lambda();          ///< Domain scale factor for subsequent harmonics
-          real   &omega();           ///< Range scale factor for subsequent harmonics
+         NoiseType &type();          ///< Noise type
+            uint32 &seed();          ///< Unique seed for noise field
+            uint32 &octaves();       ///< Number of harmonics
+            uint32 &lambda();        ///< Domain scale factor for subsequent harmonics
+            real   &omega();         ///< Range scale factor for subsequent harmonics
 
    const NoiseType &type()    const; ///< Noise type
    const uint32    &seed()    const; ///< Unique seed for noise field
@@ -261,7 +261,7 @@ private:
     }
 
     /// Ease in-out curve for interpolation
-    inline static real scurve(real t)
+    static inline real scurve(const real t)
     {
         const real t3 = t*t*t;
         const real t4 = t3*t;

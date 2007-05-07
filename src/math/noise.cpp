@@ -1,9 +1,9 @@
 #include "noise.h"
 
+/* $Id: noise.cpp,v 2.3 2007/05/07 03:29:54 nigels Exp $ */
+
 /*! \file
     \ingroup Math
-
-    $Id: noise.cpp,v 2.2 2006/07/09 15:08:39 nigels Exp $
 */
 
 #include <math/round.h>
@@ -53,11 +53,11 @@ GltNoisePerlin::~GltNoisePerlin()
 
 // Get/Set
 
-GltNoisePerlin::NoiseType &GltNoisePerlin::type()    { return _type;    }
-                   uint32 &GltNoisePerlin::seed()    { return _seed;    }
-                   uint32 &GltNoisePerlin::octaves() { return _octaves; }
-                   uint32 &GltNoisePerlin::lambda()  { return _lambda;  }
-                     real &GltNoisePerlin::omega()   { return _omega;   }
+      GltNoisePerlin::NoiseType &GltNoisePerlin::type()          { return _type;    }
+                         uint32 &GltNoisePerlin::seed()          { return _seed;    }
+                         uint32 &GltNoisePerlin::octaves()       { return _octaves; }
+                         uint32 &GltNoisePerlin::lambda()        { return _lambda;  }
+                           real &GltNoisePerlin::omega()         { return _omega;   }
 
 const GltNoisePerlin::NoiseType &GltNoisePerlin::type()    const { return _type;    }
 const                    uint32 &GltNoisePerlin::seed()    const { return _seed;    }
