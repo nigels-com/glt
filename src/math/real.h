@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: real.h,v 2.4 2007/05/06 16:47:28 nigels Exp $ */
+/* $Id: real.h,v 2.5 2007/05/07 03:39:13 nigels Exp $ */
 
 /*! \file
     \brief   Numerical constants and basic math functions
@@ -142,14 +142,6 @@ T clamp(const T x, const T &min, const T &max)
 {
     return x<min ?  min : (x>max ? max: x);
 }
-
-/*
-template <class A>
-A LERP(const A &a,const A &b,const real t)
-{
-    return a*(1.0-t) + b*t;
-}
-*/
 
 /*!
     \brief   Convert an integer to a float between 0 and 1
