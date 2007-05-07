@@ -1,6 +1,6 @@
 #include "noise.h"
 
-/* $Id: noise.cpp,v 2.3 2007/05/07 03:29:54 nigels Exp $ */
+/* $Id: noise.cpp,v 2.4 2007/05/07 03:38:23 nigels Exp $ */
 
 /*! \file
     \ingroup Math
@@ -604,4 +604,3 @@ GltNoisePerlin::perlinNoise
     // Finally, interpolate betwen the two planes
     return vz0 + wz*(vz1-vz0);
 }
-
