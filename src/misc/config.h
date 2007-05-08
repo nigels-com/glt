@@ -2,10 +2,8 @@
 #define MISC_CONFIG_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,6 +24,8 @@
 
 */
 
+/* $Id: config.h,v 2.3 2007/05/08 04:29:31 nigels Exp $ */
+
 /*! \file
     \brief   GLT Misc configuration file
     \ingroup Misc
@@ -40,19 +40,14 @@
 // GLT_UNICODE              Define this for UNICODE (wide string) support
 // GLT_HASH_MAP             Define this to make use of std::hash_map
 
-#ifdef GLT_WIN32
-#define GLT_ZLIB
-#define GLT_PNG
-#define GLT_JPEG
-#define GLT_UNICODE
-#endif
+// Normally the CMake build system chooses these, but they
+// can also be hard-coded here...
 
-#ifdef GLT_UNIX
-#define GLT_ZLIB
-#define GLT_PNG
-#define GLT_JPEG
-#define GLT_UNICODE
-#endif
+//#define GLT_ZLIB
+//#define GLT_PNG
+//#define GLT_JPEG
+//#define GLT_UNICODE
+//#define GLT_HASH_MAP
 
 //
 

@@ -2,10 +2,8 @@
 #define GLUTM_CONFIG_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -26,11 +24,12 @@
 
 */
 
+/* $Id: config.h,v 2.5 2007/05/08 04:31:18 nigels Exp $ */
+
 /*! \file
     \brief   GlutMaster configuration file
     \ingroup GlutMaster
     \note    Depends on <glt/config.h> for Win32/Unix detection.
-    \note    Open Inventor support can be configured here.
 */
 
 #include <glt/config.h>
@@ -52,22 +51,17 @@
 // GLUTM_SAVER              Define this for WIN32 screen saver
 // GLUT_STATIC              Define this to link GLUT statically
 
-#ifdef GLUTM_WIN32
+// Normally the CMake build system chooses these, but they
+// can also be hard-coded here...
+
 //#define GLUTM_OPEN_INVENTOR
 //#define GLUTM_RAYPP
 //#define GLUTM_SAVER
-//#define GLUTM_FREEGLUT
-#define GLUTM_OPENGLUT
-#define GLUT_STATIC
-#endif
-
-#ifdef GLUTM_UNIX
-//#define GLUTM_OPEN_INVENTOR
-//#define GLUTM_RAYPP
 //#define GLUTM_DEBUG
-#define GLUTM_FREEGLUT
+//#define GLUTM_GLUT
+//#define GLUTM_FREEGLUT
 //#define GLUTM_OPENGLUT
-#endif
+//#define GLUT_STATIC
 
 // MS Visual C++ compiler has the facility
 // to specify libraries at compile-time
