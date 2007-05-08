@@ -3,26 +3,9 @@
 /*! \file
     \brief   JPEG image encoding and decoding
     \ingroup Misc
-
-    $Id: jpeg.cpp,v 2.2 2004/05/03 03:30:14 nigels Exp $
-
-    $Log: jpeg.cpp,v $
-    Revision 2.2  2004/05/03 03:30:14  nigels
-    Migrating from MIN/MAX to std::min and std::max
-
-    Revision 2.1  2004/02/10 13:43:46  nigels
-    no message
-
-    Revision 1.5  2003/07/22 03:58:58  nigels
-    *** empty log message ***
-
-    Revision 1.4  2003/05/10 17:03:34  nigels
-    *** empty log message ***
-
-    Revision 1.3  2003/03/06 12:34:47  nigels
-    *** empty log message ***
-
 */
+
+/* $Id: jpeg.cpp,v 2.3 2007/05/08 04:28:44 nigels Exp $ */
 
 #ifdef GLT_JPEG
 
@@ -42,7 +25,7 @@ using namespace std;
 #endif
 
 extern "C" {
-#include <jpeg/jpeglib.h>
+#include <jpeglib.h>
 }
 
 /*!

@@ -3,50 +3,6 @@
 /*! \file
     \ingroup GLT
     \todo i2string
-
-    $Id: info.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
-
-    $Log: info.cpp,v $
-    Revision 2.2  2004/02/16 01:26:18  nigels
-    Whitespace differences
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.17  2003/08/25 06:16:04  nigels
-    *** empty log message ***
-
-    Revision 1.15  2003/08/05 08:04:02  nigels
-    *** empty log message ***
-
-    Revision 1.13  2003/05/10 16:58:11  nigels
-    Last tweaks for 0.8
-
-    Revision 1.11  2003/03/06 11:48:30  nigels
-    *** empty log message ***
-
-    Revision 1.10  2003/03/06 08:32:11  nigels
-    Experimenting with memory use information
-
-    Revision 1.9  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.8  2002/11/07 15:40:45  nigels
-    *** empty log message ***
-
-    Revision 1.7  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
 */
 
 #include <glt/gl.h>
@@ -262,7 +218,7 @@ namespace jpeg
 {
 extern "C"
 {
-#include <jpeg/jpeglib.h>
+#include <jpeglib.h>
 }
 }
 #endif
