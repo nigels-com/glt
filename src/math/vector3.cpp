@@ -2,28 +2,9 @@
 
 /*! \file
     \ingroup Math
-
-    $Id: vector3.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
-
-    $Log: vector3.cpp,v $
-    Revision 2.2  2004/05/03 03:27:06  nigels
-    Migrating from MIN/MAX to std::min and std::max
-
-    Revision 2.1  2004/02/16 02:39:28  nigels
-    Vector3::writePov
-
-    Revision 1.22  2003/09/16 01:44:58  nigels
-    Tweaks
-
-    Revision 1.21  2003/07/22 03:58:06  nigels
-    Vector -> Vector3
-    CLAMP -> clamp
-    LERP -> lerp
-
-    Revision 1.20  2003/03/06 12:30:30  nigels
-    *** empty log message ***
-
 */
+
+/* $Id: vector3.cpp,v 2.3 2007/05/10 03:14:32 nigels Exp $ */
 
 #include "matrix4.h"
 #include "vector2.h"
