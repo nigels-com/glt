@@ -2,10 +2,11 @@
 #define UNIFONT_CONFIG_H
 
 /*
+  GLT OpenGL C++ Toolkit (LGPL)
+  Copyright (C) 2000-2007 Nigel Stewart
 
-  Glt OpenGL C++ Toolkit (Glt)
-  Copyright (C) 2000 Nigel Stewart
-  Email: nigels@nigels.com   WWW: http://www.nigels.com/glt/
+  WWW:    http://www.nigels.com/glt/
+  Forums: http://sourceforge.net/forum/?group_id=36869
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,14 +24,12 @@
 
 */
 
-/** \file
- * GLT Unifont Configuration File
- *
- * Part of the Glt C++ OpenGL Library
- * http://www.nigels.com/glt/
- *
- * \author  Nigel Stewart (nigels@nigels.com)
- * \author  RMIT Dept. Mechanical and Manufacturing Engineering, Australia
+/* $Id: config.h,v 2.1 2007/05/10 03:00:51 nigels Exp $ */
+
+/*! \file
+ *  \brief   GLT Unifont Configuration File
+ *  \author  Nigel Stewart (nigels@nigels.com)
+ *  \author  RMIT Dept. Mechanical and Manufacturing Engineering, Australia
  */
 
 #include <glt/config.h>
