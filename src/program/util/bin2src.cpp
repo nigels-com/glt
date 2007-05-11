@@ -1,8 +1,6 @@
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -22,6 +20,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
+
+/* $Id: bin2src.cpp,v 2.2 2007/05/11 05:04:57 nigels Exp $ */
 
 /*! \file
     \brief   Utility for converting binary data into C/C++ source
@@ -79,9 +79,6 @@ const char *banner =
     "Usage: bin2src [OPTION]... SOURCE          \n" \
     "\n"                                            \
     "  -c       Compress.                       \n" \
-    "  -z       zLib compress.                  \n" \
-    "  -j       JPEG compress image.            \n" \
-    "  -q nn    JPEG quality setting. (10-95)   \n" \
     "  -font    Convert from VGA font.          \n" \
     "  -ufont   Convert from Unicode font.      \n" \
     "  -image   Convert from image.             \n" \
@@ -274,13 +271,18 @@ bool ufont2src(ostream &os,string &data)
 
         // Find end-of-line
         char *n = p;
-        while (*n!='\n' && *n!='\0') n++;
-        if (*n=='\0') break;
+        while (*n!='\n' && *n!='\0') 
+            n++;
+        if (*n=='\0') 
+            break;
 
         // Update size, and point to next line
 
         size += index[j] = (n-p)>>1;
         p = n+1;
+
+        if (*p=='\0') 
+            break;
     }
 
     //
