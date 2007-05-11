@@ -40,7 +40,17 @@
 #include <iostream>
 using namespace std;
 
-extern unsigned char texture[];
+//
+
+extern char *vertexShader;
+extern char *windowShader;
+
+extern unsigned char noise1[];
+extern unsigned char windowShader1[];
+extern unsigned char windowShader2[];
+extern unsigned char windowShader3[];
+
+//
 
 class GlutWindowGlslDemo : public GlutWindowExaminer
 {
@@ -101,100 +111,6 @@ GlutWindowGlslDemo::~GlutWindowGlslDemo()
 {
 }
 
-static const char *vs =
-"void main(void)"
-"{"
-"    gl_TexCoord[0]  = gl_MultiTexCoord0;"
-"    gl_Position     = gl_ModelViewMatrix * gl_Vertex;"
-"}";
-
-static const char *fs =
-"uniform sampler2D texture;"
-"uniform float WallHue;"
-"uniform float WallSaturation;"
-"uniform float WallContrast;"
-"uniform float WallBrightness;"
-""
-"vec3 rgb2hsv(vec3 RGB)"
-"{"
-"    float MIN = min(RGB.x,min(RGB.y,RGB.z));"
-"    float MAX = max(RGB.x,max(RGB.y,RGB.z));"
-"    float DELTA = MAX-MIN;"
-"    vec3 HSV;"
-"    HSV.z = MAX;"
-"    if (DELTA!=0.0)"
-"    {"
-"        HSV.y = DELTA/MAX;"
-"        vec3 delRGB = ( ((vec3(MAX,MAX,MAX)-RGB)/6.0) + (vec3(DELTA,DELTA,DELTA)/2.0) )/DELTA;"
-"        if      ( RGB.x == MAX ) HSV.x = delRGB.z - delRGB.y;"
-"        else if ( RGB.y == MAX ) HSV.x = ( 1.0/3.0) + delRGB.x - delRGB.z;"
-"        else if ( RGB.z == MAX ) HSV.x = ( 2.0/3.0) + delRGB.y - delRGB.x;"
-"        if ( HSV.x < 0.0 ) { HSV.x += 1.0; }"
-"        if ( HSV.x > 1.0 ) { HSV.x -= 1.0; }"
-"    }"
-"    return HSV;"
-"}"
-""
-"vec3 hsv2rgb(vec3 HSV)"
-"{"
-"    vec3 RGB = HSV.zzz;"
-"    if ( HSV.y != 0.0 ) {"
-"       float var_h = HSV.x * 6.0;"
-"       float var_i = floor(var_h);"
-"       float var_1 = HSV.z * (1.0 - HSV.y);"
-"       float var_2 = HSV.z * (1.0 - HSV.y * (var_h-var_i));"
-"       float var_3 = HSV.z * (1.0 - HSV.y * (1.0-(var_h-var_i)));"
-"       if      (var_i == 0.0) { RGB = vec3(HSV.z, var_3, var_1); }"
-"       else if (var_i == 1.0) { RGB = vec3(var_2, HSV.z, var_1); }"
-"       else if (var_i == 2.0) { RGB = vec3(var_1, HSV.z, var_3); }"
-"       else if (var_i == 3.0) { RGB = vec3(var_1, var_2, HSV.z); }"
-"       else if (var_i == 4.0) { RGB = vec3(var_3, var_1, HSV.z); }"
-"       else                   { RGB = vec3(HSV.z, var_1, var_2); }"
-"   }"
-"   return RGB;"
-"}"
-""
-"vec3 fsGrey(float T)"
-"{"
-"    return vec3(T,T,T);"
-"}"
-""
-"vec3 fsRGB(vec3 T)"
-"{"
-"    return T;"
-"}"
-""
-"vec3 fsHSV(vec3 T)"
-"{"
-"    return hsv2rgb(T);"
-"}"
-""
-"vec4 fsWall1(vec4 RGBA, float Hue, float Saturation, float Contrast, float Brightness)"
-"{"
-"    vec3 HSV= rgb2hsv(RGBA.xyz);"
-"    if (HSV.y<0.5)"
-"        return vec4(hsv2rgb(vec3(Hue,Saturation,(HSV.z-0.5)*Contrast+0.5+Brightness)),RGBA.a);"
-"    else"
-"        return RGBA;"
-"}"
-""
-"void main(void)"
-"{"
-"    gl_FragColor = vec4(fsGrey(gl_TexCoord[0].s),1.0);"
-"    gl_FragColor = vec4(fsRGB(gl_TexCoord[0].xyz),1.0);"
-"    gl_FragColor = vec4(fsRGB(vec3(gl_TexCoord[0].s,0,gl_TexCoord[0].t)),1.0);"
-"    gl_FragColor = fsWall1(texture2D(texture,gl_TexCoord[0].st),WallHue,WallSaturation,WallContrast,WallBrightness);"
-//"    gl_FragColor = vec4(fsHSV(gl_TexCoord[0].st,1.0).xyz,1.0);"
-//"    vec3 RGB = texture2D(texture,gl_TexCoord[0].st);"
-//"    vec3 HSV = rgb2hsv(RGB);"
-//"    if (HSV.x<0.5) { HSV.x = fract(gl_TexCoord[0].s/2); HSV.y = fract(gl_TexCoord[0].t/2); } else { HSV.x = 0.65; }"
-//"    if (HSV.y<0.5) { HSV.x = fract(gl_TexCoord[0].s/4); HSV.y = fract(gl_TexCoord[0].t/4); } else { HSV.y = 0.7; }"
-//"    if (HSV.y<0.5) { HSV.x = 0.45; HSV.y = 0.14; } else { HSV.y = 0.5; }"
-//"    if (HSV.y<0.5) { gl_FragColor = vec4(hsv2rgb(vec3(0.05,0.2,HSV.z)),1.0); } else { gl_FragColor = vec4(0.0,0.0,1.0,1.0); }"
-//"    gl_FragColor = vec4(HSV.xxx,0);"
-//"    gl_FragColor = vec4(hsv2rgb(HSV), 1.0);"
-"}";
-
 void
 GlutWindowGlslDemo::OnOpen()
 {
@@ -233,8 +149,8 @@ GlutWindowGlslDemo::OnOpen()
         _vShader  = glCreateShader(GL_VERTEX_SHADER);
         _fShader  = glCreateShader(GL_FRAGMENT_SHADER);
     
-        const char *ff = fs;
-        const char *vv = vs;
+        const char *ff = windowShader;
+        const char *vv = vertexShader;
     
         glShaderSource(_fShader, 1, &ff,NULL);
         glShaderSource(_vShader, 1, &vv,NULL);
@@ -269,7 +185,9 @@ GlutWindowGlslDemo::OnOpen()
 
     //
 
-    _texture.init(texture);
+    _texture.init(windowShader1);
+//    _texture.init(windowShader2);
+//    _texture.init(noise1);
 }
 
 void
