@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/nuvola" >
+        <file>nuvola/apply.png</file>
+        <file>nuvola/cancel.png</file>
+        <file>nuvola/exit.png</file>
+        <file>nuvola/fileexport.png</file>
+        <file>nuvola/filenew.png</file>
+        <file>nuvola/fileopen.png</file>
+        <file>nuvola/filesave.png</file>
+        <file>nuvola/filesaveas.png</file>
+        <file>nuvola/ok.png</file>
+        <file>nuvola/redo.png</file>
+        <file>nuvola/undo.png</file>
+        <file>nuvola/view_fullscreen.png</file>
+    </qresource>
+</RCC>
