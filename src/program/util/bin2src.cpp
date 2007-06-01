@@ -21,7 +21,7 @@
 
 */
 
-/* $Id: bin2src.cpp,v 2.2 2007/05/11 05:04:57 nigels Exp $ */
+/* $Id: bin2src.cpp,v 2.3 2007/06/01 04:31:16 nigels Exp $ */
 
 /*! \file
     \brief   Utility for converting binary data into C/C++ source
@@ -47,9 +47,13 @@ using namespace std;
 // Cygwin defines this
 #undef unix
 
-bool font2src (ostream &os,string &data);
-bool ufont2src(ostream &os,string &data);
-bool image2src(ostream &os,string &data);
+bool font2src (ostream &os, const string &name, string &data);
+bool ufont2src(ostream &os, const string &name, string &data);
+bool image2src(ostream &os, const string &name, string &data);
+
+std::string outputFilename;
+std::string inputFilename;
+std::string variableName;
 
 bool lzf    = false;
 bool zlib   = false;
@@ -69,81 +73,44 @@ bool unix  = false;
 bool dos   = false;
 
 const char *banner =
-    "\n"                                            \
-    "bin2src                                    \n" \
-    "\n"                                            \
-    "C/C++ source code generation tool.         \n" \
-    "GLT C++ OpenGL Toolkit                     \n" \
-    "http://www.nigels.com/glt/                 \n" \
-    "\n"                                            \
-    "Usage: bin2src [OPTION]... SOURCE          \n" \
-    "\n"                                            \
-    "  -c       Compress.                       \n" \
-    "  -font    Convert from VGA font.          \n" \
-    "  -ufont   Convert from Unicode font.      \n" \
-    "  -image   Convert from image.             \n" \
-    "  -mirror  Mirror image horizontally.      \n" \
-    "  -flip    Flip image vertically.          \n" \
-    "  -u       Convert to UNIX text.           \n" \
+    "\n"                                           
+    "bin2src                                    \n"
+    "\n"                                           
+    "C/C++ source code generation tool.         \n"
+    "GLT C++ OpenGL Toolkit                     \n"
+    "http://www.nigels.com/glt/                 \n"
+    "\n"                                           
+    "Usage: bin2src [OPTION]... SOURCE          \n"
+    "\n"                                           
+    "  -o file  Output to file instead of cout. \n"
+    "  -c       Compress.                       \n"
+    "  -font    Convert from VGA font.          \n"
+    "  -ufont   Convert from Unicode font.      \n"
+    "  -image   Convert from image.             \n"
+    "  -mirror  Mirror image horizontally.      \n"
+    "  -flip    Flip image vertically.          \n"
+    "  -u       Convert to UNIX text.           \n"
     "  -d       Convert to DOS/Windows text.    \n";
 
-int main(int argc,char *argv[])
+bool 
+convert(ostream &os)
 {
-    if (argc==1)
-    {
-        cout << banner;
-        #ifdef GLT_ZLIB
-        cout << "  -z       zLib compress." << endl;
-        #endif
-        #ifdef GLT_JPEG
-        cout << "  -j       JPEG compress image." << endl;
-        cout << "  -q nn    JPEG quality setting. (10-95)" << endl;
-        #endif
-        cout << endl;
-        cout << GltVersionInformation();
-
-        return EXIT_FAILURE;
-    }
-
-    // Parse command-line options
-
-    string filename;
-
-    for (int i=1; i<argc; i++)
-    {
-        const string &arg = argv[i];
-
-        if (arg=="-c")      { lzf  = true; continue; }
-        if (arg=="-z")      { zlib = true; continue; }
-
-        if (arg=="-image")  { image  = true; continue; }
-        if (arg=="-mirror") { mirror = true; continue; }
-        if (arg=="-flip")   { flip   = true; continue; }
-
-        if (arg=="-j")      { jpeg = true; continue;                              }
-        if (arg=="-q")      { i++; if (i<argc) quality = atoi(argv[i]); continue; }
-
-        if (arg=="-alpha")  { alpha = true; continue; }
-        if (arg=="-font")   { font  = true; continue; }
-        if (arg=="-ufont")  { ufont = true; continue; }
-
-        if (arg=="-u")      { unix = true; continue; }
-        if (arg=="-d")      { dos  = true; continue; }
-
-        filename = arg;
-    }
-
     // Read the file into memory
 
     string input;
-    ifstream is(filename.c_str(),ios::in|ios::binary);
+    ifstream is(inputFilename.c_str(),ios::in|ios::binary);
     ::readStream(is,input);
+
+    string variableName(inputFilename);
+    string::size_type i = variableName.rfind('.');
+    if (i>=0)
+        variableName.erase(i);
 
     // Convert from PPM image
 
     if (image)
     {
-        bool ok = image2src(cout,input);
+        bool ok = image2src(os,variableName,input);
         return ok ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
@@ -151,13 +118,13 @@ int main(int argc,char *argv[])
 
     if (font)
     {
-        bool ok = font2src(cout,input);
+        bool ok = font2src(os,variableName,input);
         return ok ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
     if (ufont)
     {
-        bool ok = ufont2src(cout,input);
+        bool ok = ufont2src(os,variableName,input);
         return ok ? EXIT_SUCCESS : EXIT_FAILURE;
     }
 
@@ -195,25 +162,95 @@ int main(int argc,char *argv[])
         #ifndef NDEBUG
         string unzip;
         if (!::decompress(unzip,zip) || input!=unzip)
-            cout << "/* Compression FAILED! */" << endl;
+            os << "/* Compression FAILED! */" << endl;
         #endif
 
         // Compression info
 
-        cout << "/* Compressed data: " << input.size() << " -> " << zip.size() << " */" << endl;
+        os << "/* Compressed data: " << input.size() << " -> " << zip.size() << " */" << endl;
 
         // Output
-        ::bin2src(cout,zip);
+        ::bin2src(os,zip);
     }
     else
-        ::bin2src(cout,input);
+        ::bin2src(os,input);
 
     return EXIT_SUCCESS;
 }
 
+void
+args(std::ostream &os, const int argc, const char * const argv[])
+{
+    os << "/* ";
+    for (int i=0; i<argc; ++i)
+        os << argv[i] << ' ';
+    os << "*/" << endl;
+}
+
+int 
+main(int argc,char *argv[])
+{
+    if (argc==1)
+    {
+        cout << banner;
+        #ifdef GLT_ZLIB
+        cout << "  -z       zLib compress." << endl;
+        #endif
+        #ifdef GLT_JPEG
+        cout << "  -j       JPEG compress image." << endl;
+        cout << "  -q nn    JPEG quality setting. (10-95)" << endl;
+        #endif
+        cout << endl;
+        cout << GltVersionInformation();
+
+        return EXIT_FAILURE;
+    }
+
+    // Parse command-line options
+
+    for (int i=1; i<argc; i++)
+    {
+        const string &arg = argv[i];
+
+        if (arg=="-o")      { i++; if (i<argc) outputFilename = argv[i]; continue; }
+        if (arg=="-c")      { lzf  = true; continue; }
+        if (arg=="-z")      { zlib = true; continue; }
+
+        if (arg=="-image")  { image  = true; continue; }
+        if (arg=="-mirror") { mirror = true; continue; }
+        if (arg=="-flip")   { flip   = true; continue; }
+
+        if (arg=="-j")      { jpeg = true; continue;                              }
+        if (arg=="-q")      { i++; if (i<argc) quality = atoi(argv[i]); continue; }
+
+        if (arg=="-alpha")  { alpha = true; continue; }
+        if (arg=="-font")   { font  = true; continue; }
+        if (arg=="-ufont")  { ufont = true; continue; }
+
+        if (arg=="-u")      { unix = true; continue; }
+        if (arg=="-d")      { dos  = true; continue; }
+
+        inputFilename = arg;
+    }
+
+    //
+
+    if (outputFilename.size())
+    {
+        ofstream os(outputFilename.c_str(),ios::out);
+        args(os,argc,argv);
+        return convert(os);
+    }
+    else
+    {
+        args(cout,argc,argv);
+        return convert(cout);
+    }
+}
+
 //////////////////////////////////////////////
 
-bool font2src(ostream &os,string &data)
+bool font2src(ostream &os, const string &name, string &data)
 {
     if (data.size()%256)
     {
@@ -236,13 +273,13 @@ bool font2src(ostream &os,string &data)
 
     string head;
     GltFontAscii::makeHeader(head,width,height);
-    cout << "/* Font data " << width << 'x' << height << " */" << endl;
+    os << "/* Font data " << width << 'x' << height << " */" << endl;
 
-    ::bin2src(cout,head+data);
+    ::bin2src(os,head+data);
     return true;
 }
 
-bool ufont2src(ostream &os,string &data)
+bool ufont2src(ostream &os, const string &name, string &data)
 {
     //
     // On the first pass, create the index
@@ -355,22 +392,22 @@ bool ufont2src(ostream &os,string &data)
         string head;
         GltFontUnicode::makeHeader(head,1);
 
-        cout << "/* Compressed Unicode Font: " << zip.size() << " bytes */" << endl;
-        ::bin2src(cout,head+zip);
+        os << "/* Compressed Unicode Font: " << zip.size() << " bytes */" << endl;
+        ::bin2src(os,head+zip);
     }
     else
     {
         string head;
         GltFontUnicode::makeHeader(head,0);
 
-        cout << "/* Unicode Font: " << output.size() << " bytes */" << endl;
-        ::bin2src(cout,head+output);
+        os << "/* Unicode Font: " << output.size() << " bytes */" << endl;
+        ::bin2src(os,head+output);
     }
 
     return true;
 }
 
-bool image2src(ostream &os,string &data)
+bool image2src(ostream &os, const string &name, string &data)
 {
     string image,tmp;
 
@@ -418,7 +455,7 @@ bool image2src(ostream &os,string &data)
             //
 
             type = GltTexture::TEXTURE_TYPE_GREY;
-            cout << "/* Image data " << width << 'x' << height << " Grey */" << endl;
+            os << "/* Image data " << width << 'x' << height << " Grey */" << endl;
         }
         else
             if (is256Colors(image) && !jpeg)
@@ -430,12 +467,12 @@ bool image2src(ostream &os,string &data)
                 //
 
                 type = GltTexture::TEXTURE_TYPE_INDEXED_RGB;
-                cout << "/* Image data " << width << 'x' << height << " Indexed */" << endl;
+                os << "/* Image data " << width << 'x' << height << " Indexed */" << endl;
             }
             else
             {
                 type = GltTexture::TEXTURE_TYPE_RGB;
-                cout << "/* Image data " << width << 'x' << height << " RGB */" << endl;
+                os << "/* Image data " << width << 'x' << height << " RGB */" << endl;
             }
     }
     else
@@ -447,7 +484,7 @@ bool image2src(ostream &os,string &data)
         if (width*height*4==image.size())
         {
             type = GltTexture::TEXTURE_TYPE_RGBA;
-            cout << "/* Image data " << width << 'x' << height << " RGBA */" << endl;
+            os << "/* Image data " << width << 'x' << height << " RGBA */" << endl;
         }
         else
 
@@ -462,7 +499,7 @@ bool image2src(ostream &os,string &data)
                 if (alpha)
                 {
                     type = GltTexture::TEXTURE_TYPE_GREYA;
-                    cout << "/* Image data " << width << 'x' << height << " Grey+Alpha */" << endl;
+                    os << "/* Image data " << width << 'x' << height << " Grey+Alpha */" << endl;
 
                     // Combine white image with alpha channel
 
@@ -482,7 +519,7 @@ bool image2src(ostream &os,string &data)
                 else
                 {
                     type = GltTexture::TEXTURE_TYPE_GREY;
-                    cout << "/* Image data " << width << 'x' << height << " Grey */" << endl;
+                    os << "/* Image data " << width << 'x' << height << " Grey */" << endl;
                 }
             }
             else
@@ -494,7 +531,7 @@ bool image2src(ostream &os,string &data)
                 if (width*height*2==image.size())
                 {
                     type = GltTexture::TEXTURE_TYPE_GREYA;
-                    cout << "/* Image data " << width << 'x' << height << " Grey+Alpha */" << endl;
+                    os << "/* Image data " << width << 'x' << height << " Grey+Alpha */" << endl;
                 }
                 else
                     return false;
@@ -511,29 +548,37 @@ bool image2src(ostream &os,string &data)
         {
         #ifdef GLT_ZLIB
             if (zlib)
+            {
                 ::compressZLib(tmp,image,9);
+                os << "/* Zlib compressed: " << image.size() << " -> " << tmp.size() << " */" << endl;
+            }
             else
         #endif
+            {
                 ::compress(tmp,image);
+                os << "/* Compressed: " << image.size() << " -> " << tmp.size() << " */" << endl;
+            }
         }
 
         bytes = tmp.size();
 
-        cout << "/* Compressed: " << image.size() << " -> " << bytes << " */" << endl;
+        os << "unsigned char " << name.c_str() << "[] = " << endl;
 
         string output;
         GltTexture::makeHeader(output,type,width,height,alignment,compressed,bytes);
         output += tmp;
-        ::bin2src(cout,output);
+        ::bin2src(os,output);
     }
     else
     {
         bytes = image.size();
 
+        os << "unsigned char " << name.c_str() << "[] = " << endl;
+
         string output;
         GltTexture::makeHeader(output,type,width,height,alignment,compressed,bytes);
         output += image;
-        ::bin2src(cout,output);
+        ::bin2src(os,output);
     }
 
     return true;
