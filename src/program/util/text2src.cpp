@@ -1,8 +1,6 @@
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -22,6 +20,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
+
+/* $Id: text2src.cpp,v 2.3 2007/06/01 04:31:32 nigels Exp $ */
 
 /*! \file
     \brief   Utility for converting text files to C/C++ source
@@ -47,16 +47,38 @@ const char *banner =
     "http://www.nigels.com/glt/                 \n"
     "                                           \n"
     "Usage: text2src file                       \n"
-    "                                           \n";
+    "\n"                                           
+    "  -o file  Output to file instead of cout. \n"
+    "  -h       Help                            \n";
 
-bool GlutMain(const vector<string> &arg)
+std::string outputFilename;
+std::string inputFilename;
+std::string variableName;
+
+bool help = false;
+
+bool
+convert(ostream &os, istream &is)
 {
-    uint32 i;
-    bool help = false;
+    os << "/* " << inputFilename << " */" << endl;
+    os << "const char *" << variableName << " = " << endl;
+    text2source(os,is);
+    return true;
+}
 
-    for (i=1; i<arg.size(); i++)
-        if (arg[i]=="--help" || arg[i]=="/?")
-            help = true;
+bool
+GlutMain(const vector<string> &arg)
+{
+    for (int i=1; i<arg.size(); i++)
+    {
+        if (arg[i]=="-o")      { if ((++i)<arg.size()) outputFilename = arg[i]; continue; }
+
+        if (arg[i]=="-h")      { help = true; continue; }
+        if (arg[i]=="/?")      { help = true; continue; }
+        if (arg[i]=="--help")  { help = true; continue; }
+
+        inputFilename = arg[i];
+    }
 
     if (arg.size()==1 || help)
     {
@@ -64,8 +86,26 @@ bool GlutMain(const vector<string> &arg)
         return false;
     }
 
-    ifstream is(arg[1].c_str());
-    text2source(cout,is);
+    //
 
-    return true;
+    variableName = inputFilename;
+    string::size_type i = variableName.rfind('.');
+    if (i>=0)
+        variableName.erase(i);
+
+    //
+
+    ifstream is(inputFilename.c_str());
+
+    if (outputFilename.size())
+    {
+        ofstream os(outputFilename.c_str(),ios::out);
+        convert(os,is);
+        return true;
+    }
+    else
+    {
+        convert(cout,is);
+        return true;
+    }
 }
