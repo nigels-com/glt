@@ -3,37 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: countsrf.cpp,v 2.0 2004/02/08 19:44:11 nigels Exp $
-
-    $Log: countsrf.cpp,v $
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.15  2003/05/10 16:58:11  nigels
-    Last tweaks for 0.8
-
-    Revision 1.13  2003/02/10 12:13:09  nigels
-    *** empty log message ***
-
-    Revision 1.12  2003/01/22 08:13:22  nigels
-    Tidy-up and more colours for visualisation
-
-    Revision 1.11  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.10  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.9  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
+    $Id: countsrf.cpp,v 2.1 2007/06/03 06:37:35 nigels Exp $
 */
 
 #include <glt/rgb.h>
@@ -42,10 +12,8 @@
 
 #include <node/shape.h>
 
-#ifdef DEBUG
 #include <iostream>
 using namespace std;
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -147,26 +115,26 @@ countSurfaces
 ////////////////////////////////////////////////////////////////////////////////////////
 
 /// Number of colors used for stencil buffer color coding
-const GLuint maxColors=15;
+static const GLuint maxColors=15;
 
 /// Colors used for stencil buffer color coding
-const GltColor surfaceColor[maxColors] =
+static const GltColor *surfaceColor[maxColors] =
 {
-    red,
-    green,
-    blue,
-    yellow,
-    cyan,
-    magenta,
-    orange,
-    limeGreen,
-    darkGreen,
-    black,
-    grey0,
-    grey20,
-    grey40,
-    grey60,
-    grey80
+    &red,
+    &green,
+    &blue,
+    &yellow,
+    &cyan,
+    &magenta,
+    &orange,
+    &limeGreen,
+    &darkGreen,
+    &black,
+    &grey0,
+    &grey20,
+    &grey40,
+    &grey60,
+    &grey80
 };
 
 GLubyte
@@ -192,13 +160,13 @@ countSurfacesVisualise(const GltShape &shape)
         {
             if (l<layers)
             {
-                glStencilFunc(GL_EQUAL,l+1,0xff);
-                surfaceColor[l%(maxColors-1)].glColor();
+                glStencilFunc(GL_EQUAL,l+1,~0);
+                surfaceColor[l%(maxColors-1)]->glColor();
             }
             else
             {
-                glStencilFunc(GL_GEQUAL,l+1,0xff);
-                surfaceColor[maxColors-1].glColor();
+                glStencilFunc(GL_GEQUAL,l+1,~0);
+                surfaceColor[maxColors-1]->glColor();
             }
 
             drawZnear();
