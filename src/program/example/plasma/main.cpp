@@ -150,8 +150,8 @@ GltPlasmaWindow::OnOpen()
     setTick(20);
 
     // Setup viewing so the front half of starfield is out of sight
-    _ortho.zNear() = -1.1;
-    _ortho.zFar() =  4.0;
+    _ortho.zNear() =  1.1;
+    _ortho.zFar()  = -4.0;
     _ortho.set();
 
     // Leave a little space around sphere
