@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: fontunic.h,v 2.2 2007/05/06 16:46:24 nigels Exp $ */
+/* $Id: fontunic.h,v 2.3 2007/08/07 02:34:52 nigels Exp $ */
 
 /*! \file
     \brief OpenGL Unicode Font Class
@@ -72,7 +72,7 @@ public:
 
 private:
 
-    void OnDraw(const uint32 seed) const;
+    void OnDraw(const GltChar &seed) const;
 
     //
 

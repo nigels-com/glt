@@ -3,7 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fontunic.cpp,v 2.1 2006/07/01 13:42:27 nigels Exp $
+    $Id: fontunic.cpp,v 2.2 2007/08/07 02:34:52 nigels Exp $
 */
 
 #include <iosfwd>
@@ -137,7 +137,7 @@ GltFontUnicode::width(const GltChar ch) const
 }
 
 void
-GltFontUnicode::OnDraw(const uint32 seed) const
+GltFontUnicode::OnDraw(const GltChar &seed) const
 {
     assert(_init);
 
