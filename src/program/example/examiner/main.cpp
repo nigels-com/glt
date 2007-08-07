@@ -169,7 +169,7 @@ bool GlutMain(const std::vector<std::string> &arg)
     cout << ExaminerDemo::_message << endl;
 
     // Create GlutMaster window
-    GlutWindow *main = new ExaminerDemo(400,400,20,20);
+    GlutWindow *main = new ExaminerDemo(600,600,20,20);
     main->open();
 
     // Finished GlutMain(), now ready to enter GlutMaster loop.
