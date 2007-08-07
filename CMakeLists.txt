@@ -1,7 +1,23 @@
+# GLT BUILD OPTIONS
+
+#ADD_DEFINITIONS(-DGLT_UNICODE)
+
+# CMAKE BUILD OPTIONS
+
 SET(CMAKE_VERBOSE_MAKEFILE 0)
 SET(CMAKE_COLOR_MAKEFILE 1)
 
+SET(CMAKE_BUILD_TYPE DEBUG)
+#SET(CMAKE_BUILD_TYPE RELEASE)
+
+# gcc-specific
+
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+
 ##############
+
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4.6 FATAL_ERROR)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/src/jpeg)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib)
@@ -14,7 +30,8 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 
 INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
 IF (OPENGL_FOUND)
-    SET(OPENGL_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/GLEW ${OPENGL_LIBRARIES})
+#   SET(OPENGL_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/GLEW ${OPENGL_LIBRARIES})
+    SET(OPENGL_LIBRARIES GLEW ${OPENGL_LIBRARIES})
     MESSAGE(STATUS " OpenGL detected: ${OPENGL_LIBRARIES}" )
 ELSE (OPENGL_FOUND)
     MESSAGE(ERROR " OpenGL not detected")
@@ -22,14 +39,16 @@ ENDIF (OPENGL_FOUND)
 
 # Detect local freeglut, GLUT or system GLUT
 
-IF (EXISTS src/freeglut)
-    ADD_DEFINITIONS(-DGLUTM_FREEGLUT)
-    SET(GLUT_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/freeglut ${OPENGL_LIBRARIES})
-    MESSAGE(STATUS " GLUT detected: ${GLUT_LIBRARIES}")
-ELSE (EXISTS src/freeglut)
+#IF (EXISTS src/freeglut)
+#    ADD_DEFINITIONS(-DGLUTM_FREEGLUT)
+##    SET(GLUT_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/freeglut ${OPENGL_LIBRARIES})
+#    SET(GLUT_LIBRARIES freeglut ${OPENGL_LIBRARIES})
+#   MESSAGE(STATUS " GLUT detected: ${GLUT_LIBRARIES}")
+#ELSE (EXISTS src/freeglut)
     IF (EXISTS src/glut)
         ADD_DEFINITIONS(-DGLUTM_GLUT)
-        SET(GLUT_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/glut ${OPENGL_LIBRARIES})
+#       SET(GLUT_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/glut ${OPENGL_LIBRARIES})
+        SET(GLUT_LIBRARIES glut Xmu ${OPENGL_LIBRARIES})
         MESSAGE(STATUS " GLUT detected: ${GLUT_LIBRARIES}")
     ELSE (EXISTS src/glut)
         INCLUDE (${CMAKE_ROOT}/Modules/FindGLUT.cmake)
@@ -40,12 +59,13 @@ ELSE (EXISTS src/freeglut)
             MESSAGE(ERROR " GLT depends on GLUT or freeglut.")
         ENDIF (GLUT_FOUND)
     ENDIF (EXISTS src/glut)
-ENDIF (EXISTS src/freeglut)
+#ENDIF (EXISTS src/freeglut)
 
 # GLUI
 
 IF (EXISTS src/glui)
-    SET(GLUI_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/glui ${GLUT_LIBRARIES})
+#   SET(GLUI_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/glui ${GLUT_LIBRARIES})
+    SET(GLUI_LIBRARIES glui ${GLUT_LIBRARIES})
     MESSAGE(STATUS " GLUI detected: ${GLUI_LIBRARIES}")
 ELSE (EXISTS src/glui)
     MESSAGE(STATUS " not using glui.")
@@ -55,7 +75,9 @@ ENDIF (EXISTS src/glui)
 
 IF (EXISTS src/zlib)
     ADD_DEFINITIONS(-DGLT_ZLIB)
-    SET(ZLIB_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/z)
+    SET(ZLIB_FOUND 1)
+#    SET(ZLIB_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/z)
+    SET(ZLIB_LIBRARIES z)
     MESSAGE(STATUS " ZLIB detected: ${ZLIB_LIBRARIES}")
 ELSE (EXISTS src/zlib)
     INCLUDE (${CMAKE_ROOT}/Modules/FindZLIB.cmake)
@@ -71,7 +93,8 @@ ENDIF (EXISTS src/zlib)
 
 IF (EXISTS src/png)
     ADD_DEFINITIONS(-DGLT_PNG)
-    SET(PNG_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/png ${ZLIB_LIBRARIES})
+#   SET(PNG_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/png ${ZLIB_LIBRARIES})
+    SET(PNG_LIBRARIES png ${ZLIB_LIBRARIES})
     MESSAGE(STATUS " PNG detected: ${PNG_LIBRARIES}")
 ELSE (EXISTS src/png)
     INCLUDE (${CMAKE_ROOT}/Modules/FindPNG.cmake)
@@ -87,7 +110,8 @@ ENDIF (EXISTS src/png)
 
 IF (EXISTS src/jpeg)
     ADD_DEFINITIONS(-DGLT_JPEG)
-    SET(JPEG_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/jpeg)
+#   SET(JPEG_LIBRARIES ${CMAKE_SOURCE_DIR}/lib/jpeg)
+    SET(JPEG_LIBRARIES jpeg)
     MESSAGE(STATUS " JPEG detected: ${JPEG_LIBRARIES}")
 ELSE (EXISTS src/jpeg)
     SET(JPEG_FIND_QUIETLY 1)
@@ -100,22 +124,63 @@ ELSE (EXISTS src/jpeg)
     ENDIF (JPEG_FOUND)
 ENDIF (EXISTS src/jpeg)
 
+# QT4
+
+SET(Qt4_FIND_QUIETLY 1)
+INCLUDE (${CMAKE_ROOT}/Modules/FindQt4.cmake)
+IF (QT4_FOUND)
+    set(QT_USE_QTOPENGL TRUE)
+    include(${QT_USE_FILE})
+    ADD_DEFINITIONS(-DGLT_QT4)
+    MESSAGE(STATUS " Qt4 detected: ${QT_LIBRARIES}")
+ELSE (QT4_FOUND)
+    MESSAGE(STATUS " Qt4 not found.")
+ENDIF (QT4_FOUND)
+
 #######################################################################
 
-SET(GLT_LINK_LIBRARIES network glutm node mesh glt math fonts)
+#ADD_SUBDIRECTORY(src/misc)
+#ADD_SUBDIRECTORY(src/glt)
+#ADD_SUBDIRECTORY(src/math)
+#ADD_SUBDIRECTORY(src/mesh)
+#ADD_SUBDIRECTORY(src/fonts)
+#ADD_SUBDIRECTORY(src/glutm)
+#ADD_SUBDIRECTORY(src/node)
+#ADD_SUBDIRECTORY(src/network)
+
+FILE(GLOB SOURCES . 
+src/glt/*.cpp 
+src/math/*.cpp 
+src/mesh/*.cpp 
+src/fonts/*.cpp 
+src/glutm/*.cpp 
+src/node/*.cpp 
+src/network/*.cpp 
+src/misc/*.cpp
+src/misc/internal/*.c)
+ADD_LIBRARY(glt ${SOURCES})
+
+SET(GLT_LINK_LIBRARIES glt)
 SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES} ptypes)
 SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${GLUT_LIBRARIES} m pthread)
 
-#####################################
+#######################################################################
 
-#ADD_SUBDIRECTORY(src/misc)
-ADD_SUBDIRECTORY(src/glt)
-ADD_SUBDIRECTORY(src/math)
-ADD_SUBDIRECTORY(src/mesh)
-ADD_SUBDIRECTORY(src/fonts)
-ADD_SUBDIRECTORY(src/glutm)
-ADD_SUBDIRECTORY(src/node)
-ADD_SUBDIRECTORY(src/network)
+#IF (EXISTS src/unifont)
+#    ADD_SUBDIRECTORY(src/unifont)
+#    SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${CMAKE_SOURCE_DIR}/lib/unifont)
+#ENDIF (EXISTS src/unifont)
+
+ADD_SUBDIRECTORY(src/program/util)
+
+SET(GLT_BIN2SRC  ${EXECUTABLE_OUTPUT_PATH}/bin2src)
+SET(GLT_TEXT2SRC ${EXECUTABLE_OUTPUT_PATH}/text2src)
+
+IF (ZLIB_FOUND)
+    SET(GLT_BIN2SRC  ${GLT_BIN2SRC} -z)
+ENDIF (ZLIB_FOUND)
+
+#
 
 IF (EXISTS src/glew)
     ADD_SUBDIRECTORY(src/glew)
@@ -124,6 +189,10 @@ ENDIF (EXISTS src/glew)
 IF (EXISTS src/freeglut)
     ADD_SUBDIRECTORY(src/freeglut)
 ENDIF (EXISTS src/freeglut)
+
+IF (EXISTS src/glut)
+    ADD_SUBDIRECTORY(src/glut)
+ENDIF (EXISTS src/glut)
 
 IF (EXISTS src/glui)
     ADD_SUBDIRECTORY(src/glui)
@@ -146,7 +215,7 @@ IF (EXISTS src/jpeg)
     ADD_SUBDIRECTORY(src/jpeg)
 ENDIF (EXISTS src/jpeg)
 
-IF (EXISTS src/example)
+IF (EXISTS src/program/example)
     ADD_SUBDIRECTORY(src/program/example/examiner)
     ADD_SUBDIRECTORY(src/program/example/font)
     ADD_SUBDIRECTORY(src/program/example/fractal)
@@ -158,7 +227,8 @@ IF (EXISTS src/example)
     ADD_SUBDIRECTORY(src/program/example/skybox)
     ADD_SUBDIRECTORY(src/program/example/sphere)
     ADD_SUBDIRECTORY(src/program/example/texture)
-ENDIF (EXISTS src/example)
+    ADD_SUBDIRECTORY(src/program/example/unifonte)
+ENDIF (EXISTS src/program/example)
 
 ADD_SUBDIRECTORY(src/program/raster)
 ADD_SUBDIRECTORY(src/program/gltChaos)
@@ -184,4 +254,9 @@ IF (EXISTS src/neverland)
     ADD_SUBDIRECTORY(src/neverland/pgl/pglTexture)
     ADD_SUBDIRECTORY(src/neverland/pgl/ui)
     ADD_SUBDIRECTORY(src/neverland/viewer)
+    ADD_SUBDIRECTORY(src/neverland/examiner)
+#    ADD_DEPENDENCIES(neverlandViewer bin2src)
 ENDIF (EXISTS src/neverland)
+
+#INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/neverland)
+ADD_SUBDIRECTORY(src/program/qt/test)
