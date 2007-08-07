@@ -3,44 +3,9 @@
 /*! \file
     \brief   string and wstring utility routines
     \ingroup Misc
-
-    $Id: string.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
-
-    $Log: string.cpp,v $
-    Revision 2.1  2004/02/10 13:43:46  nigels
-    no message
-
-    Revision 1.34  2003/11/12 06:46:37  nigels
-    Expand
-
-    Revision 1.33  2003/10/10 10:19:24  nigels
-    Added urlSplit to break url string into protocol, host, port and location
-
-    Revision 1.32  2003/09/16 09:47:29  nigels
-    :
-
-    Revision 1.31  2003/09/16 01:46:02  nigels
-    Added toUpper toLower and path manipulation
-
-    Revision 1.30  2003/07/22 03:58:58  nigels
-    *** empty log message ***
-
-    Revision 1.29  2003/06/26 09:59:47  nigels
-    Strip comments from string added
-
-    Revision 1.28  2003/05/31 12:53:11  nigels
-    Added readFile and writeFile
-
-    Revision 1.27  2003/05/31 11:38:50  nigels
-    Major speedup for reading large files into std::string
-
-    Revision 1.26  2003/05/10 17:04:23  nigels
-    *** empty log message ***
-
-    Revision 1.24  2003/03/06 12:34:47  nigels
-    *** empty log message ***
-
 */
+
+/* $Id: string.cpp,v 2.2 2007/08/07 02:31:50 nigels Exp $ */
 
 /*! \example string.cpp
 
@@ -786,7 +751,8 @@ void bin2asm(std::ostream &os, std::istream &is)
     }
 }
 
-int sprintf(std::string &str,const char *format, ...)
+int 
+sprintf(std::string &str,const char *format, ...)
 {
     va_list argp;
     va_start(argp, format);
@@ -803,6 +769,30 @@ int sprintf(std::string &str,const char *format, ...)
     return ret;
 }
 
+#ifdef GLT_UNICODE
+
+int 
+sprintf(std::wstring &str,const char *format, ...)
+{
+    va_list argp;
+    va_start(argp, format);
+
+    // TODO - Prevent buffer overrun!
+
+    std::wstring f;
+    string2wstring(f,format);
+
+    wchar_t buffer[10240];
+    int ret = ::vswprintf(buffer,10240,&f[0],argp);
+    va_end(argp);
+
+    str.resize(ret);
+    memcpy(&str[0],buffer,ret);
+
+    return ret;
+}
+
+#endif
 
 bool stringSplit(vector<string> &vec,const string &str,const string &delim)
 {

@@ -2,10 +2,8 @@
 #define MISC_STRING_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2004 Nigel Stewart
-
+  Copyright (C) 2000-2007 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -25,6 +23,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 */
+
+/* $Id: string.h,v 2.3 2007/08/07 02:31:50 nigels Exp $ */
 
 /*! \file
     \brief   string and wstring utility routines
@@ -262,6 +262,17 @@ void bin2asm(std::ostream &os, std::istream &is);
 */
 
 int sprintf(std::string &str,const char *format, ...);
+
+#ifdef GLT_UNICODE
+
+/*!
+    \brief      std::string sprintf
+    \ingroup    Misc
+*/
+
+int sprintf(std::wstring &str,const char *format, ...);
+
+#endif
 
 //
 // string <-> vector<string>
