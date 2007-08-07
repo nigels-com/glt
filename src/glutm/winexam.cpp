@@ -302,7 +302,7 @@ void GlutWindowExaminer::OnMotion(int x, int y)
             // (The "-dy" is because mouse has top left origin)
             // Angle is proportional to the distance moved
 
-            axis  = xProduct(Vector(real(-dx),real(dy),0.0),VectorZ);
+            axis  = xProduct(Vector(real(dx),real(-dy),0.0),VectorZ);
             angle = axis.length()/(_viewport.width()+1.0)*180.0;
         }
 

@@ -272,7 +272,7 @@ GlutWindowTextDemo::OnOpen()
     _menu.addEntry("Border"    ,TEXT_DEMO_BORDER);
     _menu.addEntry("Background",back);
     _menu.addEntry("Scheme"    ,scheme);
-    _menu.addEntry("Close"     ,MENU_CLOSE);
+    _menu.addEntry("Quit"      ,MENU_CLOSE);
 
     _menu.attach();
 }
