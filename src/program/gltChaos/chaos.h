@@ -46,6 +46,26 @@ public:
 
     uint32 lastSeed() const;
 
+    void draw
+    (
+        unsigned int *image,
+        const int width,
+        const int height,
+        const double minx,
+        const double miny,
+        const double maxx,
+        const double maxy,
+        const int n
+    );
+
+    void size
+    (
+        double &minx,
+        double &miny,
+        double &maxx,
+        double &maxy
+    );
+
 protected:
 
     double _x,_y;   // Current position

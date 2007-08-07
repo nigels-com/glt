@@ -2,7 +2,7 @@
 
   Glt OpenGL C++ Toolkit (Glt)
   Copyright (C) 2001 Nigel Stewart
-  Email: nigels@nigels.com   WWW: http://www.nigels.com/glt/
+  WWW: http://www.nigels.com/glt/gltchaos
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -20,8 +20,11 @@
 
 */
 
+#define GL_GLEXT_PROTOTYPES 1
+
 #include "window.h"
 #include "chaos.h"
+#include "svg.h"
 
 #include <glt/rgb.h>
 #include <glt/buffer.h>
@@ -31,6 +34,8 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
+
+#include <GL/glext.h>
 
 GltChaos::GltChaos(int width,int height,int x,int y)
 : GlutWindow("gltChaos",width,height,x,y,GLUT_SINGLE|GLUT_RGBA),
@@ -72,6 +77,8 @@ GltChaos::OnOpen()
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+    GLERROR
 }
 
 void
@@ -91,6 +98,19 @@ GltChaos::OnReshape(int w, int h)
     GlutWindow::OnReshape(w,h);
     _screenSize = w*h;
     _doClear = true;
+    _drawn = 0;
+    postRedisplay();
+}
+
+void
+GltChaos::OnVisibility(int visible)
+{
+    if (visible!=GLUT_FULLY_COVERED)
+    {
+        _doClear = true;
+        _drawn = 0;
+        postRedisplay();
+    }
 }
 
 void
@@ -201,10 +221,51 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
 
     case 's':
         {
+#if 1
+            //Set up a FBO with one renderbuffer attachment
+            
+            GLuint framebuffer;
+            glGenFramebuffersEXT(1, &framebuffer);
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebuffer);
+        
+            const GLuint texWidth = 1024;
+            const GLuint texHeight = 768;
+
+            GLuint renderbuffer;
+            glGenRenderbuffersEXT(1, &renderbuffer);
+            glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, renderbuffer);
+            glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGB, texWidth, texHeight);
+            glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,GL_RENDERBUFFER_EXT, renderbuffer);
+        
+            printf("renderbuffer=%d\n",renderbuffer);
+            
+            GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);    
+            assert(status==GL_FRAMEBUFFER_COMPLETE_EXT);
+        
+            glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+            glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+
+            GltViewport viewport;
+            viewport.get();
+
+            glViewport(0,0,texWidth,texHeight);
+            glClear(GL_COLOR_BUFFER_BIT);
+            draw((texWidth*texHeight)<<1);
+
+#endif
             // Get the frame buffer
 
             GltFrameBufferRGB rgb;
             rgb.read();
+
+#if 1
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+            glDeleteRenderbuffersEXT(1, &renderbuffer);
+            glDeleteFramebuffersEXT(1, &framebuffer);
+
+            glDrawBuffer(GL_FRONT);
+            viewport.set();
+#endif
 
             string filename;
             sprintf(filename,"%u.png",lastSeed());
@@ -219,6 +280,57 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
             rgb.writePPM(os);
             #endif
 
+            break;
+        }
+
+    case 'S':
+        {
+#if 0
+            string filename;
+            sprintf(filename,"%u.svg",lastSeed());
+
+            ofstream os(filename.c_str());
+            SvgOutput svg(os,100,100);
+            svg.defCircle("p",0.1,"black");
+            output(svg,"p",40000);
+#endif
+
+#if 0
+            const int width  = 1024;
+            const int height = 1024;
+#else
+            const int width  = 2048;
+            const int height = 2048;
+#endif
+
+            unsigned int *image = new unsigned int [width*height];
+            std::memset(image,0,width*height*sizeof(unsigned int));
+
+            double minx,miny,maxx,maxy;
+            size(minx,miny,maxx,maxy);
+
+            draw(image,width,height,minx,miny,maxx,maxy,width*height*200);
+
+            unsigned int limit = 0;
+            for (unsigned int i=0; i<width*height; ++i)
+                limit = std::max(limit,image[i]);
+
+            std::string tmp;
+            tmp.resize(width*height);
+            byte *p = (byte *) tmp.data();
+
+            for (unsigned int i=0; i<width*height; ++i)
+                p[i] = std::floor(std::pow(float(image[i])/limit,0.5f)*255.9);
+
+            std::string data;
+            if (encodePNG(data,width,height,tmp))
+            {
+                string filename;
+                sprintf(filename,"%u.png",lastSeed());
+
+                ofstream os(filename.c_str(),ios::binary);
+                writeStream(os,data);
+            }
             break;
         }
 
@@ -277,13 +389,13 @@ GltChaos::redraw()
 bool GlutMain(const std::vector<std::string> &arg)
 {
     cout << endl;
-    cout << "gltChaos 0.3" << endl;
+    cout << "gltChaos 0.5" << endl;
     cout << endl;
     cout << "gltChaos" << endl;
-    cout << "(C) 2001-2002 Nigel Stewart (nigels@nigels.com)" << endl;
+    cout << "(C) 2001-2006 Nigel Stewart (nigels@nigels.com)" << endl;
     cout << "Source code available under terms of LGPL." << endl;
     cout << "For updates, source code and information:" << endl;
-    cout << "http://www.nigels.com/glt/" << endl;
+    cout << "http://www.nigels.com/glt/gltchaos" << endl;
     cout << endl;
     cout << "Usage: gltChaos" << endl;
     cout << endl;
@@ -311,6 +423,12 @@ char *GltChaos::_demoID[] = {
 };
 
 uint32 GltChaos::_demoSeed[] = {
+        77993231,
+        1367920388,
+        1734464951,
+        449896995,
+        1608616200,
+        6100194,
         1678076991,
         84862865,
         322006170,

@@ -48,6 +48,7 @@ public:
     void OnOpen();
     void OnClose();
     void OnReshape(int w, int h);
+    void OnVisibility(int visible);
     void OnDisplay();
     void OnKeyboard(unsigned char key, int x, int y);
     void OnSpecial(int key, int x, int y);

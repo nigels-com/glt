@@ -1,6 +1,10 @@
 #include "chaos.h"
 
 #include <glt/gl.h>
+#include <glt/error.h>
+
+#include <iostream>
+using namespace std;
 
 GltRandomDouble<GltRandomLCG> ChaosSystem::_random(-1.2,1.2);
 GltRandomDouble<GltRandomLCG> ChaosSystem::_mutate(-1.0,1.0);
@@ -90,12 +94,21 @@ void ChaosSystem::set(const uint32 seed)
     {
         _x = _y = 0.0;
 
+        // Keep track of previous position to detect convergence
+
+        double xp = _x;
+        double yp = _y;
+
+        // Seed the random number generator
+
         if (seed && firstTime)
             _random.base().seed(_lastSeed = seed);
         else
             _lastSeed = _random.base().rand();
 
         firstTime = false;
+
+        // Randomise the co-efficients
 
         {
             for (int i=0; i<12; i++)
@@ -117,6 +130,11 @@ void ChaosSystem::set(const uint32 seed)
 
         for (int i=0; i<n; i++)
         {
+            //  Keep track of previous position
+
+            xp = _x;
+            yp = _y;
+
             advancexy(_x,_y,_x,_y);
             advancexy(xe,ye,xe,ye);
 
@@ -147,10 +165,17 @@ void ChaosSystem::set(const uint32 seed)
 
             found = false;
 
+            // Give up if we've gone out of range
+
             if (fabs(_x) + fabs(_y) > 1e6)
                 break;
 
             if (i>100 && 0.721348*lsum/double(i+1) < 0.005)
+                break;
+
+            // Give up if we've converged on a position
+
+            if (i>100 && fabs(_x-xp)<1e-6 && fabs(_y-yp)<1e6)
                 break;
 
             found = true;
@@ -159,11 +184,16 @@ void ChaosSystem::set(const uint32 seed)
         if (!found)
             continue;
 
+        GLERROR
+
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glScaled(0.9,0.9,1.0);
         glOrtho(xmin,xmax,ymin,ymax,-1.0,1.0);
         glMatrixMode(GL_MODELVIEW);
+
+        GLERROR
+
         break;
     }
 }
@@ -198,3 +228,103 @@ ChaosSystem::lastSeed() const
     return _lastSeed;
 }
 
+#if 0
+void
+ChaosSystem::output(SvgOutput &svg, const std::string &id, const int n)
+{
+    if (n<1)
+        return;
+
+    vector<double> x(n,0.0);
+    vector<double> y(n,0.0);
+
+    x.front() = _x;
+    y.front() = _y;
+
+    for (int i=1; i<n; ++i)
+        advancexy(x[i-1],y[i-1],x[i],y[i]);
+
+    double minx = x.front();
+    double maxx = x.front();
+    double miny = y.front();
+    double maxy = y.front();
+
+    for (int i=1; i<n; ++i)
+    {
+        minx = std::min(minx,x[i]);
+        maxx = std::max(maxx,x[i]);
+        miny = std::min(miny,y[i]);
+        maxy = std::max(maxy,y[i]);
+    }
+
+    for (int i=0; i<n; ++i)
+        svg.use(id,(x[i]-minx)/(maxx-minx)*100.0,(y[i]-miny)/(maxy-miny)*100.0);
+}
+#endif
+
+void
+ChaosSystem::draw
+(
+    unsigned int *image,
+    const int width,
+    const int height,
+    const double minx,
+    const double miny,
+    const double maxx,
+    const double maxy,
+    const int n
+)
+{
+    const double dx = width/(maxx-minx);
+    const double dy = height/(maxy-miny);
+
+    for (int i=0; i<n; ++i)
+    {
+        advancexy(_x,_y,_x,_y);
+        int x = int(std::floor((_x-minx)*dx));
+        int y = int(std::floor((_y-miny)*dy));
+        if (x>=0 && x<width && y>=0 && y<height)
+#if 1
+            image[x+height*y]++;
+#else
+        {
+            byte &v = data[x+height*y];
+            if (v!=255)
+                v++;
+        }
+#endif
+    }
+}
+
+void
+ChaosSystem::size
+(
+    double &minx,
+    double &miny,
+    double &maxx,
+    double &maxy
+)
+{
+    minx = _x;
+    maxx = _x;
+    miny = _y;
+    maxy = _y;
+
+    for (int i=1; i<10000; ++i)
+    {
+        advancexy(_x,_y,_x,_y);
+        minx = std::min(minx,_x);
+        maxx = std::max(maxx,_x);
+        miny = std::min(miny,_y);
+        maxy = std::max(maxy,_y);
+    }
+
+    double dx = maxx-minx;
+    double dy = maxy-miny;
+
+    minx -= dx*0.02;
+    maxx += dx*0.02;
+
+    miny -= dy*0.02;
+    maxy += dy*0.02;
+}
