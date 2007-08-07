@@ -12,6 +12,8 @@ GlutWidget::GlutWidget(QWidget *parent)
 :   QGLWidget(QGLFormat(QGL::DoubleBuffer|QGL::DepthBuffer|QGL::StencilBuffer),parent)
 {
     setAutoBufferSwap(false);
+    setFocusPolicy(Qt::StrongFocus);
+
     #ifdef DEBUG_THIS
     cout << "GlutWidget::GlutWidget depth=" << format().depth() << endl;
     cout << "GlutWidget::GlutWidget double=" << format().doubleBuffer() << endl;
@@ -75,7 +77,7 @@ GlutWidget::resizeGL(int width, int height)
 
 //////////////////
 
-/* $Id: GlutWidget.cpp,v 1.1 2007/05/25 02:32:24 nigels Exp $ */
+/* $Id: GlutWidget.cpp,v 1.2 2007/08/07 02:23:36 nigels Exp $ */
 
 /*
  * 3-D gear wheels.  This program is in the public domain.
@@ -87,31 +89,6 @@ GlutWidget::resizeGL(int width, int height)
  * Brian Paul
  */
 
-/* Conversion to GLUT by Mark J. Kilgard */
-
-/*
- * $Log: GlutWidget.cpp,v $
- * Revision 1.1  2007/05/25 02:32:24  nigels
- * Initial version of Qt4 QGLWidget test program
- *
- * Revision 1.2  1999/10/21 16:39:06  brianp
- * added -info command line option
- *
- * Revision 1.1.1.1  1999/08/19 00:55:40  jtg
- * Imported sources
- *
- * Revision 3.2  1999/06/03 17:07:36  brianp
- * an extra quad was being drawn in front and back faces
- *
- * Revision 3.1  1998/11/03 02:49:10  brianp
- * added fps output
- *
- * Revision 3.0  1998/02/14 18:42:29  brianp
- * initial rev
- *
- */
-
-
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -122,7 +99,7 @@ GlutWidget::resizeGL(int width, int height)
 #define M_PI 3.14159265
 #endif
 
-static GLint T0 = 0;
+static GLint T0     = 0;
 static GLint Frames = 0;
 
 

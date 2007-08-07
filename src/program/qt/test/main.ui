@@ -16,7 +16,7 @@
    <string>GlutWidget</string>
   </property>
   <property name="windowIcon" >
-   <iconset>../../../../../../../Wares/nuvola/22x22/apps/browser.png</iconset>
+   <iconset resource="resource.qrc" >:/nuvola/nuvola/application.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget" >
    <layout class="QGridLayout" >

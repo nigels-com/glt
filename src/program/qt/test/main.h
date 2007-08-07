@@ -3,7 +3,7 @@
 
 #include "ui_main.h"
 
-class GlutWidget;
+class GlutMasterWidget;
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
@@ -13,7 +13,7 @@ public:
     MainWindow(QWidget *parent = 0);
 
 private:
-    GlutWidget *_glutWidget;
+    GlutMasterWidget *_glutMasterWidget;
 };
  
 #endif

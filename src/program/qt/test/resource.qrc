@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/nuvola" >
+        <file>nuvola/application.png</file>
         <file>nuvola/apply.png</file>
         <file>nuvola/cancel.png</file>
         <file>nuvola/exit.png</file>
