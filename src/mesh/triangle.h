@@ -30,18 +30,7 @@
     \brief   Mesh Triangle
     \ingroup Mesh
 
-    $Id: triangle.h,v 2.2 2004/08/11 05:20:19 nigels Exp $
-
-    $Log: triangle.h,v $
-    Revision 2.2  2004/08/11 05:20:19  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.1  2004/02/16 14:28:20  nigels
-    Whitespace differences
-
-    Revision 1.8  2003/03/06 12:31:14  nigels
-    *** empty log message ***
-
+    $Id: triangle.h,v 2.3 2007/08/07 02:33:15 nigels Exp $
 */
 
 #include <iosfwd>

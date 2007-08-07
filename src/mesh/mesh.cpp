@@ -6,27 +6,7 @@
 /*! \file
     \ingroup Mesh
 
-    $Id: mesh.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
-
-    $Log: mesh.cpp,v $
-    Revision 2.2  2004/05/03 03:27:06  nigels
-    Migrating from MIN/MAX to std::min and std::max
-
-    Revision 2.1  2004/02/16 14:23:38  nigels
-    Mesh shapes always control GL_CULL_FACE
-
-    Revision 1.23  2003/10/01 02:31:11  nigels
-    Mesh shapes always control GL_CULL_FACE
-
-    Revision 1.22  2003/05/31 13:31:15  nigels
-    3DS now loaded as GltShapes rather than via Mesh
-
-    Revision 1.21  2003/05/31 11:37:48  nigels
-    Some changes to 3DS support
-
-    Revision 1.20  2003/03/06 12:31:14  nigels
-    *** empty log message ***
-
+    $Id: mesh.cpp,v 2.3 2007/08/07 02:33:15 nigels Exp $
 */
 
 #include <glt/gl.h>

@@ -30,21 +30,7 @@
     \brief   Mesh
     \ingroup Mesh
 
-    $Id: mesh.h,v 2.2 2004/08/11 05:20:19 nigels Exp $
-
-    $Log: mesh.h,v $
-    Revision 2.2  2004/08/11 05:20:19  nigels
-    Updated copyright and removed email address from headers
-
-    Revision 2.1  2004/02/16 14:23:38  nigels
-    Mesh shapes always control GL_CULL_FACE
-
-    Revision 1.16  2003/05/31 13:31:15  nigels
-    3DS now loaded as GltShapes rather than via Mesh
-
-    Revision 1.15  2003/03/06 12:31:14  nigels
-    *** empty log message ***
-
+    $Id: mesh.h,v 2.3 2007/08/07 02:33:15 nigels Exp $
 */
 
 #ifdef _MSC_VER
@@ -123,8 +109,6 @@ public:
     std::ostream &writeAOff(std::ostream &os) const;        ///< Output OFF file to stream
 
 private:
-
-
     std::deque<Point>    _point;                ///< Mesh points
     std::deque<Triangle> _triangle;             ///< Mesh triangles
     std::deque<Quad>     _quad;                 ///< Mesh quads

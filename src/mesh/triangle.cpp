@@ -3,15 +3,7 @@
 /*! \file
     \ingroup Mesh
 
-    $Id: triangle.cpp,v 2.1 2004/02/16 14:28:20 nigels Exp $
-
-    $Log: triangle.cpp,v $
-    Revision 2.1  2004/02/16 14:28:20  nigels
-    Whitespace differences
-
-    Revision 1.8  2003/03/06 12:31:14  nigels
-    *** empty log message ***
-
+    $Id: triangle.cpp,v 2.2 2007/08/07 02:33:15 nigels Exp $
 */
 
 #include <iostream>
