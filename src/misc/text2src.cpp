@@ -4,7 +4,7 @@
     \brief   Routines for converting data to C/C++ source code
     \ingroup Misc
 
-    $Id: text2src.cpp,v 2.2 2006/07/09 15:13:46 nigels Exp $
+    $Id: text2src.cpp,v 2.3 2007/08/07 02:32:14 nigels Exp $
 */
 
 #include <misc/string.h>
@@ -156,9 +156,9 @@ text2source(string &output,const string &input)
             *(j++) = '\n';
         }
 
-        // Output is NUL terminated
+        // Finish output with \n
 
-        *(j++) = 0;
+        *(j++) = '\n';
 
         // Check our sanity
 

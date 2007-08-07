@@ -31,7 +31,7 @@
 #ifndef GLUI_GLUI_H
 #define GLUI_GLUI_H
 
-#if defined(GLUI_FREEGLUT)
+#if defined(GLUI_FREEGLUT) || defined(GLUTM_FREEGLUT)
 
   // FreeGLUT does not yet work perfectly with GLUI
   //  - use at your own risk.
