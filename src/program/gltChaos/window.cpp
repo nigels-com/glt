@@ -1,7 +1,7 @@
 /*
 
   Glt OpenGL C++ Toolkit (Glt)
-  Copyright (C) 2001 Nigel Stewart
+  Copyright (C) 2001-2007 Nigel Stewart
   WWW: http://www.nigels.com/glt/gltchaos
 
   This library is free software; you can redistribute it and/or
@@ -20,8 +20,6 @@
 
 */
 
-#define GL_GLEXT_PROTOTYPES 1
-
 #include "window.h"
 #include "chaos.h"
 #include "svg.h"
@@ -34,8 +32,6 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
-
-#include <GL/glext.h>
 
 GltChaos::GltChaos(int width,int height,int x,int y)
 : GlutWindow("gltChaos",width,height,x,y,GLUT_SINGLE|GLUT_RGBA),
@@ -320,7 +316,7 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
             byte *p = (byte *) tmp.data();
 
             for (unsigned int i=0; i<width*height; ++i)
-                p[i] = std::floor(std::pow(float(image[i])/limit,0.5f)*255.9);
+                p[i] =(int)  std::floor(std::pow(float(image[i])/limit,0.5f)*255.9);
 
             std::string data;
             if (encodePNG(data,width,height,tmp))
@@ -392,7 +388,7 @@ bool GlutMain(const std::vector<std::string> &arg)
     cout << "gltChaos 0.5" << endl;
     cout << endl;
     cout << "gltChaos" << endl;
-    cout << "(C) 2001-2006 Nigel Stewart (nigels@nigels.com)" << endl;
+    cout << "(C) 2001-2007 Nigel Stewart (nigels@nigels.com)" << endl;
     cout << "Source code available under terms of LGPL." << endl;
     cout << "For updates, source code and information:" << endl;
     cout << "http://www.nigels.com/glt/gltchaos" << endl;
