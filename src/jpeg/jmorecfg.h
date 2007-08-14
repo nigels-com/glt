@@ -12,6 +12,7 @@
 
 #ifdef __MINGW32__
 #include <windows.h>
+#define HAVE_BOOLEAN
 #endif
 
 /*
