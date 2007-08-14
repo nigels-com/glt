@@ -137,7 +137,6 @@ private:
 
     #ifdef _MSC_VER
     buffer_iterator(const buffer_iterator &i);          ///< Invalid copy constructor
-    buffer_iterator(const_buffer_iterator &block);      ///< Invalid copy constructor
     #endif
 };
 
