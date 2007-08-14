@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: gl.h,v 2.4 2007/05/06 16:46:24 nigels Exp $ */
+/* $Id: gl.h,v 2.5 2007/08/14 04:04:42 nigels Exp $ */
 
 /*! \file
     \brief   OpenGL (proxy) header file
@@ -46,6 +46,7 @@
 #   include <windows.h>
 #endif
 
+#include <GL/glew.h>
 #include <GL/gl.h>
 
 #endif
