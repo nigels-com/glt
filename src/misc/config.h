@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: config.h,v 2.3 2007/05/08 04:29:31 nigels Exp $ */
+/* $Id: config.h,v 2.4 2007/08/14 04:02:11 nigels Exp $ */
 
 /*! \file
     \brief   GLT Misc configuration file
@@ -57,23 +57,4 @@
 #define GLT_ZLIB
 #endif
 
-// MS Visual C++ compiler has the facility
-// to specify libraries at compile-time
-
-#ifdef _MSC_VER
-#pragma comment (lib, "advapi32")    // Windows registry interface
-
-#ifdef GLT_ZLIB
-#pragma comment(lib, "zlib.lib")      // zLib compression library
-#endif
-
-#ifdef GLT_PNG
-#pragma comment(lib, "png.lib")      // PNG library
-#endif
-
-#ifdef GLT_JPEG
-#pragma comment(lib, "jpeg.lib")     // Independent JPEG Group library
-#endif
-
-#endif
 #endif

@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: config.h,v 2.5 2007/05/06 16:46:24 nigels Exp $ */
+/* $Id: config.h,v 2.6 2007/08/14 04:03:28 nigels Exp $ */
 
 /*! \file
     \brief GLT Configuration File
@@ -55,17 +55,6 @@
 
 #define GLT_WIN32
 #define GLT_LITTLE_ENDIAN
-
-#pragma comment(lib, "opengl32.lib")  // Link against OpenGL library
-#pragma comment(lib, "glu32.lib")     // Link against GLU library
-#pragma comment(lib, "glt.lib")       // GLT Library
-#pragma comment(lib, "glutm.lib")     // GlutMaster Library
-#pragma comment(lib, "math.lib")      // GLT Math Library
-#pragma comment(lib, "node.lib")      // GLT Node Library
-#pragma comment(lib, "fonts.lib")     // GLT Fonts Library
-#pragma comment(lib, "mesh.lib")      // GLT Mesh Library
-#pragma comment(lib, "misc.lib")      // GLT Misc Library
-
 #endif
 
 //
