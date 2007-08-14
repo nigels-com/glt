@@ -34,7 +34,9 @@
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
+#ifndef _MSC_VER
 #include <sys/param.h>
+#endif
 #include <sys/types.h>
 #include <fcntl.h>
 
