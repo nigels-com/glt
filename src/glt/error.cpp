@@ -1,6 +1,8 @@
-/* $Id: error.cpp,v 2.3 2005/07/01 03:17:34 nigels Exp $ */
+/* $Id: error.cpp,v 2.4 2007/08/14 04:04:12 nigels Exp $ */
 
 #include "error.h"
+
+#include <glt/config.h>
 
 #include <string>
 #include <iostream>
@@ -8,6 +10,7 @@ using namespace std;
 
 #ifdef GLT_WIN32
 #include <windows.h>
+#include <wingdi.h>
 #endif
 
 /*! \file

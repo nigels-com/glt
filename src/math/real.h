@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: real.h,v 2.5 2007/05/07 03:39:13 nigels Exp $ */
+/* $Id: real.h,v 2.6 2007/08/14 04:02:48 nigels Exp $ */
 
 /*! \file
     \brief   Numerical constants and basic math functions
@@ -75,7 +75,9 @@
 #define M_DEG_PI    (180.0/M_PI)
 #define M_2PI       (2.0*M_PI)
 
-#ifdef _MSC_VER
+// Only necessary for Visual Studio previous to 2005
+
+#if defined(_MSC_VER) && _MSC_VER<1400
 namespace std
 {
     template<typename T> const T &min(const T &a,const T &b) { return a<b ? a : b }

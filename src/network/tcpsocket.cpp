@@ -10,6 +10,7 @@
 #include <sys/types.h>
 
 #ifdef WIN32
+#include <errno.h>
 #else
 #include <sys/socket.h>
 #include <errno.h>
