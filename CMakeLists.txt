@@ -114,6 +114,17 @@ ELSE (EXISTS src/png)
     ENDIF (PNG_FOUND)
 ENDIF (EXISTS src/png)
 
+# PTYPES
+
+IF (EXISTS src/ptypes)
+    SET(PTYPES_FOUND 1)
+    SET(PTYPES_LIBRARIES ptypes)
+    MESSAGE(STATUS " PTYPES detected: ${PTYPES_LIBRARIES}")
+ELSE (EXISTS src/ptypes)
+    SET(PTYPES_FOUND 0)
+    MESSAGE(STATUS " PTYPES not found.")
+ENDIF (EXISTS src/ptypes)
+
 # JPG
 
 IF (EXISTS src/jpeg)
@@ -160,8 +171,12 @@ src/misc/internal/lzf_*.c)
 ADD_LIBRARY(glt ${SOURCES})
 
 SET(GLT_LINK_LIBRARIES glt)
-SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES} ptypes)
+SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES})
 SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${GLUT_LIBRARIES})
+
+IF (PTYPES_FOUND)
+    SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${PTYPES_LIBRARIES})
+ENDIF (PTYPES_FOUND)
 
 IF (WIN32)
     SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} winmm ws2_32 gdi32)
@@ -236,11 +251,25 @@ IF (EXISTS src/program/example)
     ADD_SUBDIRECTORY(src/program/example/unifonte)
 ENDIF (EXISTS src/program/example)
 
-ADD_SUBDIRECTORY(src/program/raster)
-ADD_SUBDIRECTORY(src/program/gltChaos)
-ADD_SUBDIRECTORY(src/program/gltPlasma)
-ADD_SUBDIRECTORY(src/program/gltLife)
-ADD_SUBDIRECTORY(src/program/gltZpr)
+IF (EXISTS src/program/raster)
+    ADD_SUBDIRECTORY(src/program/raster)
+ENDIF (EXISTS src/program/raster)
+
+IF (EXISTS src/program/gltChaos)
+    ADD_SUBDIRECTORY(src/program/gltChaos)
+ENDIF (EXISTS src/program/gltChaos)
+
+IF (EXISTS src/program/gltPlasma)
+    ADD_SUBDIRECTORY(src/program/gltPlasma)
+ENDIF (EXISTS src/program/gltPlasma)
+
+IF (EXISTS src/program/gltLife)
+    ADD_SUBDIRECTORY(src/program/gltLife)
+ENDIF (EXISTS src/program/gltLife)
+
+IF (EXISTS src/program/gltZpr)
+    ADD_SUBDIRECTORY(src/program/gltZpr)
+ENDIF (EXISTS src/program/gltZpr)
 
 IF (EXISTS src/program/grips)
     ADD_SUBDIRECTORY(src/program/grips)
@@ -264,6 +293,8 @@ IF (EXISTS src/neverland)
 #    ADD_DEPENDENCIES(neverlandViewer bin2src)
 ENDIF (EXISTS src/neverland)
 
-IF (QT4_FOUND)
-    ADD_SUBDIRECTORY(src/program/qt/test)
-ENDIF (QT4_FOUND)
+IF (EXISTS src/program/qt/test)
+    IF (QT4_FOUND)
+        ADD_SUBDIRECTORY(src/program/qt/test)
+    ENDIF (QT4_FOUND)
+ENDIF (EXISTS src/program/qt/test)
