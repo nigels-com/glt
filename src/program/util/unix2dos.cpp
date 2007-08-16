@@ -1,8 +1,6 @@
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
   Copyright (C) 2000-2004 Nigel Stewart
-
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -41,40 +39,40 @@ void unix2dos(const vector<string> &files)
     for (uint32 i=0; i<files.size(); i++)
     {
         if (isFile(files[i]))
-    {
-        // Read the file into a string
-
-        string in;
-
         {
+            // Read the file into a string
+    
+            string in;
+    
+            {
                 ifstream is(files[i].c_str(),ios::in|ios::binary);
-            readStream(is,in);
-        }
-
+                readStream(is,in);
+            }
+    
             // Convert the string and write it, as long as it is
             // not determined to be a binary file
-
-        if (isBinary(in))
-            cout << "Binary:   ";
-        else
-            if (in.size()>0)
-            {
-                string out;
-                unix2dos(out,in);
-
-                if (in!=out)
+    
+            if (isBinary(in))
+                cout << "Binary:   ";
+            else
+                if (in.size()>0)
                 {
-                    cout << "Updated:  ";
+                    string out;
+                    unix2dos(out,in);
+    
+                    if (in!=out)
+                    {
+                        cout << "Updated:  ";
                         ofstream os(files[i].c_str(),ios::out|ios::binary);
-                    writeStream(os,out);
+                        writeStream(os,out);
+                    }
+                    else
+                        cout << "Skipped:  ";
                 }
                 else
-                    cout << "Skipped:  ";
-            }
-            else
-                cout << "Empty:    ";
-
-    }
+                    cout << "Empty:    ";
+    
+        }
         else
         {
             cout << "NotFound:  ";

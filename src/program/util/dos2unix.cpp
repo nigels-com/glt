@@ -1,8 +1,6 @@
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
   Copyright (C) 2000-2004 Nigel Stewart
-
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -51,8 +49,8 @@ void dos2unix(const vector<string> &files)
             readStream(is,in);
         }
 
-            // Convert the string and write it, as long as it is
-            // not determined to be a binary file
+        // Convert the string and write it, as long as it is
+        // not determined to be a binary file
 
         if (isBinary(in))
             cout << "Binary:   ";
@@ -74,7 +72,7 @@ void dos2unix(const vector<string> &files)
             else
                 cout << "Empty:    ";
 
-    }
+        }
         else
         {
             cout << "NotFound:  ";
