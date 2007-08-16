@@ -236,6 +236,10 @@ IF (EXISTS src/jpeg)
     ADD_SUBDIRECTORY(src/jpeg)
 ENDIF (EXISTS src/jpeg)
 
+IF (EXISTS src/program/test)
+    ADD_SUBDIRECTORY(src/program/test)
+ENDIF (EXISTS src/program/test)
+
 IF (EXISTS src/program/example)
     ADD_SUBDIRECTORY(src/program/example/examiner)
     ADD_SUBDIRECTORY(src/program/example/font)
