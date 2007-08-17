@@ -180,6 +180,7 @@ INC+="^glt/src/program/gltLife/ "
 
 EXC=
 EXC+="^glt/src/program/example/unifonte "
+EXC+="^glt/src/program/example/glsl "
 
 distro glt-example-${GLT_VERSION} gltSrc${DATE} "${INC}" "${EXC}"
 
