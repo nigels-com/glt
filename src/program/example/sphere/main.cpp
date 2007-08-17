@@ -1,8 +1,9 @@
 /*
+  GLT OpenGL C++ Toolkit (LGPL)
+  Copyright (C) 2000-2007 Nigel Stewart
 
-  Glt OpenGL C++ Toolkit (Glt)
-  Copyright (C) 2001-2002 Nigel Stewart
-  Email: nigels@nigels.com   WWW: http://www.nigels.com/glt/
+  WWW:    http://www.nigels.com/glt/
+  Forums: http://sourceforge.net/forum/?group_id=36869
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -74,7 +75,11 @@ private:
 };
 
 GlutRandomSpherePointsWindow::GlutRandomSpherePointsWindow(int width,int height,int x,int y)
-: GlutWindowExaminer("Random Points on Sphere",width,height,x,y,GLUT_DOUBLE|GLUT_RGBA)
+: GlutWindowExaminer("Random Points on Sphere",width,height,x,y,GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH)
+{
+}
+
+GlutRandomSpherePointsWindow::~GlutRandomSpherePointsWindow()
 {
 }
 
@@ -88,7 +93,7 @@ GlutRandomSpherePointsWindow::OnOpen()
 	glDisable(GL_DITHER);
 	glCullFace(GL_BACK);
 	glClearDepth(1.0);
-	glDepthRange(0.0,1.0);
+	glDepthRange(1.0,0.0);
 	glLoadIdentity();
 
 	GLERROR
@@ -151,10 +156,6 @@ GlutRandomSpherePointsWindow::OnClose()
 	_point.clear();
 }
 
-GlutRandomSpherePointsWindow::~GlutRandomSpherePointsWindow()
-{
-}
-
 void 
 GlutRandomSpherePointsWindow::OnDisplay()
 {
@@ -193,7 +194,7 @@ bool GlutMain(const std::vector<std::string> &arg)
 	cout << "Space key to randomise" << endl;
 	cout << endl;
 
-	GlutWindow *main = new GlutRandomSpherePointsWindow(400,400,20,20);
+	GlutWindow *main = new GlutRandomSpherePointsWindow(600,600,20,20);
 	main->open();
 
 	return true;
