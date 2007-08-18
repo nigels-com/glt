@@ -1,8 +1,9 @@
 /*
+  GLT OpenGL C++ Toolkit (LGPL)
+  Copyright (C) 2000-2007 Nigel Stewart
 
-  Glt OpenGL C++ Toolkit (Glt)
-  Copyright (C) 2001-2007 Nigel Stewart
-  WWW: http://www.nigels.com/glt/gltchaos
+  WWW:    http://www.nigels.com/glt/
+  Forums: http://sourceforge.net/forum/?group_id=36869
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
