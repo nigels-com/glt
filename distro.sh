@@ -166,6 +166,7 @@ INC+="^glt/src/node/ "
 INC+="^glt/src/zlib/ "
 INC+="^glt/src/glew/ "
 INC+="^glt/src/GL/glew "
+INC+="^glt/src/GL/glxew "
 INC+="^glt/src/program/test/ "
 INC+="^glt/src/program/util/ "
 INC+="^glt/doc/ "
@@ -225,6 +226,13 @@ EXC=
 
 distro glt-jpeg-${GLT_VERSION} gltSrc${DATE} "${INC}" "${EXC}"
 
+INC=
+INC+="^glt/src/program/gltZpr "
+
+EXC=
+
+distro glt-zpr-0.5 gltSrc${DATE} "${INC}" "${EXC}"
+
 exit
 
 GLT_GLUT=glt--${GLT_VERSION}
@@ -237,10 +245,6 @@ GLT_CSG=glt-csg-${GLT_VERSION}
 GLT_UTIL_WIN32=glt-util-win32-${GLT_VERSION}
 GLT_EXAMPLE_WIN32=glt-example-win32-${GLT_VERSION}
 GLT_DOX=glt-dox-${GLT_VERSION}
- 
-ZPR_VERSION=0.5
-GLT_ZPR=glt-zpr-${ZPR_VERSION}
-
 
 exit
 
@@ -259,15 +263,6 @@ dist-png:
 
 dist-jpeg:
 
-dist-zpr:
-	tar tzf gltSrc`date +%Y%m%d`.tgz        > .files
-	printf ""                               > .files2
-	grep "^glt/src/program/gltZpr/"	.files >> .files2
-	grep "^glt/msvc/gltZpr"		.files >> .files2
-	grep "^glt/gcc/"		.files >> .files2
-	tar cvzf            $(GLT_ZPR).tgz -T .files2 -C ../
-	cd ..; zip -9u@ glt/$(GLT_ZPR).zip < glt/.files2; cd glt
-	
 dist-csg:
 	tar tzf gltSrc`date +%Y%m%d`.tgz         > .files
 	printf ""                                > .files2
