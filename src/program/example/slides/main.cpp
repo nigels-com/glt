@@ -20,11 +20,12 @@
 
 */
 
-#include <node/slides.h>
-
 #include <glt/error.h>
 #include <glt/rgb.h>
 
+#include <node/slides.h>
+
+#include <glutm/main.h>
 #include <glutm/master.h>
 #include <glutm/window.h>
 
@@ -70,7 +71,8 @@ private:
 };
 
 SlidesDemo::SlidesDemo(int width,int height,int x,int y)
-: GlutWindow("Slides",width,height,x,y,GLUT_DOUBLE|GLUT_RGBA), _auto(false)
+:   GlutWindow("Slides",width,height,x,y,GLUT_DOUBLE|GLUT_RGBA), 
+    _auto(false)
 {
 }
 
@@ -170,7 +172,7 @@ SlidesDemo::OnDisplay()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     _slides.draw();
-   GLERROR;
+    GLERROR;
 }
 
 void
@@ -186,9 +188,8 @@ SlidesDemo::setAuto(const bool a)
     setTick(_auto ? 3000 : 0);
 }
 
-#include <glutm/main.h>
-
-bool GlutMain(const std::vector<std::string> &arg)
+bool
+GlutMain(const std::vector<std::string> &arg)
 {
     SlidesDemo *main = new SlidesDemo(640,480,20,20);
     for (uint32 i=1; i<arg.size(); i++)
