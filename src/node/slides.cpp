@@ -127,6 +127,9 @@ GltSlides::draw() const
                         slide->inheritColor() = true;
                         slide->blend() = _blend;
 
+                        // Note - disable mipmapping because gluBuild2DMipmaps
+                        // doesn't appear to handle GL_UNPACK_ROW_LENGTH properly
+
                         if (_slideFilename[_current].size())
                             slide->init(_slideFilename[_current],false);
                         else

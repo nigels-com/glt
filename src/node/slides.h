@@ -2,10 +2,8 @@
 #define NODE_SLIDES_H
 
 /*
-
   GLT OpenGL C++ Toolkit (LGPL)
   Copyright (C) 2000-2004 Nigel Stewart
-
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
