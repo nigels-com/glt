@@ -44,6 +44,8 @@ GltSprite::init(const string &filename,const bool mipmap)
     string image;
     if (decode(width,height,image,data))
         return init(width,height,image,mipmap);
+    else
+        cout << "Failed to decode " << filename << endl;
 
     return false;
 }
@@ -111,6 +113,9 @@ GltSprite::init(const GLsizei width,const GLsizei height,const byte *image,const
             GltTexturePtr tile(new GltTexture());
             tile->setWrap(GL_CLAMP,GL_CLAMP);
             tile->setRowLength(width);
+
+            if (!mipmap)
+                tile->setFilter(GL_NEAREST,GL_NEAREST);
 
             // Determine location of bottom left pixel
             // of texture tile
@@ -199,7 +204,7 @@ GltSprite::draw() const
                     const uint32 w = std::min(uint32(width), _width-x);
                     const uint32 h = std::min(uint32(height),_height-y);
 
-                    glBegin(GL_POLYGON);
+                    glBegin(GL_QUADS);
                         glTexCoord2d(l,b); glVertex2i(0,0);
                         glTexCoord2d(r,b); glVertex2i(w,0);
                         glTexCoord2d(r,t); glVertex2i(w,h);

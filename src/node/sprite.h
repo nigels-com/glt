@@ -53,26 +53,30 @@ public:
 
     // Initialisation
 
-    bool init(                          ///< Initialise from PPM, PNG or TGA file
+    bool init
+    (                          
         const std::string &filename,
-        const bool mipmap = true);
+        const bool mipmap = true
+    );                                  ///< Initialise from PPM, PNG or TGA file
 
-    bool init(                          ///< Initialise from compressed GLT format
+    bool init(                          
         const void *,
-        const bool mipmap = true);
+        const bool mipmap = true
+    );                                  ///< Initialise from compressed GLT format
 
-    bool init(                          ///< Initialise from raw string buffer
+    bool init(                          
         const GLsizei width,
         const GLsizei height,
         const std::string &image,
-        const bool mipmap = true);
+        const bool mipmap = true
+    );                                  ///< Initialise from raw string buffer
 
-    bool init(                          ///< Initialise from raw memory buffer
+    bool init(                          
         const GLsizei width,
         const GLsizei height,
         const byte *image,
         const GLsizei channels,
-        const bool mipmap = true);
+        const bool mipmap = true);      ///< Initialise from raw memory buffer
 
     virtual void draw() const;
 
