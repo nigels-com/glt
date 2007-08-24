@@ -3,7 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: texture.cpp,v 2.4 2007/05/06 03:03:32 nigels Exp $
+    $Id: texture.cpp,v 2.5 2007/08/24 05:18:04 nigels Exp $
 */
 
 #include <glt/gl.h>
@@ -21,6 +21,8 @@
 #include <cstdio>
 #include <string>
 using namespace std;
+
+//#define DEBUG_THIS 0
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -47,6 +49,9 @@ GltTexture::GltTexture(const GLenum target)
 
     _name(0)
 {
+    #ifdef DEBUG_THIS
+    cout << "GltTexture::GltTexture" << endl;
+    #endif
 }
 
 GltTexture::GltTexture(const GltTexture &)
@@ -57,6 +62,10 @@ GltTexture::GltTexture(const GltTexture &)
 
 GltTexture::~GltTexture()
 {
+    #ifdef DEBUG_THIS
+    cout << "GltTexture::~GltTexture" << endl;
+    #endif
+
     #if !defined(NDEBUG)
     if (_name)
         cerr << "WARNING: Potential OpenGL texture leak (" << this << ")" << endl;
@@ -145,6 +154,10 @@ GltTexture::init(const std::string &filename,const bool mipmap,const GLenum targ
     if (!filename.size())
         return false;
 
+    #ifdef DEBUG_THIS
+    cout << "GltTexture::init filename=" << filename << endl;
+    #endif
+
     uint32 width;
     uint32 height;
     string data;
@@ -163,6 +176,10 @@ bool
 GltTexture::init(const void *data,const bool mipmap,const GLenum target)
 {
     GLERROR
+
+    #ifdef DEBUG_THIS
+    cout << "GltTexture::init data=" << data << endl;
+    #endif
 
     if (!targetIs2DCubeMap(target))
         clear();
@@ -370,6 +387,10 @@ GltTexture::init(const void *data,const bool mipmap,const GLenum target)
 bool
 GltTexture::init(const GLsizei width,const GLsizei height,const std::string &image,const bool mipmap,const GLenum target)
 {
+    #ifdef DEBUG_THIS
+    cout << "GltTexture::init width=" << width << " height=" << height << " mipmap=" << mipmap << endl;
+    #endif
+
     if (!targetIs2DCubeMap(target))
         clear();
 
@@ -413,6 +434,10 @@ GltTexture::init(const GLsizei width,const GLsizei height,const std::string &ima
 bool
 GltTexture::init(const GLsizei width,const GLsizei height,const byte *image,const GLsizei channels,const bool mipmap,const GLenum target)
 {
+    #ifdef DEBUG_THIS
+    cout << "GltTexture::init width=" << width << " height=" << height << " mipmap=" << mipmap << endl;
+    #endif
+
     if (!targetIs2DCubeMap(target))
         clear();
 
@@ -438,6 +463,10 @@ GltTexture::init(const GLsizei width,const GLsizei height,const byte *image,cons
         glTexParameteri(_target, GL_TEXTURE_WRAP_T, _wrapT);
         glTexParameteri(_target, GL_TEXTURE_WRAP_R, _wrapR);
     }
+
+    #ifdef DEBUG_THIS
+    cout << "GltTexture::init rowLength=" << _rowLength << endl;
+    #endif
 
     glPixelStorei(GL_UNPACK_ROW_LENGTH,_rowLength);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
