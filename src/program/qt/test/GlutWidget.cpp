@@ -77,7 +77,7 @@ GlutWidget::resizeGL(int width, int height)
 
 //////////////////
 
-/* $Id: GlutWidget.cpp,v 1.2 2007/08/07 02:23:36 nigels Exp $ */
+/* $Id: GlutWidget.cpp,v 1.3 2007/09/26 04:41:56 nigels Exp $ */
 
 /*
  * 3-D gear wheels.  This program is in the public domain.
@@ -93,7 +93,6 @@ GlutWidget::resizeGL(int width, int height)
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <GL/gl.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265

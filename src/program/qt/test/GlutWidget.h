@@ -1,6 +1,7 @@
 #ifndef GLUT_WIDGET_H
 #define GLUT_WIDGET_H
 
+#include <glt/gl.h>
 #include <QGLWidget>
 
 class GlutWidget : public QGLWidget
