@@ -287,6 +287,10 @@ IF (EXISTS src/csg)
     ADD_SUBDIRECTORY(src/program/csg)
 ENDIF (EXISTS src/csg)
 
+IF (EXISTS src/program/experimental)
+    ADD_SUBDIRECTORY(src/program/experimental)
+ENDIF (EXISTS src/program/experimental)
+
 IF (EXISTS src/program/experimental/glsl)
     ADD_SUBDIRECTORY(src/program/experimental/glsl)
 ENDIF (EXISTS src/program/experimental/glsl)
