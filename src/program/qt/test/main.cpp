@@ -27,6 +27,8 @@ int main(int argc, char *argv[])
 {
     glutInit(&argc,argv);
 
+    //
+
     QApplication app(argc, argv);
     MainWindow *window = new MainWindow();
     window->setWindowTitle("QtTest");
