@@ -68,7 +68,7 @@ static const GltString info =
   "OpenGL CSG Rendering                \n\n"
   "Nigel Stewart                       \n"
   "RMIT School of Computer Science & IT\n"
-  "3rd August 2007                    \n\n"
+  "9th May 2009                        \n\n"
   "Left mouse button for menu.         ";
 
 static const GltString banner =
@@ -77,7 +77,7 @@ static const GltString banner =
   "                                                                   \n"
   " Nigel Stewart (nigels@nigels.com)                                 \n"
   " RMIT School of Computer Science & IT                              \n"
-  " 3rd August 2007                                                   \n"
+  " 9th May 2009                                                      \n"
   "                                                                   \n"
   " Left mouse button for menu.                                       \n"
   "                                                                   \n"
