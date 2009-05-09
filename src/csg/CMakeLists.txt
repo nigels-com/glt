@@ -1,0 +1,2 @@
+FILE(GLOB SOURCES . *.cpp)
+ADD_LIBRARY(csg ${SOURCES})
