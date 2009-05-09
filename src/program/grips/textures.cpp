@@ -10,5 +10,5 @@
 #include "media/rmit.cpp"
 #include "media/vpac.cpp"
 #include "media/droplet.cpp"
-#include "media/handmask.cpp"
 #include "media/hand.cpp"
+#include "media/handmask.cpp"

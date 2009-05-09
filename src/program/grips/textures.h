@@ -11,7 +11,7 @@ extern unsigned char escienceTexture[];
 extern unsigned char rmitTexture[];
 extern unsigned char vpacTexture[];
 extern unsigned char dropletTexture[];
-extern unsigned char handmaskTexture[];
 extern unsigned char handTexture[];
+extern unsigned char handmaskTexture[];
 
 #endif

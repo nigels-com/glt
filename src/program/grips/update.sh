@@ -5,7 +5,7 @@
 ##
 
 printf "#ifndef GRIPS_TEXTURES_H\n#define GRIPS_TEXTURES_H\n\n" > textures.h
-printf "/* Include all the compiled texture sources */\n\n" > textures.cpp
+printf "/* Include all the compiled texture sources */\n\n"     > textures.cpp
 
 for i in media/*.pgm;
 do
@@ -14,8 +14,7 @@ do
 	printf "Processing %s...\n" ${NAME}
 	printf "extern unsigned char %s[];\n" ${CNAME} >> textures.h
 	printf "#include \"%s\"\n" media/${NAME}.cpp   >> textures.cpp
-	printf "unsigned char %s[] = \n" ${CNAME} 	> media/${NAME}.cpp 
-	bin2src -c -image -alpha $i                      >> media/${NAME}.cpp
+	bin2src -c -image -alpha -n ${CNAME} $i        >  media/${NAME}.cpp
 done
 
 for i in media/*.tga;
@@ -25,8 +24,7 @@ do
 	printf "Processing %s...\n" ${NAME}
 	printf "extern unsigned char %s[];\n" ${CNAME} >> textures.h
 	printf "#include \"%s\"\n" media/${NAME}.cpp   >> textures.cpp
-	printf "unsigned char %s[] = \n" ${CNAME} 	> media/${NAME}.cpp 
-	bin2src -c -image $i                             >> media/${NAME}.cpp
+	bin2src -c -image -n ${CNAME} $i               >  media/${NAME}.cpp
 done
 
 for i in media/*.png;
@@ -36,8 +34,7 @@ do
 	printf "Processing %s...\n" ${NAME}
 	printf "extern unsigned char %s[];\n" ${CNAME} >> textures.h
 	printf "#include \"%s\"\n" media/${NAME}.cpp   >> textures.cpp
-	printf "unsigned char %s[] = \n" ${CNAME} 	    > media/${NAME}.cpp 
-	bin2src -c -image $i                           >> media/${NAME}.cpp
+	bin2src -c -image -n ${CNAME} $i               >  media/${NAME}.cpp
 done
 
 printf "\n#endif\n" >> textures.h
@@ -59,8 +56,7 @@ do
 	EXAMPLES="${EXAMPLES} ${CNAME}"
 	printf "Processing %s...\n" ${NAME}
 	printf "extern unsigned char %s[];\n" ${CNAME}  >> examples.h
-	printf "\nunsigned char %s[] =\n" ${CNAME}      >> examples.cpp
-	bin2src -u -z $i                                     >> examples.cpp
+	bin2src -u -z -n ${CNAME} $i                    >>  examples.cpp
 done
 
 ##
