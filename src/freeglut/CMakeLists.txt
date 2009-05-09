@@ -1,0 +1,2 @@
+FILE(GLOB SOURCES . *.c)
+ADD_LIBRARY(freeglut ${SOURCES})
