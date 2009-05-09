@@ -3,7 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: countsrf.cpp,v 2.1 2007/06/03 06:37:35 nigels Exp $
+    $Id: countsrf.cpp,v 2.2 2009/05/09 20:20:13 nigels Exp $
 */
 
 #include <glt/rgb.h>
@@ -14,6 +14,8 @@
 
 #include <iostream>
 using namespace std;
+
+//#define DEBUG_BINARY_SEARCH 1
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -214,4 +216,78 @@ stencilHistogram(GLuint histogram[256])
     delete [] pixel;
 
     return pixels;
+}
+
+GLuint
+stencilMax(const GLuint min, const GLuint max)
+{
+    // Get the viewport dimensions
+
+    GLuint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,(GLint *) viewport);
+
+    //
+
+    GLuint size = viewport[2]*viewport[3];
+
+    //
+
+    GLuint begin = min;
+    GLuint end   = std::min(max,255u);
+
+    //
+
+    GLuint *pixels = new GLuint[end+1];
+    glGenQueriesARB(end+1,pixels);
+
+    glPushAttrib( GL_ENABLE_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT );
+
+        glEnable(GL_STENCIL_TEST);
+        glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_ALWAYS);
+
+        glDisable(GL_LIGHTING);
+
+        glStencilMask(0);
+        glDepthMask(GL_FALSE);
+        glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+
+        for (;;)
+        {
+            GLuint mid = (begin+end)>>1;
+
+            if (mid==begin || mid==end)
+                break;
+
+            glStencilFunc(GL_GEQUAL,mid,~0);
+
+            glBeginQueryARB(GL_SAMPLES_PASSED_ARB,pixels[mid]);
+            drawZnear();
+            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+
+            GLuint count;
+            glGetQueryObjectuivARB(pixels[mid],GL_QUERY_RESULT_ARB,&count);
+
+            #ifdef DEBUG_BINARY_SEARCH
+            cout << begin << " " << mid << " " << end << " -> " << count << endl;
+            #endif
+
+            if (count<size)
+                begin = mid;
+            else
+                end = mid;
+        }
+
+    glPopAttrib();
+
+    glDeleteQueriesARB(end+1,pixels);
+    delete [] pixels;
+
+    #ifdef DEBUG_BINARY_SEARCH
+    cout << end << endl;
+    #endif
+
+    return end;
 }

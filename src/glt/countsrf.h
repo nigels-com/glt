@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: countsrf.h,v 2.2 2007/05/06 16:46:24 nigels Exp $ */
+/* $Id: countsrf.h,v 2.3 2009/05/09 20:20:13 nigels Exp $ */
 
 /*! \file
     \brief   Surface Counting Interface
@@ -77,5 +77,12 @@ GLubyte countSurfacesVisualise(const GltShape &shape);
 */
 
 GLuint  stencilHistogram(GLuint histogram[256]);
+
+/*! \brief   Get the maximum stencil value for the current viewport
+    \ingroup GLT
+    \return  Maximum stencil value
+*/
+
+GLuint stencilMax(const GLuint min = 0, const GLuint max = ~0);
 
 #endif
