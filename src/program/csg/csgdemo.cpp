@@ -61,8 +61,6 @@
 #include <vector>
 using namespace std;
 
-#include <mcheck.h>
-
 // Define for debug info
 // #define DEBUG_CSG
 
