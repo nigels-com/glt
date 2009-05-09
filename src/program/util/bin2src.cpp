@@ -21,7 +21,7 @@
 
 */
 
-/* $Id: bin2src.cpp,v 2.3 2007/06/01 04:31:16 nigels Exp $ */
+/* $Id: bin2src.cpp,v 2.4 2009/05/09 19:09:43 nigels Exp $ */
 
 /*! \file
     \brief   Utility for converting binary data into C/C++ source
@@ -83,6 +83,7 @@ const char *banner =
     "Usage: bin2src [OPTION]... SOURCE          \n"
     "\n"                                           
     "  -o file  Output to file instead of cout. \n"
+    "  -n name  Variable name.                  \n"
     "  -c       Compress.                       \n"
     "  -font    Convert from VGA font.          \n"
     "  -ufont   Convert from Unicode font.      \n"
@@ -101,10 +102,19 @@ convert(ostream &os)
     ifstream is(inputFilename.c_str(),ios::in|ios::binary);
     ::readStream(is,input);
 
-    string variableName(inputFilename);
-    string::size_type i = variableName.rfind('.');
-    if (i>=0)
-        variableName.erase(i);
+    if (!variableName.length())
+    {
+      variableName = inputFilename;
+      string::size_type i;
+
+      i = variableName.rfind('.');
+      if (i!=string::npos)
+          variableName.erase(i);
+
+      i = variableName.rfind('/');
+      if (i!=string::npos)
+          variableName.erase(0,i+1);
+    }
 
     // Convert from PPM image
 
@@ -170,10 +180,14 @@ convert(ostream &os)
         os << "/* Compressed data: " << input.size() << " -> " << zip.size() << " */" << endl;
 
         // Output
+        os << "unsigned char " << variableName.c_str() << "[] = " << endl;
         ::bin2src(os,zip);
     }
     else
+    {
+        os << "unsigned char " << variableName.c_str() << "[] = " << endl;
         ::bin2src(os,input);
+    }
 
     return EXIT_SUCCESS;
 }
@@ -213,6 +227,8 @@ main(int argc,char *argv[])
         const string &arg = argv[i];
 
         if (arg=="-o")      { i++; if (i<argc) outputFilename = argv[i]; continue; }
+        if (arg=="-n")      { i++; if (i<argc) variableName = argv[i];   continue; }
+
         if (arg=="-c")      { lzf  = true; continue; }
         if (arg=="-z")      { zlib = true; continue; }
 
