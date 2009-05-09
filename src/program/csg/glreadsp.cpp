@@ -145,7 +145,7 @@ OpenGLReadWriteSpeed::OnDisplay()
         GLdouble rate = repetitions*width*height/timer.elapsed();
 
         string info;
-        sprintf(info,"%4d %4.1lfM %s\n",
+        sprintf(info,"%4d % 6.1lfM %s\n",
             repetitions,
             rate*_mill,
             _modes[i].name.c_str());
@@ -185,7 +185,7 @@ OpenGLReadWriteSpeed::OnDisplay()
         GLdouble rate = repetitions*width*height/timer.elapsed();
 
         string info;
-        sprintf(info,"%4d %4.1lfM %s\n",
+        sprintf(info,"%4d % 6.1lfM %s\n",
             repetitions,
             rate*_mill,
             _modes[i].name.c_str());
