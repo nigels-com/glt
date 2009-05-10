@@ -18,11 +18,11 @@ Uninstallable=yes
 [Tasks]
 
 [Files]
-Source: "..\..\glt\bin\Release\csgdemo.exe";  DestDir: "{app}";  Flags: ignoreversion
-Source: "..\..\glt\bin\Release\bubbles.exe";  DestDir: "{app}";  Flags: ignoreversion
-Source: "..\..\glt\bin\Release\scsinter.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\..\glt\bin\Release\glzcopy.exe";  DestDir: "{app}";  Flags: ignoreversion
-Source: "..\..\glt\bin\Release\glcopysp.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\bin\Release\csgdemo.exe";  DestDir: "{app}";  Flags: ignoreversion
+Source: "..\..\..\bin\Release\bubbles.exe";  DestDir: "{app}";  Flags: ignoreversion
+Source: "..\..\..\bin\Release\scsinter.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\bin\Release\glzcopy.exe";  DestDir: "{app}";  Flags: ignoreversion
+Source: "..\..\..\bin\Release\glcopysp.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [INI]
 Filename: "{app}\CsgDemo.url"; Section: "InternetShortcut"; Key: "URL"; String: "http://www.nigels.com/research/"
