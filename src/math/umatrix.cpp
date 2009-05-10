@@ -3,18 +3,7 @@
 /*! \file
     \ingroup Math
 
-    $Id: umatrix.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
-
-    $Log: umatrix.cpp,v $
-    Revision 2.1  2004/02/16 02:40:33  nigels
-    Whitespace differences
-
-    Revision 1.6  2003/03/13 11:36:27  nigels
-    Fixed typo
-
-    Revision 1.5  2003/03/06 12:30:20  nigels
-    *** empty log message ***
-
+    $Id: umatrix.cpp,v 2.2 2009/05/10 22:02:50 nigels Exp $
 */
 
 #include <iostream>
@@ -65,7 +54,7 @@ UnMatrix::~UnMatrix()
 {
 }
 
-static char *UnMatrixFieldDescription[] =
+static const char *UnMatrixFieldDescription[] =
 {
     "U_SCALEX",
     "U_SCALEY",
