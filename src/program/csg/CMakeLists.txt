@@ -1,12 +1,12 @@
 # INTERACTIVE CSG DEMOS
 
-ADD_EXECUTABLE(csgdemo csgdemo.cpp)
+ADD_EXECUTABLE(csgdemo csgdemo.cpp csgdemo.rc)
 TARGET_LINK_LIBRARIES(csgdemo csg ${GLT_LINK_LIBRARIES})
 
-ADD_EXECUTABLE(bubbles bubbles.cpp)
+ADD_EXECUTABLE(bubbles bubbles.cpp bubbles.rc)
 TARGET_LINK_LIBRARIES(bubbles csg ${GLT_LINK_LIBRARIES})
 
-ADD_EXECUTABLE(scsinter scsinter.cpp)
+ADD_EXECUTABLE(scsinter scsinter.cpp scsinter.rc)
 TARGET_LINK_LIBRARIES(scsinter csg ${GLT_LINK_LIBRARIES})
 
 # CSG TREE GENERATORS
@@ -19,16 +19,16 @@ TARGET_LINK_LIBRARIES(helix ${GLT_LINK_LIBRARIES})
 
 # DIAGNOSTICS
 
-ADD_EXECUTABLE(glcopysp glcopysp.cpp)
+ADD_EXECUTABLE(glcopysp glcopysp.cpp glcopysp.rc)
 TARGET_LINK_LIBRARIES(glcopysp ${GLT_LINK_LIBRARIES})
 
 ADD_EXECUTABLE(glreadsp glreadsp.cpp)
 TARGET_LINK_LIBRARIES(glreadsp ${GLT_LINK_LIBRARIES})
 
-ADD_EXECUTABLE(glzcopy glzcopy.cpp)
+ADD_EXECUTABLE(glzcopy glzcopy.cpp glzcopy.rc)
 TARGET_LINK_LIBRARIES(glzcopy ${GLT_LINK_LIBRARIES})
 
-ADD_EXECUTABLE(glzequal glzequal.cpp)
+ADD_EXECUTABLE(glzequal glzequal.cpp glzequal.rc)
 TARGET_LINK_LIBRARIES(glzequal ${GLT_LINK_LIBRARIES})
 
 ADD_EXECUTABLE(scsseq scsseq.cpp)
