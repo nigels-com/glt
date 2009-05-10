@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: vector3.h,v 2.2 2007/05/06 16:47:28 nigels Exp $ */
+/* $Id: vector3.h,v 2.3 2009/05/10 22:01:37 nigels Exp $ */
 
 /*! \file
     \brief   3D Vector
@@ -151,5 +151,7 @@ extern const Vector3 VectorY;           ///< (0,1,0)
 extern const Vector3 VectorZ;           ///< (0,0,1)
 extern const Vector3 Vector0;           ///< (0,0,0)
 extern const Vector3 Vector1;           ///< (1,1,1)
+
+extern Vector3 polar(const real lat,const real longitude);
 
 #endif
