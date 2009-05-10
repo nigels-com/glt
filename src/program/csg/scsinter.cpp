@@ -134,7 +134,7 @@ GlutWindowSCSIntersect::OnOpen()
     glEnable(GL_LIGHTING);
     glEnable(GL_NORMALIZE);
 
-    glDepthRange(0.0,1.0);
+    glDepthRange(1.0,0.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

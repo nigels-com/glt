@@ -3,7 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: zplane.cpp,v 2.1 2007/08/07 02:34:15 nigels Exp $
+    $Id: zplane.cpp,v 2.2 2009/05/10 22:00:28 nigels Exp $
 */
 
 #include <glt/viewport.h>
@@ -21,7 +21,7 @@ drawZat(const GLdouble z)
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glLoadIdentity();
-        glOrtho(0,viewport.width(),0,viewport.height(),0,-1);
+        glOrtho(0,viewport.width(),0,viewport.height(),1,0);
 
         glMatrixMode(GL_MODELVIEW);
         glPushMatrix();
@@ -41,11 +41,11 @@ drawZat(const GLdouble z)
 void
 drawZnear()
 {
-    drawZat(0.0);
+    drawZat(1.0);
 }
 
 void
 drawZfar()
 {
-    drawZat(1.0);
+    drawZat(0.0);
 }
