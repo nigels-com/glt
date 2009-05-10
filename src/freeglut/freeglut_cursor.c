@@ -28,7 +28,7 @@
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
   #include <X11/cursorfont.h>
 #endif
 
@@ -43,7 +43,7 @@
 
 /* -- PRIVATE FUNCTIONS --------------------------------------------------- */
 
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 /*
  * A factory method for an empty cursor
  */
@@ -79,7 +79,7 @@ struct tag_cursorCacheEntry {
 /*
  * Note: The arrangement of the table below depends on the fact that
  * the "normal" GLUT_CURSOR_* values start a 0 and are consecutive.
- */
+ */ 
 static cursorCacheEntry cursorCache[] = {
     { XC_arrow,               None }, /* GLUT_CURSOR_RIGHT_ARROW */
     { XC_top_left_arrow,      None }, /* GLUT_CURSOR_LEFT_ARROW */
@@ -111,7 +111,7 @@ static cursorCacheEntry cursorCache[] = {
  */
 void fgSetCursor ( SFG_Window *window, int cursorID )
 {
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
     {
         Cursor cursor;
         /*
@@ -147,21 +147,22 @@ void fgSetCursor ( SFG_Window *window, int cursorID )
             }
         }
 
-#if 0
-        if ( ( cursorIDToUse != GLUT_CURSOR_NONE ) && ( cursor == None ) ) {
+        if ( cursorIDToUse == GLUT_CURSOR_INHERIT ) {
+            XUndefineCursor( fgDisplay.Display, window->Window.Handle );
+        } else if ( cursor != None ) {
+            XDefineCursor( fgDisplay.Display, window->Window.Handle, cursor );
+        } else if ( cursorIDToUse != GLUT_CURSOR_NONE ) {
             fgError( "Failed to create cursor" );
         }
-#endif
-        XDefineCursor( fgDisplay.Display,
-                       window->Window.Handle, cursor );
     }
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     /*
-     * This is a temporary solution only...
+     * Joe Krahn is re-writing the following code.
      */
     /* Set the cursor AND change it for this window class. */
+#if _MSC_VER <= 1200
 #       define MAP_CURSOR(a,b)                                   \
         case a:                                                  \
             SetCursor( LoadCursor( NULL, b ) );                  \
@@ -169,7 +170,6 @@ void fgSetCursor ( SFG_Window *window, int cursorID )
                           GCL_HCURSOR,                           \
                           ( LONG )LoadCursor( NULL, b ) );       \
         break;
-
     /* Nuke the cursor AND change it for this window class. */
 #       define ZAP_CURSOR(a,b)                                   \
         case a:                                                  \
@@ -177,6 +177,22 @@ void fgSetCursor ( SFG_Window *window, int cursorID )
             SetClassLong( window->Window.Handle,                 \
                           GCL_HCURSOR, ( LONG )NULL );           \
         break;
+#else
+#       define MAP_CURSOR(a,b)                                   \
+        case a:                                                  \
+            SetCursor( LoadCursor( NULL, b ) );                  \
+            SetClassLongPtr( window->Window.Handle,              \
+                          GCLP_HCURSOR,                          \
+                          ( LONG )( LONG_PTR )LoadCursor( NULL, b ) );       \
+        break;
+    /* Nuke the cursor AND change it for this window class. */
+#       define ZAP_CURSOR(a,b)                                   \
+        case a:                                                  \
+            SetCursor( NULL );                                   \
+            SetClassLongPtr( window->Window.Handle,              \
+                          GCLP_HCURSOR, ( LONG )( LONG_PTR )NULL );          \
+        break;
+#endif
 
     switch( cursorID )
     {
@@ -234,7 +250,7 @@ void FGAPIENTRY glutWarpPointer( int x, int y )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutWarpPointer" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutWarpPointer" );
 
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
     XWarpPointer(
         fgDisplay.Display,
@@ -246,7 +262,7 @@ void FGAPIENTRY glutWarpPointer( int x, int y )
     /* Make the warp visible immediately. */
     XFlush( fgDisplay.Display );
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     {
         POINT coords;

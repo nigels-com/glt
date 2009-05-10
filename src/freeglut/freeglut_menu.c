@@ -52,7 +52,7 @@
  * that that wasn't the original intent...if not, perhaps we need another
  * symbolic constant, FREEGLUT_MENU_ITEM_BORDER, or such.)
  */
-#if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#if TARGET_HOST_MS_WINDOWS
 #define  FREEGLUT_MENU_FONT    GLUT_BITMAP_8_BY_13
 #else
 #define  FREEGLUT_MENU_FONT    GLUT_BITMAP_HELVETICA_18
@@ -71,7 +71,7 @@
  * too.  These variables should be stuffed into global state and initialized
  * via the glutInit*() system.
  */
-#if TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#if TARGET_HOST_MS_WINDOWS
 static float menu_pen_fore  [4] = {0.0f,  0.0f,  0.0f,  1.0f};
 static float menu_pen_back  [4] = {0.85f, 0.85f, 0.85f, 1.0f};
 static float menu_pen_hfore [4] = {1.0f,  1.0f,  1.0f,  1.0f};
@@ -140,9 +140,9 @@ static void fghDeactivateSubMenu( SFG_MenuEntry *menuEntry )
  */
 static GLvoid fghGetVMaxExtent( SFG_Window* window, int* x, int* y )
 {
-    if( fgStructure.GameMode )
+    if( fgStructure.GameModeWindow )
     {
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
         int wx, wy;
         Window w;
 
@@ -263,9 +263,13 @@ static GLboolean fghCheckMenuStatus( SFG_Menu* menu )
                     menuEntry->SubMenu->X = menu->X - menuEntry->SubMenu->Width;
 
                 if( menuEntry->SubMenu->Y + menuEntry->SubMenu->Height > max_y )
+                {
                     menuEntry->SubMenu->Y -= ( menuEntry->SubMenu->Height -
                                                FREEGLUT_MENU_HEIGHT -
                                                2 * FREEGLUT_MENU_BORDER );
+                    if( menuEntry->SubMenu->Y < 0 )
+                        menuEntry->SubMenu->Y = 0;
+                }
 
                 fgSetWindow( menuEntry->SubMenu->Window );
                 glutPositionWindow( menuEntry->SubMenu->X,
@@ -552,7 +556,11 @@ static void fghActivateMenu( SFG_Window* window, int button )
         menu->X -=menu->Width;
 
     if( menu->Y + menu->Height > max_y )
+    {
         menu->Y -=menu->Height;
+        if( menu->Y < 0 )
+            menu->Y = 0;
+    }
 
     menu->Window->State.MouseX =
         window->State.MouseX + glutGet( GLUT_WINDOW_X ) - menu->X;

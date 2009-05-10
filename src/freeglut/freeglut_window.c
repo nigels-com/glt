@@ -28,9 +28,15 @@
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
-#if TARGET_HOST_WINCE
-#include <aygshell.h>
-#pragma comment( lib, "Aygshell.lib" )
+#if TARGET_HOST_POSIX_X11
+#include <limits.h>  /* LONG_MAX */
+#endif
+
+#if defined(_WIN32_WCE)
+#   include <Aygshell.h>
+#   ifdef FREEGLUT_LIB_PRAGMAS
+#       pragma comment( lib, "Aygshell.lib" )
+#   endif
 
 static wchar_t* fghWstrFromStr(const char* str)
 {
@@ -42,13 +48,12 @@ static wchar_t* fghWstrFromStr(const char* str)
     return wstr;
 }
 
-
-#endif /* TARGET_HOST_WINCE */
+#endif /* defined(_WIN32_WCE) */
 
 /*
  * TODO BEFORE THE STABLE RELEASE:
  *
- *  fgChooseVisual()        -- OK, but what about glutInitDisplayString()?
+ *  fgChooseFBConfig()      -- OK, but what about glutInitDisplayString()?
  *  fgSetupPixelFormat      -- ignores the display mode settings
  *  fgOpenWindow()          -- check the Win32 version, -iconic handling!
  *  fgCloseWindow()         -- check the Win32 version
@@ -73,12 +78,10 @@ static wchar_t* fghWstrFromStr(const char* str)
 /*
  * Chooses a visual basing on the current display mode settings
  */
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
-XVisualInfo* fgChooseVisual( void )
+GLXFBConfig* fgChooseFBConfig( void )
 {
-#define BUFFER_SIZES 6
-    int bufferSize[BUFFER_SIZES] = { 16, 12, 8, 4, 2, 1 };
     GLboolean wantIndexedMode = GL_FALSE;
     int attributes[ 32 ];
     int where = 0;
@@ -94,11 +97,13 @@ XVisualInfo* fgChooseVisual( void )
     if( fgState.DisplayMode & GLUT_INDEX )
     {
         ATTRIB_VAL( GLX_BUFFER_SIZE, 8 );
+        /*  Buffer size is selected later.  */
+
+        ATTRIB_VAL( GLX_RENDER_TYPE, GLX_COLOR_INDEX_BIT );
         wantIndexedMode = GL_TRUE;
     }
     else
     {
-        ATTRIB( GLX_RGBA );
         ATTRIB_VAL( GLX_RED_SIZE,   1 );
         ATTRIB_VAL( GLX_GREEN_SIZE, 1 );
         ATTRIB_VAL( GLX_BLUE_SIZE,  1 );
@@ -107,10 +112,10 @@ XVisualInfo* fgChooseVisual( void )
     }
 
     if( fgState.DisplayMode & GLUT_DOUBLE )
-        ATTRIB( GLX_DOUBLEBUFFER );
+        ATTRIB_VAL( GLX_DOUBLEBUFFER, True );
 
     if( fgState.DisplayMode & GLUT_STEREO )
-        ATTRIB( GLX_STEREO );
+        ATTRIB_VAL( GLX_STEREO, True );
 
     if( fgState.DisplayMode & GLUT_DEPTH )
         ATTRIB_VAL( GLX_DEPTH_SIZE, 1 );
@@ -127,53 +132,244 @@ XVisualInfo* fgChooseVisual( void )
             ATTRIB_VAL( GLX_ACCUM_ALPHA_SIZE, 1 );
     }
 
-    if( fgState.DisplayMode & GLUT_AUX1 )
-        ATTRIB_VAL( GLX_AUX_BUFFERS, 1 );
-    if( fgState.DisplayMode & GLUT_AUX2 )
-        ATTRIB_VAL( GLX_AUX_BUFFERS, 2 );
-    if( fgState.DisplayMode & GLUT_AUX3 )
-        ATTRIB_VAL( GLX_AUX_BUFFERS, 3 );
     if( fgState.DisplayMode & GLUT_AUX4 )
-        ATTRIB_VAL( GLX_AUX_BUFFERS, 4 );
+    {
+        ATTRIB_VAL(GLX_AUX_BUFFERS, 4);
+    }
+    else if( fgState.DisplayMode & GLUT_AUX3 )
+    {
+        ATTRIB_VAL(GLX_AUX_BUFFERS, 3);
+    }
+    else if( fgState.DisplayMode & GLUT_AUX2 )
+    {
+        ATTRIB_VAL(GLX_AUX_BUFFERS, 2);
+    }
+    else if( fgState.DisplayMode & GLUT_AUX1 ) /* NOTE: Same as GLUT_AUX! */
+    {
+        ATTRIB_VAL(GLX_AUX_BUFFERS, fgState.AuxiliaryBufferNumber);
+    }
 
+    if (fgState.DisplayMode & GLUT_MULTISAMPLE)
+      {
+        ATTRIB_VAL(GLX_SAMPLE_BUFFERS, 1)
+        ATTRIB_VAL(GLX_SAMPLES, fgState.SampleNumber)
+      }
 
     /* Push a null at the end of the list */
     ATTRIB( None );
 
-    if( ! wantIndexedMode )
-        return glXChooseVisual( fgDisplay.Display, fgDisplay.Screen,
-                                attributes );
-    else
     {
-        XVisualInfo* visualInfo;
-        int i;
+        GLXFBConfig * fbconfigArray;  /*  Array of FBConfigs  */
+        GLXFBConfig * fbconfig;       /*  The FBConfig we want  */
+        int fbconfigArraySize;        /*  Number of FBConfigs in the array  */
 
-        /*
-         * In indexed mode, we need to check how many bits of depth can we
-         * achieve.  We do this by trying each possibility from the list
-         * given in the {bufferSize} array.  If we match, we return to caller.
-         */
-        for( i=0; i<BUFFER_SIZES; i++ )
+
+        /*  Get all FBConfigs that match "attributes".  */
+        fbconfigArray = glXChooseFBConfig( fgDisplay.Display,
+                                           fgDisplay.Screen,
+                                           attributes,
+                                           &fbconfigArraySize );
+
+        if (fbconfigArray != NULL)
         {
-            attributes[ 1 ] = bufferSize[ i ];
-            visualInfo = glXChooseVisual( fgDisplay.Display, fgDisplay.Screen,
-                                          attributes );
-            if( visualInfo != NULL )
-                return visualInfo;
+            int result;  /* Returned by glXGetFBConfigAttrib, not checked. */
+
+
+            if( wantIndexedMode )
+            {
+                /*
+                 * In index mode, we want the largest buffer size, i.e. visual
+                 * depth.  Here, FBConfigs are sorted by increasing buffer size
+                 * first, so FBConfigs with the largest size come last.
+                 */
+
+                int bufferSizeMin, bufferSizeMax;
+
+                /*  Get bufferSizeMin.  */
+                result =
+                  glXGetFBConfigAttrib( fgDisplay.Display,
+                                        fbconfigArray[0],
+                                        GLX_BUFFER_SIZE,
+                                        &bufferSizeMin );
+                /*  Get bufferSizeMax.  */
+                result =
+                  glXGetFBConfigAttrib( fgDisplay.Display,
+                                        fbconfigArray[fbconfigArraySize - 1],
+                                        GLX_BUFFER_SIZE,
+                                        &bufferSizeMax );
+
+                if (bufferSizeMax > bufferSizeMin)
+                {
+                    /* 
+                     * Free and reallocate fbconfigArray, keeping only FBConfigs
+                     * with the largest buffer size.
+                     */
+                    XFree(fbconfigArray);
+
+                    /*  Add buffer size token at the end of the list.  */
+                    where--;
+                    ATTRIB_VAL( GLX_BUFFER_SIZE, bufferSizeMax );
+                    ATTRIB( None );
+
+                    fbconfigArray = glXChooseFBConfig( fgDisplay.Display,
+                                                       fgDisplay.Screen,
+                                                       attributes,
+                                                       &fbconfigArraySize );
+                }
+            }
+
+            /*
+             * We now have an array of FBConfigs, the first one being the "best"
+             * one.  So we should return only this FBConfig:
+             *
+             * int fbconfigXID;
+             *
+             *  - pick the XID of the FBConfig we want
+             * result = glXGetFBConfigAttrib( fgDisplay.Display,
+             *                                fbconfigArray[0],
+             *                                GLX_FBCONFIG_ID,
+             *                                &fbconfigXID );
+             *
+             * - free the array
+             * XFree(fbconfigArray);
+             *
+             * - reset "attributes" with the XID
+             * where = 0;
+             * ATTRIB_VAL( GLX_FBCONFIG_ID, fbconfigXID );
+             * ATTRIB( None );
+             *
+             * - get our FBConfig only
+             * fbconfig = glXChooseFBConfig( fgDisplay.Display,
+             *                               fgDisplay.Screen,
+             *                               attributes,
+             *                               &fbconfigArraySize );
+             *
+             * However, for some configurations (for instance multisampling with
+             * Mesa 6.5.2 and ATI drivers), this does not work:
+             * glXChooseFBConfig returns NULL, whereas fbconfigXID is a valid
+             * XID.  Further investigation is needed.
+             *
+             * So, for now, we return the whole array of FBConfigs.  This should
+             * not produce any side effects elsewhere.
+             */
+            fbconfig = fbconfigArray;
         }
-        return NULL;
+        else
+        {
+           fbconfig = NULL;
+        }
+
+        return fbconfig;
     }
 }
-#endif
+#endif /* TARGET_HOST_POSIX_X11 */
 
 /*
  * Setup the pixel format for a Win32 window
  */
-#if TARGET_HOST_WIN32
+#if TARGET_HOST_MS_WINDOWS
+/* The following include file is available from SGI but is not standard:
+ *   #include <GL/wglext.h>
+ * So we copy the necessary parts out of it.
+ * XXX: should local definitions for extensions be put in a separate include file?
+ */
+typedef const char * (WINAPI * PFNWGLGETEXTENSIONSSTRINGARBPROC) (HDC hdc);
+
+typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+
+#define WGL_DRAW_TO_WINDOW_ARB         0x2001
+#define WGL_ACCELERATION_ARB           0x2003
+#define WGL_SUPPORT_OPENGL_ARB         0x2010
+#define WGL_DOUBLE_BUFFER_ARB          0x2011
+#define WGL_COLOR_BITS_ARB             0x2014
+#define WGL_ALPHA_BITS_ARB             0x201B
+#define WGL_DEPTH_BITS_ARB             0x2022
+#define WGL_STENCIL_BITS_ARB           0x2023
+#define WGL_FULL_ACCELERATION_ARB      0x2027
+
+#define WGL_SAMPLE_BUFFERS_ARB         0x2041
+#define WGL_SAMPLES_ARB                0x2042
+
+
+#ifndef WGL_ARB_create_context
+#define WGL_ARB_create_context 1
+#ifdef WGL_WGLEXT_PROTOTYPES
+extern HGLRC WINAPI wglCreateContextAttribsARB (HDC, HGLRC, const int *);
+#endif /* WGL_WGLEXT_PROTOTYPES */
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
+
+#define WGL_CONTEXT_DEBUG_BIT_ARB      0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
+#define WGL_CONTEXT_MAJOR_VERSION_ARB  0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB  0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB    0x2093
+#define WGL_CONTEXT_FLAGS_ARB          0x2094
+#define ERROR_INVALID_VERSION_ARB      0x2095
+#endif
+
+
+void fgNewWGLCreateContext( SFG_Window* window )
+{
+    PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetEntensionsStringARB;
+    HGLRC context;
+    int attribs[7];
+    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+    const char * pWglExtString;
+
+    /* If nothing fancy has been required, leave the context as it is */
+    if ( fgState.MajorVersion == 1 && fgState.MinorVersion == 0 && fgState.ContextFlags == 0 )
+    {
+        return;
+    }
+
+    wglMakeCurrent( window->Window.Device,
+                    window->Window.Context );
+
+    wglGetEntensionsStringARB=(PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+    if ( wglGetEntensionsStringARB == NULL )
+    {
+        return;
+    }
+
+    pWglExtString=wglGetEntensionsStringARB(window->Window.Device);
+    if (( pWglExtString == NULL ) || ( strstr(pWglExtString, "WGL_ARB_create_context") == NULL ))
+    {
+        return;
+    }
+
+    /* new context creation */
+    attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
+    attribs[1] = fgState.MajorVersion;
+    attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
+    attribs[3] = fgState.MinorVersion;
+    attribs[4] = WGL_CONTEXT_FLAGS_ARB;
+    attribs[5] = ((fgState.ContextFlags & GLUT_DEBUG) ? WGL_CONTEXT_DEBUG_BIT_ARB : 0) |
+        ((fgState.ContextFlags & GLUT_FORWARD_COMPATIBLE) ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0);
+    attribs[6] = 0;
+
+    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress( "wglCreateContextAttribsARB" );
+    if ( wglCreateContextAttribsARB == NULL )
+    {
+        fgError( "wglCreateContextAttribsARB not found" );
+    }
+
+    context = wglCreateContextAttribsARB( window->Window.Device, 0, attribs );
+    if ( context == NULL )
+    {
+        fgError( "Unable to create OpenGL %d.%d context (flags %x)",
+            fgState.MajorVersion, fgState.MinorVersion, fgState.ContextFlags );
+    }
+
+    wglMakeCurrent( NULL, NULL );
+    wglDeleteContext( window->Window.Context );
+    window->Window.Context = context;
+}
+
+
 GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
                               unsigned char layer_type )
 {
-#if TARGET_HOST_WINCE
+#if defined(_WIN32_WCE)
     return GL_TRUE;
 #else
     PIXELFORMATDESCRIPTOR* ppfd, pfd;
@@ -184,6 +380,9 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
     if( fgState.DisplayMode & GLUT_DOUBLE )
         flags |= PFD_DOUBLEBUFFER;
 
+    if( fgState.DisplayMode & GLUT_STEREO )
+        flags |= PFD_STEREO;
+
 #if defined(_MSC_VER)
 #pragma message( "fgSetupPixelFormat(): there is still some work to do here!" )
 #endif
@@ -192,15 +391,31 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
     pfd.nSize           = sizeof(PIXELFORMATDESCRIPTOR);
     pfd.nVersion        = 1;
     pfd.dwFlags         = flags;
-    pfd.iPixelType      = PFD_TYPE_RGBA;
+
+    if( fgState.DisplayMode & GLUT_INDEX )
+    {
+        pfd.iPixelType = PFD_TYPE_COLORINDEX;
+        pfd.cRedBits                = 0;
+        pfd.cGreenBits            = 0;
+        pfd.cBlueBits             = 0;
+        pfd.cAlphaBits            = 0;
+    }
+    else
+    {
+        pfd.iPixelType      = PFD_TYPE_RGBA;
+        pfd.cRedBits                = 8;
+        pfd.cGreenBits            = 8;
+        pfd.cBlueBits             = 8;
+        if ( fgState.DisplayMode & GLUT_ALPHA )
+            pfd.cAlphaBits            = 8;
+        else
+            pfd.cAlphaBits            = 0;
+    }
+
     pfd.cColorBits      = 24;
-    pfd.cRedBits        = 0;
     pfd.cRedShift       = 0;
-    pfd.cGreenBits      = 0;
     pfd.cGreenShift     = 0;
-    pfd.cBlueBits       = 0;
     pfd.cBlueShift      = 0;
-    pfd.cAlphaBits      = 0;
     pfd.cAlphaShift     = 0;
     pfd.cAccumBits      = 0;
     pfd.cAccumRedBits   = 0;
@@ -220,8 +435,8 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
         pfd.cAuxBuffers = 3;
     else if( fgState.DisplayMode & GLUT_AUX2 )
         pfd.cAuxBuffers = 2;
-    else if( fgState.DisplayMode & GLUT_AUX1 )
-        pfd.cAuxBuffers = 1;
+    else if( fgState.DisplayMode & GLUT_AUX1 ) /* NOTE: Same as GLUT_AUX! */
+        pfd.cAuxBuffers = fgState.AuxiliaryBufferNumber;
     else
         pfd.cAuxBuffers = 0;
 
@@ -235,15 +450,88 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
     ppfd = &pfd;
 
     pixelformat = ChoosePixelFormat( window->Window.Device, ppfd );
+
+    /* windows hack for multismapling */
+    if (fgState.DisplayMode&GLUT_MULTISAMPLE)
+    {        
+        PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetEntensionsStringARB=NULL;
+        HGLRC rc, rc_before=wglGetCurrentContext();
+        HWND hWnd;
+        HDC hDC, hDC_before=wglGetCurrentDC();
+        WNDCLASS wndCls;
+
+        /* create a dummy window */
+        ZeroMemory(&wndCls, sizeof(wndCls));
+        wndCls.lpfnWndProc = DefWindowProc;
+        wndCls.hInstance = fgDisplay.Instance;
+        wndCls.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+        wndCls.lpszClassName = _T("FREEGLUT_dummy");
+        RegisterClass( &wndCls );
+
+        hWnd=CreateWindow(_T("FREEGLUT_dummy"), _T(""), WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW , 0,0,0,0, 0, 0, fgDisplay.Instance, 0 );
+        hDC=GetDC(hWnd);
+        SetPixelFormat( hDC, pixelformat, ppfd );
+        
+        rc = wglCreateContext( hDC );
+        wglMakeCurrent(hDC, rc);
+        
+        wglGetEntensionsStringARB=(PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+        if (wglGetEntensionsStringARB)
+        {
+            const char * pWglExtString=wglGetEntensionsStringARB(hDC);
+            if (pWglExtString)
+            {
+                if (strstr(pWglExtString, "WGL_ARB_multisample"))
+                {
+                    int pAttributes[100];
+                    int iCounter=0;
+                    int iPixelFormat;
+                    BOOL bValid;
+                    float fAttributes[] = {0,0};
+                    UINT numFormats;
+                    PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARBProc=NULL;
+
+                    wglChoosePixelFormatARBProc=(PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+                    if ( wglChoosePixelFormatARBProc )
+                    {
+                        pAttributes[iCounter++]=WGL_DRAW_TO_WINDOW_ARB;        pAttributes[iCounter++]=GL_TRUE;
+                        pAttributes[iCounter++]=WGL_SUPPORT_OPENGL_ARB;        pAttributes[iCounter++]=GL_TRUE;
+                        pAttributes[iCounter++]=WGL_ACCELERATION_ARB;        pAttributes[iCounter++]=WGL_FULL_ACCELERATION_ARB;
+
+                        pAttributes[iCounter++]=WGL_COLOR_BITS_ARB;            pAttributes[iCounter++]=pfd.cColorBits ;
+                        pAttributes[iCounter++]=WGL_ALPHA_BITS_ARB;            pAttributes[iCounter++]=pfd.cAlphaBits;
+                        pAttributes[iCounter++]=WGL_DEPTH_BITS_ARB;            pAttributes[iCounter++]=pfd.cDepthBits;
+                        pAttributes[iCounter++]=WGL_STENCIL_BITS_ARB;        pAttributes[iCounter++]=pfd.cStencilBits;
+
+                        pAttributes[iCounter++]=WGL_DOUBLE_BUFFER_ARB;        pAttributes[iCounter++]=(fgState.DisplayMode & GLUT_DOUBLE)!=0;
+                        pAttributes[iCounter++]=WGL_SAMPLE_BUFFERS_ARB;        pAttributes[iCounter++]=GL_TRUE;
+                        pAttributes[iCounter++]=WGL_SAMPLES_ARB;            pAttributes[iCounter++]=fgState.SampleNumber;
+                        pAttributes[iCounter++]=0;                            pAttributes[iCounter++]=0;    /* terminator */
+
+                        bValid = wglChoosePixelFormatARBProc(window->Window.Device,pAttributes,fAttributes,1,&iPixelFormat,&numFormats);
+
+                        if (bValid && numFormats>0)
+                            pixelformat=iPixelFormat;
+                    }
+                }
+                wglMakeCurrent( hDC_before, rc_before);
+                wglDeleteContext(rc);
+                ReleaseDC(hWnd, hDC);
+                DestroyWindow(hWnd);
+                UnregisterClass(_T("FREEGLUT_dummy"), fgDisplay.Instance);
+            }
+        }
+    }
+
     if( pixelformat == 0 )
         return GL_FALSE;
 
     if( checkOnly )
         return GL_TRUE;
     return SetPixelFormat( window->Window.Device, pixelformat, ppfd );
-#endif /* TARGET_HOST_WINCE */
+#endif /* defined(_WIN32_WCE) */
 }
-#endif
+#endif /* TARGET_HOST_MS_WINDOWS */
 
 /*
  * Sets the OpenGL context and the fgStructure "Current Window" pointer to
@@ -251,14 +539,15 @@ GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
  */
 void fgSetWindow ( SFG_Window *window )
 {
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
     if ( window )
-        glXMakeCurrent(
+        glXMakeContextCurrent(
             fgDisplay.Display,
+            window->Window.Handle,
             window->Window.Handle,
             window->Window.Context
         );
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
     if( fgStructure.CurrentWindow )
         ReleaseDC( fgStructure.CurrentWindow->Window.Handle,
                    fgStructure.CurrentWindow->Window.Device );
@@ -276,15 +565,101 @@ void fgSetWindow ( SFG_Window *window )
 }
 
 
+
+#if TARGET_HOST_POSIX_X11
+
+#ifndef GLX_CONTEXT_MAJOR_VERSION_ARB
+#define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
+#endif
+
+#ifndef GLX_CONTEXT_MINOR_VERSION_ARB
+#define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
+#endif
+
+#ifndef GLX_CONTEXT_FLAGS_ARB
+#define GLX_CONTEXT_FLAGS_ARB 0x2094
+#endif
+
+#ifndef GLX_CONTEXT_DEBUG_BIT_ARB
+#define GLX_CONTEXT_DEBUG_BIT_ARB 0x0001
+#endif
+
+#ifndef GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+#define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
+#endif
+
+typedef GLXContext (*CreateContextAttribsProc)(Display *dpy, GLXFBConfig config,
+					       GLXContext share_list, Bool direct,
+					       const int *attrib_list);
+
+static GLXContext fghCreateNewContext( SFG_Window* window )
+{
+  /* for color model calculation */
+  int menu = ( window->IsMenu && !fgStructure.MenuContext );
+  int index_mode = ( fgState.DisplayMode & GLUT_INDEX );
+
+  /* "classic" context creation */
+  Display *dpy = fgDisplay.Display;
+  GLXFBConfig config = *(window->Window.FBConfig);
+  int render_type = ( !menu && index_mode ) ? GLX_COLOR_INDEX_TYPE : GLX_RGBA_TYPE;
+  GLXContext share_list = NULL;
+  Bool direct = ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT );
+  GLXContext context;
+
+  /* new context creation */
+  int attribs[7];
+  CreateContextAttribsProc createContextAttribs;
+
+  /* If nothing fancy has been required, simply use the old context creation GLX API entry */
+  if ( fgState.MajorVersion == 1 && fgState.MinorVersion == 0 && fgState.ContextFlags == 0)
+  {
+    context = glXCreateNewContext( dpy, config, render_type, share_list, direct );
+    if ( context == NULL ) {
+      fgError( "could not create new OpenGL context" );
+    }
+    return context;
+  }
+
+  /* color index mode is not available anymore with OpenGL 3.0 */
+  if ( render_type == GLX_COLOR_INDEX_TYPE ) {
+    fgWarning( "color index mode is deprecated, using RGBA mode" );
+  }
+
+  attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
+  attribs[1] = fgState.MajorVersion;
+  attribs[2] = GLX_CONTEXT_MINOR_VERSION_ARB;
+  attribs[3] = fgState.MinorVersion;
+  attribs[4] = GLX_CONTEXT_FLAGS_ARB;
+  attribs[5] = ((fgState.ContextFlags & GLUT_DEBUG) ? GLX_CONTEXT_DEBUG_BIT_ARB : 0) |
+    ((fgState.ContextFlags & GLUT_FORWARD_COMPATIBLE) ? GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0);
+  attribs[6] = 0;
+
+  createContextAttribs = (CreateContextAttribsProc) fghGetProcAddress( "glXCreateContextAttribsARB" );
+  if ( createContextAttribs == NULL ) {
+    fgError( "glXCreateContextAttribsARB not found" );
+  }
+
+  context = createContextAttribs( dpy, config, share_list, direct, attribs );
+  if ( context == NULL ) {
+    fgError( "could not create new OpenGL %d.%d context (flags %x)",
+	     fgState.MajorVersion, fgState.MinorVersion, fgState.ContextFlags );
+  }
+  return context;
+}
+#endif
+
+
 /*
  * Opens a window. Requires a SFG_Window object created and attached
  * to the freeglut structure. OpenGL context is created here.
  */
 void fgOpenWindow( SFG_Window* window, const char* title,
-                   int x, int y, int w, int h,
+                   GLboolean positionUse, int x, int y,
+                   GLboolean sizeUse, int w, int h,
                    GLboolean gameMode, GLboolean isSubWindow )
 {
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
+    XVisualInfo * visualInfo;
     XSetWindowAttributes winAttr;
     XTextProperty textProperty;
     XSizeHints sizeHints;
@@ -296,33 +671,39 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     if( window->IsMenu && ( ! fgStructure.MenuContext ) )
         fgState.DisplayMode = GLUT_DOUBLE | GLUT_RGB ;
 
-    window->Window.VisualInfo = fgChooseVisual( );
+    window->Window.FBConfig = fgChooseFBConfig( );
 
     if( window->IsMenu && ( ! fgStructure.MenuContext ) )
         fgState.DisplayMode = current_DisplayMode ;
 
-    if( ! window->Window.VisualInfo )
+    if( ! window->Window.FBConfig )
     {
         /*
-         * The "fgChooseVisual" returned a null meaning that the visual
+         * The "fgChooseFBConfig" returned a null meaning that the visual
          * context is not available.
          * Try a couple of variations to see if they will work.
          */
         if( !( fgState.DisplayMode & GLUT_DOUBLE ) )
         {
             fgState.DisplayMode |= GLUT_DOUBLE ;
-            window->Window.VisualInfo = fgChooseVisual( );
+            window->Window.FBConfig = fgChooseFBConfig( );
             fgState.DisplayMode &= ~GLUT_DOUBLE;
         }
 
-        /*
-         * GLUT also checks for multi-sampling, but I don't see that
-         * anywhere else in FREEGLUT so I won't bother with it for the moment.
-         */
+        if( fgState.DisplayMode & GLUT_MULTISAMPLE )
+        {
+            fgState.DisplayMode &= ~GLUT_MULTISAMPLE ;
+            window->Window.FBConfig = fgChooseFBConfig( );
+            fgState.DisplayMode |= GLUT_MULTISAMPLE;
+        }
     }
 
-    FREEGLUT_INTERNAL_ERROR_EXIT( window->Window.VisualInfo != NULL,
-                                  "Visual with necessary capabilities not found", "fgOpenWindow" );
+    FREEGLUT_INTERNAL_ERROR_EXIT( window->Window.FBConfig != NULL,
+                                  "FBConfig with necessary capabilities not found", "fgOpenWindow" );
+
+    /*  Get the X visual.  */
+    visualInfo = glXGetVisualFromFBConfig( fgDisplay.Display,
+                                           *(window->Window.FBConfig) );
 
     /*
      * XXX HINT: the masks should be updated when adding/removing callbacks.
@@ -345,7 +726,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
 
     winAttr.colormap = XCreateColormap(
         fgDisplay.Display, fgDisplay.RootWindow,
-        window->Window.VisualInfo->visual, AllocNone
+        visualInfo->visual, AllocNone
     );
 
     mask = CWBackPixmap | CWBorderPixel | CWColormap | CWEventMask;
@@ -356,13 +737,18 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         mask |= CWOverrideRedirect;
     }
 
+    if( ! positionUse )
+        x = y = -1; /* default window position */
+    if( ! sizeUse )
+        w = h = 300; /* default window size */
+
     window->Window.Handle = XCreateWindow(
         fgDisplay.Display,
         window->Parent == NULL ? fgDisplay.RootWindow :
         window->Parent->Window.Handle,
         x, y, w, h, 0,
-        window->Window.VisualInfo->depth, InputOutput,
-        window->Window.VisualInfo->visual, mask,
+        visualInfo->depth, InputOutput,
+        visualInfo->visual, mask,
         &winAttr
     );
 
@@ -370,6 +756,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
      * The GLX context creation, possibly trying the direct context rendering
      *  or else use the current context if the user has so specified
      */
+
     if( window->IsMenu )
     {
         /*
@@ -380,43 +767,27 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         {
             fgStructure.MenuContext =
                 (SFG_MenuContext *)malloc( sizeof(SFG_MenuContext) );
-            fgStructure.MenuContext->VisualInfo = window->Window.VisualInfo;
-            fgStructure.MenuContext->Context = glXCreateContext(
-                fgDisplay.Display, fgStructure.MenuContext->VisualInfo,
-                NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
-            );
+            fgStructure.MenuContext->MContext = fghCreateNewContext( window );
         }
 
-        /* window->Window.Context = fgStructure.MenuContext->Context; */
-        window->Window.Context = glXCreateContext(
-            fgDisplay.Display, window->Window.VisualInfo,
-            NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
-        );
+        /* window->Window.Context = fgStructure.MenuContext->MContext; */
+        window->Window.Context = fghCreateNewContext( window );
     }
     else if( fgState.UseCurrentContext )
     {
         window->Window.Context = glXGetCurrentContext( );
 
         if( ! window->Window.Context )
-            window->Window.Context = glXCreateContext(
-                fgDisplay.Display, window->Window.VisualInfo,
-                NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
-            );
+            window->Window.Context = fghCreateNewContext( window );
     }
     else
-        window->Window.Context = glXCreateContext(
-            fgDisplay.Display, window->Window.VisualInfo,
-            NULL, ( fgState.DirectContext != GLUT_FORCE_INDIRECT_CONTEXT )
-        );
+        window->Window.Context = fghCreateNewContext( window );
 
 #if !defined( __FreeBSD__ ) && !defined( __NetBSD__ )
     if(  !glXIsDirect( fgDisplay.Display, window->Window.Context ) )
     {
       if( fgState.DirectContext == GLUT_FORCE_DIRECT_CONTEXT )
         fgError( "Unable to force direct context rendering for window '%s'",
-                 title );
-      else if( fgState.DirectContext == GLUT_TRY_DIRECT_CONTEXT )
-        fgWarning( "Unable to create direct context rendering for window '%s'\nThis may hurt performance.",
                  title );
     }
 #endif
@@ -428,9 +799,9 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     window->State.Visible = GL_TRUE;
 
     sizeHints.flags = 0;
-    if ( fgState.Position.Use )
+    if ( positionUse )
         sizeHints.flags |= USPosition;
-    if ( fgState.Size.Use )
+    if ( sizeUse )
         sizeHints.flags |= USSize;
 
     /*
@@ -467,20 +838,24 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     XSetWMProtocols( fgDisplay.Display, window->Window.Handle,
                      &fgDisplay.DeleteWindow, 1 );
 
-    glXMakeCurrent(
+    glXMakeContextCurrent(
         fgDisplay.Display,
+        window->Window.Handle,
         window->Window.Handle,
         window->Window.Context
     );
 
     XMapWindow( fgDisplay.Display, window->Window.Handle );
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+    XFree(visualInfo);
+
+#elif TARGET_HOST_MS_WINDOWS
 
     WNDCLASS wc;
     DWORD flags;
     DWORD exFlags = 0;
     ATOM atom;
+    int WindowStyle = 0;
 
     /* Grab the window class we have registered on glutInit(): */
     atom = GetClassInfo( fgDisplay.Instance, _T("FREEGLUT"), &wc );
@@ -501,7 +876,9 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     }
     else
     {
-#if !TARGET_HOST_WINCE
+        int worig = w, horig = h;
+
+#if !defined(_WIN32_WCE)
         if ( ( ! isSubWindow ) && ( ! window->IsMenu ) )
         {
             /*
@@ -513,17 +890,29 @@ void fgOpenWindow( SFG_Window* window, const char* title,
             h += (GetSystemMetrics( SM_CYSIZEFRAME ) )*2 +
                 GetSystemMetrics( SM_CYCAPTION );
         }
-#endif /* TARGET_HOST_WINCE */
+#endif /* defined(_WIN32_WCE) */
 
-        if( ! fgState.Position.Use )
+        if( ! positionUse )
         {
             x = CW_USEDEFAULT;
             y = CW_USEDEFAULT;
         }
-        if( ! fgState.Size.Use )
+        /* setting State.Width/Height to call resize callback later */
+        if( ! sizeUse )
         {
-            w = CW_USEDEFAULT;
-            h = CW_USEDEFAULT;
+            if( ! window->IsMenu )
+            {
+                w = CW_USEDEFAULT;
+                h = CW_USEDEFAULT;
+            }
+            else /* fail safe - Windows can make a window of size (0, 0) */
+                w = h = 300; /* default window size */
+            window->State.Width = window->State.Height = -1;
+        }
+        else
+        {
+            window->State.Width = worig;
+            window->State.Height = horig;
         }
 
         /*
@@ -537,7 +926,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
             flags |= WS_POPUP;
             exFlags |= WS_EX_TOOLWINDOW;
         }
-#if !TARGET_HOST_WINCE
+#if !defined(_WIN32_WCE)
         else if( window->Parent == NULL )
             flags |= WS_OVERLAPPEDWINDOW;
 #endif
@@ -545,7 +934,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
             flags |= WS_CHILD;
     }
 
-#if TARGET_HOST_WINCE
+#if defined(_WIN32_WCE)
     {
         wchar_t* wstr = fghWstrFromStr(title);
 
@@ -572,7 +961,7 @@ void fgOpenWindow( SFG_Window* window, const char* title,
 #else
     window->Window.Handle = CreateWindowEx(
         exFlags,
-        "FREEGLUT",
+        _T("FREEGLUT"),
         title,
         flags,
         x, y, w, h,
@@ -581,17 +970,44 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         fgDisplay.Instance,
         (LPVOID) window
     );
-#endif /* TARGET_HOST_WINCE */
+#endif /* defined(_WIN32_WCE) */
 
     if( !( window->Window.Handle ) )
         fgError( "Failed to create a window (%s)!", title );
 
-#if TARGET_HOST_WINCE
+    /* Make a menu window always on top - fix Feature Request 947118 */
+    if( window->IsMenu || gameMode )
+        SetWindowPos(
+                        window->Window.Handle,
+                        HWND_TOPMOST,
+                        0, 0, 0, 0,
+                        SWP_NOMOVE | SWP_NOSIZE
+                    );
+
+    /* Hack to remove the caption (title bar) and/or border
+     * and all the system menu controls.
+     */
+    WindowStyle = GetWindowLong(window->Window.Handle, GWL_STYLE);
+    if ( fgState.DisplayMode & GLUT_CAPTIONLESS )
+    {
+        SetWindowLong ( window->Window.Handle, GWL_STYLE,
+                        WindowStyle & ~(WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX));
+    }
+    else if ( fgState.DisplayMode & GLUT_BORDERLESS )
+    {
+        SetWindowLong ( window->Window.Handle, GWL_STYLE,
+                        WindowStyle & ~(WS_BORDER | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX));
+    }
+/*  SetWindowPos(window->Window.Handle, NULL, 0, 0, 0, 0,
+     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED); */
+
+
+#if defined(_WIN32_WCE)
     ShowWindow( window->Window.Handle, SW_SHOW );
 #else
     ShowWindow( window->Window.Handle,
                 fgState.ForceIconic ? SW_SHOWMINIMIZED : SW_SHOW );
-#endif /* TARGET_HOST_WINCE */
+#endif /* defined(_WIN32_WCE) */
 
     UpdateWindow( window->Window.Handle );
     ShowCursor( TRUE );  /* XXX Old comments say "hide cursor"! */
@@ -615,13 +1031,15 @@ void fgOpenWindow( SFG_Window* window, const char* title,
  */
 void fgCloseWindow( SFG_Window* window )
 {
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
-    glXDestroyContext( fgDisplay.Display, window->Window.Context );
+    if( window->Window.Context )
+        glXDestroyContext( fgDisplay.Display, window->Window.Context );
+    XFree( window->Window.FBConfig );
     XDestroyWindow( fgDisplay.Display, window->Window.Handle );
-    XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
+    /* XFlush( fgDisplay.Display ); */ /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     /* Make sure we don't close a window with current context active */
     if( fgStructure.CurrentWindow == window )
@@ -668,9 +1086,10 @@ int FGAPIENTRY glutCreateWindow( const char* title )
      */
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutCreateWindow" );
 
-    return fgCreateWindow( NULL, title, fgState.Position.X, fgState.Position.Y,
-                           fgState.Size.X, fgState.Size.Y, GL_FALSE,
-                           GL_FALSE )->ID;
+    return fgCreateWindow( NULL, title, fgState.Position.Use,
+                           fgState.Position.X, fgState.Position.Y,
+                           fgState.Size.Use, fgState.Size.X, fgState.Size.Y,
+                           GL_FALSE, GL_FALSE )->ID;
 }
 
 /*
@@ -711,7 +1130,7 @@ int FGAPIENTRY glutCreateSubWindow( int parentID, int x, int y, int w, int h )
         h = -h ;
     }
 
-    window = fgCreateWindow( parent, "", x, y, w, h, GL_FALSE, GL_FALSE );
+    window = fgCreateWindow( parent, "", GL_TRUE, x, y, GL_TRUE, w, h, GL_FALSE, GL_FALSE );
     ret = window->ID;
 
     return ret;
@@ -760,10 +1179,18 @@ void FGAPIENTRY glutSetWindow( int ID )
  */
 int FGAPIENTRY glutGetWindow( void )
 {
-    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutGetWindow" );
-    if( fgStructure.CurrentWindow == NULL )
+    SFG_Window *win = fgStructure.CurrentWindow;
+    /*
+     * Since GLUT did not throw an error if this function was called without a prior call to
+     * "glutInit", this function shouldn't do so here.  Instead let us return a zero.
+     * See Feature Request "[ 1307049 ] glutInit check".
+     */
+    if ( ! fgState.Initialised )
         return 0;
-    return fgStructure.CurrentWindow->ID;
+
+    while ( win && win->IsMenu )
+        win = win->Parent;
+    return win ? win->ID : 0;
 }
 
 /*
@@ -774,12 +1201,12 @@ void FGAPIENTRY glutShowWindow( void )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutShowWindow" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutShowWindow" );
 
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
     XMapWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     ShowWindow( fgStructure.CurrentWindow->Window.Handle, SW_SHOW );
 
@@ -796,7 +1223,7 @@ void FGAPIENTRY glutHideWindow( void )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutHideWindow" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutHideWindow" );
 
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
     if( fgStructure.CurrentWindow->Parent == NULL )
         XWithdrawWindow( fgDisplay.Display,
@@ -807,7 +1234,7 @@ void FGAPIENTRY glutHideWindow( void )
                       fgStructure.CurrentWindow->Window.Handle );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     ShowWindow( fgStructure.CurrentWindow->Window.Handle, SW_HIDE );
 
@@ -825,13 +1252,13 @@ void FGAPIENTRY glutIconifyWindow( void )
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutIconifyWindow" );
 
     fgStructure.CurrentWindow->State.Visible   = GL_FALSE;
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
     XIconifyWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle,
                     fgDisplay.Screen );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     ShowWindow( fgStructure.CurrentWindow->Window.Handle, SW_MINIMIZE );
 
@@ -849,7 +1276,7 @@ void FGAPIENTRY glutSetWindowTitle( const char* title )
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutSetWindowTitle" );
     if( ! fgStructure.CurrentWindow->Parent )
     {
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
         XTextProperty text;
 
@@ -866,18 +1293,17 @@ void FGAPIENTRY glutSetWindowTitle( const char* title )
 
         XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32
-
-        SetWindowText( fgStructure.CurrentWindow->Window.Handle, title );
-
-#elif TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
+#    ifdef _WIN32_WCE
         {
             wchar_t* wstr = fghWstrFromStr(title);
-
             SetWindowText( fgStructure.CurrentWindow->Window.Handle, wstr );
-
             free(wstr);
         }
+#    else
+        SetWindowText( fgStructure.CurrentWindow->Window.Handle, title );
+#    endif
+
 #endif
     }
 }
@@ -892,7 +1318,7 @@ void FGAPIENTRY glutSetIconTitle( const char* title )
 
     if( ! fgStructure.CurrentWindow->Parent )
     {
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
         XTextProperty text;
 
@@ -909,18 +1335,17 @@ void FGAPIENTRY glutSetIconTitle( const char* title )
 
         XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32
-
-        SetWindowText( fgStructure.CurrentWindow->Window.Handle, title );
-
-#elif TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
+#    ifdef _WIN32_WCE
         {
             wchar_t* wstr = fghWstrFromStr(title);
-
             SetWindowText( fgStructure.CurrentWindow->Window.Handle, wstr );
-
             free(wstr);
         }
+#    else
+        SetWindowText( fgStructure.CurrentWindow->Window.Handle, title );
+#    endif
+
 #endif
     }
 }
@@ -932,6 +1357,12 @@ void FGAPIENTRY glutReshapeWindow( int width, int height )
 {
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutReshapeWindow" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutReshapeWindow" );
+
+    if (glutGet(GLUT_FULL_SCREEN))
+    {
+      /*  Leave full screen state before resizing. */
+      glutFullScreenToggle();
+    }
 
     fgStructure.CurrentWindow->State.NeedToResize = GL_TRUE;
     fgStructure.CurrentWindow->State.Width  = width ;
@@ -946,13 +1377,19 @@ void FGAPIENTRY glutPositionWindow( int x, int y )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutPositionWindow" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutPositionWindow" );
 
-#if TARGET_HOST_UNIX_X11
+    if (glutGet(GLUT_FULL_SCREEN))
+    {
+      /*  Leave full screen state before moving. */
+      glutFullScreenToggle();
+    }
+
+#if TARGET_HOST_POSIX_X11
 
     XMoveWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle,
                  x, y );
     XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     {
         RECT winRect;
@@ -980,11 +1417,11 @@ void FGAPIENTRY glutPushWindow( void )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutPushWindow" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutPushWindow" );
 
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
     XLowerWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle );
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     SetWindowPos(
         fgStructure.CurrentWindow->Window.Handle,
@@ -1004,11 +1441,11 @@ void FGAPIENTRY glutPopWindow( void )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutPopWindow" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutPopWindow" );
 
-#if TARGET_HOST_UNIX_X11
+#if TARGET_HOST_POSIX_X11
 
     XRaiseWindow( fgDisplay.Display, fgStructure.CurrentWindow->Window.Handle );
 
-#elif TARGET_HOST_WIN32 || TARGET_HOST_WINCE
+#elif TARGET_HOST_MS_WINDOWS
 
     SetWindowPos(
         fgStructure.CurrentWindow->Window.Handle,
@@ -1028,38 +1465,33 @@ void FGAPIENTRY glutFullScreen( void )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutFullScreen" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutFullScreen" );
 
+    if (glutGet(GLUT_FULL_SCREEN))
     {
-#if TARGET_HOST_UNIX_X11
-        int x, y;
-        Window w;
+      /*  Leave full screen state before resizing. */
+      glutFullScreenToggle();
+    }
 
-        XMoveResizeWindow(
-            fgDisplay.Display,
-            fgStructure.CurrentWindow->Window.Handle,
-            0, 0,
-            fgDisplay.ScreenWidth,
-            fgDisplay.ScreenHeight
-        );
+    {
+#if TARGET_HOST_POSIX_X11
 
-        XFlush( fgDisplay.Display ); /* This is needed */
+        Status status;  /* Returned by XGetWindowAttributes(), not checked. */
+        XWindowAttributes attributes;
 
-        XTranslateCoordinates(
-            fgDisplay.Display,
-            fgStructure.CurrentWindow->Window.Handle,
-            fgDisplay.RootWindow,
-            0, 0, &x, &y, &w
-        );
+        status = XGetWindowAttributes(fgDisplay.Display,
+                                      fgStructure.CurrentWindow->Window.Handle,
+                                      &attributes);
+        /*
+         * The "x" and "y" members of "attributes" are the window's coordinates
+         * relative to its parent, i.e. to the decoration window.
+         */
+        XMoveResizeWindow(fgDisplay.Display,
+                          fgStructure.CurrentWindow->Window.Handle,
+                          -attributes.x,
+                          -attributes.y,
+                          fgDisplay.ScreenWidth,
+                          fgDisplay.ScreenHeight);
 
-        if (x || y)
-        {
-            XMoveWindow(
-                fgDisplay.Display,
-                fgStructure.CurrentWindow->Window.Handle,
-                -x, -y
-            );
-            XFlush( fgDisplay.Display ); /* XXX Shouldn't need this */
-        }
-#elif TARGET_HOST_WIN32
+#elif TARGET_HOST_MS_WINDOWS && !defined(_WIN32_WCE) /* FIXME: what about WinCE */
         RECT rect;
 
         /* For fullscreen mode, force the top-left corner to 0,0
@@ -1092,6 +1524,61 @@ void FGAPIENTRY glutFullScreen( void )
                       SWP_NOZORDER
                     );
 #endif
+    }
+}
+
+/*
+ * Toggle the window's full screen state.
+ */
+void FGAPIENTRY glutFullScreenToggle( void )
+{
+    FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutFullScreenToggle" );
+    FREEGLUT_EXIT_IF_NO_WINDOW ( "glutFullScreenToggle" );
+
+    {
+#if TARGET_HOST_POSIX_X11
+
+      if (fgDisplay.StateFullScreen != None)
+      {
+        XEvent xevent;
+        long event_mask;
+        int status;
+
+        xevent.type = ClientMessage;
+        xevent.xclient.type = ClientMessage;
+        xevent.xclient.serial = 0;
+        xevent.xclient.send_event = True;
+        xevent.xclient.display = fgDisplay.Display;
+        xevent.xclient.window = fgStructure.CurrentWindow->Window.Handle;
+        xevent.xclient.message_type = fgDisplay.State;
+        xevent.xclient.format = 32;
+        xevent.xclient.data.l[0] = 2;  /* _NET_WM_STATE_TOGGLE */
+        xevent.xclient.data.l[1] = fgDisplay.StateFullScreen;
+        xevent.xclient.data.l[2] = 0;
+        xevent.xclient.data.l[3] = 0;
+        xevent.xclient.data.l[4] = 0;
+
+        /*** Don't really understand how event masks work... ***/
+        event_mask = SubstructureRedirectMask | SubstructureNotifyMask;
+
+        status = XSendEvent(fgDisplay.Display,
+          fgDisplay.RootWindow,
+          False,
+          event_mask,
+          &xevent);
+        FREEGLUT_INTERNAL_ERROR_EXIT(status != 0,
+          "XSendEvent failed",
+          "glutFullScreenToggle");
+      }
+      else
+#endif
+      {
+        /*
+         * If the window manager is not Net WM compliant, fall back to legacy
+         * behaviour.
+         */
+        glutFullScreen();
+      }
     }
 }
 
