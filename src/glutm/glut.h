@@ -60,7 +60,11 @@
 
 /* Use GLUT */
 
-#   include <GL/glut.h>
+#   ifdef __APPLE__
+#     include <GLUT/GLUT.h>
+#   else
+#     include <GL/glut.h>
+#   endif
 
 #endif
 

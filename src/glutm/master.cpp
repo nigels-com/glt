@@ -902,8 +902,11 @@ GlutMaster::OnVisibility(int visible)
     GlutWindow *window = currentWindow();
 
     assert(_glutInit);
-    assert(window);
 
+    #ifndef __APPLE__
+    assert(window);
+    #endif
+    
     #ifdef GLUTM_DEBUG
     cout << DEBUG_TITLE("GlutMaster::OnVisibility");
     cout << window << ' ' << visible << endl;

@@ -5,7 +5,7 @@
     \ingroup Misc
 */
 
-/* $Id: jpeg.cpp,v 2.3 2007/05/08 04:28:44 nigels Exp $ */
+/* $Id: jpeg.cpp,v 2.4 2009/06/22 04:43:57 nigels Exp $ */
 
 #ifdef GLT_JPEG
 
@@ -261,7 +261,7 @@ protected:
             dest->data->resize(dest->size);
 
             list<string>::iterator i = dest->blocks.begin();    // Block iterator
-            uint32                 j = dest->size;              // Countdown to zero
+            size_t                 j = dest->size;              // Countdown to zero
             char                  *k = &(*dest->data)[0];       // Output pointer
 
             // Traverse all the blocks and copy into output
