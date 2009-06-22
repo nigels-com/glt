@@ -125,8 +125,8 @@ GlutWindowZEqual::OnDisplay()
 
     glPopMatrix();
 
-    glRotateX(1);
-    glRotateZ(1);
+    glRotateX(GLint(1));
+    glRotateZ(GLint(1));
 
     _info.draw();
 

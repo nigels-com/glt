@@ -76,8 +76,10 @@ public:
     GltFields &operator=(const GltFields &);
 
     void add(bool         &,                  const std::string &name);
+    void add(short        &,                  const std::string &name);
     void add(int          &,                  const std::string &name);
     void add(unsigned int &,                  const std::string &name);
+    void add(long         &,                  const std::string &name);
     void add(float        &,                  const std::string &name);
     void add(float        &,const float step, const std::string &name);
     void add(double       &,                  const std::string &name);
@@ -183,8 +185,34 @@ private:
         const bool  _default;
     };
 
-    /*! \clas    GltFieldInt
-        \brief   Integer field
+    /*! \class   GltFieldShort
+        \brief   Short field
+        \ingroup Node
+     */
+  
+    class GltFieldShort : public GltField
+    {
+    public:
+      GltFieldShort(short &val,const std::string &name);
+      GltFieldShort(const GltFieldShort &);
+      virtual ~GltFieldShort();
+    
+            short &val();
+      const short &val() const;
+    
+      std::string get() const;
+      bool        set(const std::string &value);
+      bool        reset();
+      bool        isDefault() const;
+    
+    private:
+    
+      short &_val;
+      const short  _default;
+    };
+
+    /*! \class   GltFieldInt
+        \brief   Short field
         \ingroup Node
     */
 
@@ -209,6 +237,32 @@ private:
         const int  _default;
     };
 
+    /*! \class   GltFieldLong
+        \brief   Short field
+        \ingroup Node
+    */
+
+    class GltFieldLong : public GltField
+    {
+    public:
+        GltFieldLong(long &val,const std::string &name);
+        GltFieldLong(const GltFieldLong &);
+        virtual ~GltFieldLong();
+
+              long &val();
+        const long &val() const;
+
+        std::string get() const;
+        bool        set(const std::string &value);
+        bool        reset();
+        bool        isDefault() const;
+
+    private:
+
+              long &_val;
+        const long  _default;
+    };
+    
     /*! \clas    GltFieldDouble
         \brief   Double field
         \ingroup Node

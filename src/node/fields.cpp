@@ -61,6 +61,12 @@ GltFields::add(bool &val,const string &name)
 }
 
 void
+GltFields::add(short &val,const string &name)
+{
+  _fields.push_back(GltFieldPtr(new GltFieldShort(val,name)));
+}
+
+void
 GltFields::add(int &val,const string &name)
 {
     _fields.push_back(GltFieldPtr(new GltFieldInt(val,name)));
@@ -71,6 +77,12 @@ GltFields::add(unsigned int &val,const string &name)
 {
     int &v = reinterpret_cast<int &>(val);
     _fields.push_back(GltFieldPtr(new GltFieldInt(v,name)));
+}
+
+void
+GltFields::add(long &val,const string &name)
+{
+    _fields.push_back(GltFieldPtr(new GltFieldLong(val,name)));
 }
 
 void
@@ -524,6 +536,57 @@ GltFields::GltFieldFloat::operator--()
 
 ///////////////////////////////
 
+GltFields::GltFieldShort::GltFieldShort(short &val,const string &name)
+: GltField(name),
+  _val(val),
+  _default(val)
+{
+}
+
+GltFields::GltFieldShort::GltFieldShort(const GltFieldShort &field)
+: GltField(field.name()),
+  _val(field._val),
+  _default(field._val)
+{
+}
+
+GltFields::GltFieldShort::~GltFieldShort()
+{
+}
+
+      short &GltFields::GltFieldShort::val()       { return _val; }
+const short &GltFields::GltFieldShort::val() const { return _val; }
+
+string
+GltFields::GltFieldShort::get() const
+{
+  char buffer[100];
+  sprintf(buffer,"%hd",_val);
+  return buffer;
+}
+
+bool
+GltFields::GltFieldShort::set(const std::string &value)
+{
+  _val = atoi(value);
+  return true;
+}
+
+bool
+GltFields::GltFieldShort::reset()
+{
+  _val = _default;
+  return true;
+}
+
+bool
+GltFields::GltFieldShort::isDefault() const
+{
+  return _val==_default;
+}
+
+///////////////////////////////
+
 GltFields::GltFieldInt::GltFieldInt(int &val,const string &name)
 : GltField(name),
   _val(val),
@@ -569,6 +632,57 @@ GltFields::GltFieldInt::reset()
 
 bool
 GltFields::GltFieldInt::isDefault() const
+{
+    return _val==_default;
+}
+
+//
+
+GltFields::GltFieldLong::GltFieldLong(long &val,const string &name)
+: GltField(name),
+  _val(val),
+  _default(val)
+{
+}
+
+GltFields::GltFieldLong::GltFieldLong(const GltFieldLong &field)
+: GltField(field.name()),
+  _val(field._val),
+  _default(field._val)
+{
+}
+
+GltFields::GltFieldLong::~GltFieldLong()
+{
+}
+
+      long &GltFields::GltFieldLong::val()       { return _val; }
+const long &GltFields::GltFieldLong::val() const { return _val; }
+
+string
+GltFields::GltFieldLong::get() const
+{
+    char buffer[100];
+    sprintf(buffer,"%ld",_val);
+    return buffer;
+}
+
+bool
+GltFields::GltFieldLong::set(const std::string &value)
+{
+    _val = atoi(value);
+    return true;
+}
+
+bool
+GltFields::GltFieldLong::reset()
+{
+    _val = _default;
+    return true;
+}
+
+bool
+GltFields::GltFieldLong::isDefault() const
 {
     return _val==_default;
 }

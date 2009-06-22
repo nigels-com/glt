@@ -188,6 +188,38 @@ GltRegistryMenu::OnKeyboard(unsigned char key, int x, int y)
             }
 
             //
+            // GltFields::GltFieldShort
+            //
+
+            GltFields::GltFieldShort *fieldShort = dynamic_cast<GltFields::GltFieldShort *>(field);
+            if (fieldShort)
+            {
+                switch (key)
+                {
+                    case '+':
+                        fieldShort->val()++;
+                        break;
+                    case '-':
+                        fieldShort->val()--;
+                        break;
+                    case '0':
+                        fieldShort->val() = 0;
+                        break;
+                    case '1':
+                        fieldShort->val() = 1;
+                        break;
+                    case 127:
+                        fieldShort->reset();
+                        break;
+
+                    default:
+                        return false;
+                }
+
+                return true;
+            }
+
+            //
             // GltFields::GltFieldInt
             //
 
@@ -210,6 +242,38 @@ GltRegistryMenu::OnKeyboard(unsigned char key, int x, int y)
                         break;
                     case 127:
                         fieldInt->reset();
+                        break;
+
+                    default:
+                        return false;
+                }
+
+                return true;
+            }
+
+            //
+            // GltFields::GltFieldLong
+            //
+
+            GltFields::GltFieldLong *fieldLong = dynamic_cast<GltFields::GltFieldLong *>(field);
+            if (fieldInt)
+            {
+                switch (key)
+                {
+                    case '+':
+                        fieldLong->val()++;
+                        break;
+                    case '-':
+                        fieldLong->val()--;
+                        break;
+                    case '0':
+                        fieldLong->val() = 0;
+                        break;
+                    case '1':
+                        fieldLong->val() = 1;
+                        break;
+                    case 127:
+                        fieldLong->reset();
                         break;
 
                     default:
