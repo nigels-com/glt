@@ -3,46 +3,14 @@
 /*! \file
     \ingroup GLT
 
-    $Id: color.cpp,v 2.2 2004/05/03 03:27:06 nigels Exp $
-
-    $Log: color.cpp,v $
-    Revision 2.2  2004/05/03 03:27:06  nigels
-    Migrating from MIN/MAX to std::min and std::max
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 1.25  2003/09/11 01:42:18  nigels
-    Update GltColor and GltLight to use homogeneous co-ordinates
-
-    Revision 1.24  2003/08/05 08:03:14  nigels
-    *** empty log message ***
-
-    Revision 1.22  2003/05/10 16:58:11  nigels
-    Last tweaks for 0.8
-
-    Revision 1.20  2003/03/25 03:34:40  nigels
-    Added GltColor::glGet()
-
-    Revision 1.19  2003/02/07 09:52:16  nigels
-    hex conversion routines updated
-
-    Revision 1.18  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.17  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.16  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
-
+    $Id: color.cpp,v 2.3 2009/06/22 05:23:19 nigels Exp $
 */
 
 #include <string>
 
 #include <cassert>
 #include <cstdio>
+#include <cstring>
 
 using namespace std;
 
