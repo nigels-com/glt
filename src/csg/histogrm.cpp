@@ -63,7 +63,7 @@ CsgHistograms::updateHistograms()
     {
         _zBuffer.reset();
         const GltFrameBufferZFloat zBuffer;
-        const GLuint step = std::max(1u,zBuffer.size()>>12);
+        const GLuint step = std::max<GLuint>(1,zBuffer.size()>>12);
         for (GLuint i=0; i<zBuffer.size(); i+=step)
             _zBuffer.add(zBuffer[i]);
     }
@@ -75,7 +75,7 @@ CsgHistograms::updateHistograms()
         _bBuffer.reset();
 
         const GltFrameBufferRGB rgbBuffer;
-        const GLuint step = std::max(1u,rgbBuffer.size()>>13);
+        const GLuint step = std::max<GLuint>(1,rgbBuffer.size()>>13);
         for (GLuint i=0; i<rgbBuffer.size(); i+=step)
         {
             const GLubyte *pixel = rgbBuffer[i];
