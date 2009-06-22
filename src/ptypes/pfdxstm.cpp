@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -105,10 +105,10 @@ void fdxstm::flush()
 int fdxstm::dorawwrite(const char* buf, int count)
 {
     if (handle == invhandle)
-    return -1;
+	return -1;
 #ifdef WIN32
     unsigned long ret;
-    if (!WriteFile(HANDLE(handle), buf, count, &ret, nil))
+    if (!WriteFile(HANDLE(handle), buf, count, &ret, nil)) 
     {
         error(uerrno(), "Couldn't write");
         ret = uint(-1);
@@ -150,12 +150,12 @@ void fdxstm::cancel()
 }
 
 
-int fdxstm::tell(bool in)
+large fdxstm::tellx(bool forin)
 {
-    if (in)
-        return instm::tell();
+    if (forin)
+        return instm::tellx();
     else
-        return out.tell();
+        return out.tellx();
 }
 
 

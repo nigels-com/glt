@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -41,10 +41,10 @@ inline void rwlock_syscheck(int r)
 
 //
 // this implementation of the read/write lock is derived
-// from Apache Portable Runtime (APR) source, which
+// from Apache Portable Runtime (APR) source, which 
 // in turn was originally based on an erroneous (or just
 // incomplete?) example in one of the MSDN technical articles.
-//
+// 
 
 rwlock::rwlock()
     : mutex(), readcnt(-1), writecnt(0)
@@ -65,7 +65,7 @@ rwlock::~rwlock()
 
 void rwlock::rdlock()
 {
-    if (pincrement(&readcnt) == 0)
+    if (pincrement(&readcnt) == 0) 
     {
         WaitForSingleObject(finished, INFINITE);
         SetEvent(reading);
@@ -84,26 +84,26 @@ void rwlock::wrlock()
 
 void rwlock::unlock()
 {
-    if (writecnt != 0)
+    if (writecnt != 0) 
     {
         writecnt--;
         SetEvent(finished);
         mutex::leave();
-    }
-    else if (pdecrement(&readcnt) < 0)
+    } 
+    else if (pdecrement(&readcnt) < 0) 
     {
         ResetEvent(reading);
         SetEvent(finished);
-    }
+    } 
 }
 
 
-#  else   // !defined(WIN32)
+#  else	  // !defined(WIN32)
 
 //
 // for other platforms that lack POSIX rwlock we implement
 // the rwlock object using POSIX condvar. the code below
-// is based on Sean Burke's algorithm posted in
+// is based on Sean Burke's algorithm posted in 
 // comp.programming.threads.
 //
 
@@ -130,7 +130,7 @@ void rwlock::rdlock()
     pthread_mutex_lock(&mtx);
     readers++;
     while (locks < 0)
-    pthread_cond_wait(&readcond, &mtx);
+        pthread_cond_wait(&readcond, &mtx);
     readers--;
     locks++;
     pthread_mutex_unlock(&mtx);
@@ -142,7 +142,7 @@ void rwlock::wrlock()
     pthread_mutex_lock(&mtx);
     writers++;
     while (locks != 0)
-    pthread_cond_wait(&writecond, &mtx);
+        pthread_cond_wait(&writecond, &mtx);
     locks = -1;
     writers--;
     pthread_mutex_unlock(&mtx);
@@ -154,26 +154,26 @@ void rwlock::unlock()
     pthread_mutex_lock(&mtx);
     if (locks > 0)
     {
-    locks--;
-    if (locks == 0)
-        pthread_cond_signal(&writecond);
+        locks--;
+        if (locks == 0)
+            pthread_cond_signal(&writecond);
     }
     else
     {
-    locks = 0;
+        locks = 0;
         if (readers != 0)
-        pthread_cond_broadcast(&readcond);
+            pthread_cond_broadcast(&readcond);
         else
-        pthread_cond_signal(&writecond);
+            pthread_cond_signal(&writecond);
     }
     pthread_mutex_unlock(&mtx);
 }
 
 
-#  endif
+#  endif    // !defined(WIN32)
 
 
-#else   // !defined(__PTYPES_RWLOCK__)
+#else	// !defined(__PTYPES_RWLOCK__)
 
 //
 // for other systems we declare a fully-inlined rwlock

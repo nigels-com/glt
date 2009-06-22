@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -15,7 +15,7 @@
 PTYPES_BEGIN
 
 
-static void msgerror()
+static void msgerror() 
 {
     fatal(CRIT_FIRST + 42, "Invalid message object");
 }
@@ -27,7 +27,7 @@ message::message(int iid, pintptr iparam)
 }
 
 
-message::~message()
+message::~message()  
 {
 }
 
@@ -142,8 +142,8 @@ message* jobqueue::getmessage(int timeout)
 
 
 msgqueue::msgqueue(int ilimit)
-    : jobqueue(ilimit), thrlock(), owner(0), quit(false)
-{
+    : jobqueue(ilimit), thrlock(), owner(0), quit(false)  
+{ 
 }
 
 
@@ -157,8 +157,8 @@ void msgqueue::takeownership()
     if (owner != pthrself())
     {
         thrlock.enter();    // lock forever
-//  if (owner != 0)
-//      fatal(CRIT_FIRST + 45, "Ownership of the message queue already taken");
+//	if (owner != 0)
+//	    fatal(CRIT_FIRST + 45, "Ownership of the message queue already taken");
         owner = pthrself();
     }
 }
@@ -166,11 +166,11 @@ void msgqueue::takeownership()
 
 pintptr msgqueue::finishmsg(message* msg)
 {
-    if (msg != nil)
+    if (msg != nil) 
     {
         pintptr result = msg->result;
 
-        // if the message was sent by send(),
+        // if the message was sent by send(), 
         // just signale the semaphore
         if (msg->sync != nil)
             msg->sync->post();
@@ -178,7 +178,7 @@ pintptr msgqueue::finishmsg(message* msg)
         // otherwise finish it
         else
             delete msg;
-
+        
         return result;
     }
     else
@@ -191,16 +191,16 @@ pintptr msgqueue::send(message* msg)
     if (msg == nil)
         msgerror();
 
-    try
+    try 
     {
-        // if we are in the main thread,
+        // if we are in the main thread, 
         // immediately handle the msg
         if (pthrequal(owner))
             handlemsg(msg);
-
+        
         // if this is called from a concurrent thread,
         // sync through a semaphore
-        else
+        else 
         {
             if (msg->sync != nil)
                 msgerror();
@@ -211,7 +211,7 @@ pintptr msgqueue::send(message* msg)
             msg->sync = 0;
         }
     }
-    catch (...)
+    catch (...) 
     {
         finishmsg(msg);
         throw;
@@ -231,11 +231,11 @@ void msgqueue::processone()
 {
     takeownership();
     message* msg = dequeue();
-    try
+    try 
     {
         handlemsg(msg);
     }
-    catch(...)
+    catch(...) 
     {
         finishmsg(msg);
         throw;
@@ -254,10 +254,10 @@ void msgqueue::processmsgs()
 void msgqueue::run()
 {
     quit = false;
-    do
+    do 
     {
         processone();
-    }
+    } 
     while (!quit);
 }
 
@@ -270,7 +270,7 @@ void msgqueue::handlemsg(message* msg)
 
 void msgqueue::defhandler(message& msg)
 {
-    switch(msg.id)
+    switch(msg.id) 
     {
     case MSG_QUIT:
         quit = true;

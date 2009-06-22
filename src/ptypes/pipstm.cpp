@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -150,6 +150,9 @@ void ipstream::doopen()
         if ((handle = ::socket(sa.sin_family, SOCK_STREAM, 0)) < 0)
             error(uerrno(), "Couldn't create socket");
 
+        // a chance to set up extra socket options
+        sockopt(handle);
+
         chstat(IO_CONNECTING);
         if (::connect(handle, (sockaddr*)&sa, sizeof(sa)) < 0)
         {
@@ -162,13 +165,18 @@ void ipstream::doopen()
 }
 
 
+void ipstream::sockopt(int)
+{
+}
+
+
 void ipstream::closehandle()
 {
     ::closesocket(pexchange(&handle, invhandle));
 }
 
 
-int ipstream::doseek(int, ioseekmode)
+large ipstream::doseek(large, ioseekmode)
 {
     return -1;
 }
@@ -185,10 +193,10 @@ void ipstream::doclose()
 
 #ifdef WIN32
 
-int ipstream::dorawread(char* buf, int count)
+int ipstream::dorawread(char* buf, int count) 
 {
     int ret;
-    if ((ret = ::recv(handle, buf, count, 0)) == -1)
+    if ((ret = ::recv(handle, buf, count, 0)) == -1) 
         error(uerrno(), "Couldn't read");
     return ret;
 }
@@ -197,7 +205,7 @@ int ipstream::dorawread(char* buf, int count)
 int ipstream::dorawwrite(const char* buf, int count)
 {
     int ret;
-    if ((ret = ::send(handle, buf, count, 0)) == -1)
+    if ((ret = ::send(handle, buf, count, 0)) == -1) 
         error(uerrno(), "Couldn't write");
     return ret;
 }

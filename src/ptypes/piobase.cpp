@@ -1,15 +1,16 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
  */
 
 #include <errno.h>
+#include <limits.h>
 
 #ifdef WIN32
 #  include <windows.h>
@@ -88,10 +89,10 @@ _io_init::_io_init()
 
 
 
-int ptdecl unixerrno()
+int ptdecl unixerrno() 
 {
 #ifdef WIN32
-    switch(GetLastError())
+    switch(GetLastError()) 
     {
     case ERROR_FILE_NOT_FOUND:
     case ERROR_PATH_NOT_FOUND:      return ENOENT;
@@ -116,14 +117,14 @@ int ptdecl unixerrno()
 
 
 //
-// This function gives error messages for most frequently raising
+// This function gives error messages for most frequently occurring 
 // IO errors. If the function returns NULL a generic message
 // can be given, e.g. "I/O error". See also iobase::get_errormsg()
 //
 
 const char* ptdecl unixerrmsg(int code)
 {
-    switch(code)
+    switch(code) 
     {
     case EBADF:  return "Invalid file descriptor";
     case ESPIPE: return "Can not seek on this device";
@@ -136,6 +137,7 @@ const char* ptdecl unixerrmsg(int code)
     case EEXIST: return "File already exists";
     case ENOSPC: return "Disk full";
     case EPIPE:  return "Broken pipe";
+    case EFBIG:  return "File too large";
     default: return nil;
     }
 }
@@ -156,9 +158,9 @@ int defbufsize = 8192;
 int stmbalance = 0;
 
 iobase::iobase(int ibufsize)
-    : component(), active(false), cancelled(false), eof(true),
+    : component(), active(false), cancelled(false), eof(true), 
       handle(invhandle), abspos(0), bufsize(0), bufdata(nil), bufpos(0), bufend(0),
-      stmerrno(0), deferrormsg(), status(IO_CREATED), onstatus(nil)
+      stmerrno(0), deferrormsg(), status(IO_CREATED), onstatus(nil) 
 {
     if (ibufsize < 0)
         bufsize = defbufsize;
@@ -167,12 +169,12 @@ iobase::iobase(int ibufsize)
 }
 
 
-iobase::~iobase()
+iobase::~iobase() 
 {
 }
 
 
-void iobase::bufalloc()
+void iobase::bufalloc() 
 {
     if (bufdata != nil)
         fatal(CRIT_FIRST + 13, "(ptypes internal) invalid buffer allocation");
@@ -180,7 +182,7 @@ void iobase::bufalloc()
 }
 
 
-void iobase::buffree()
+void iobase::buffree() 
 {
     bufclear();
     memfree(bufdata);
@@ -188,7 +190,7 @@ void iobase::buffree()
 }
 
 
-void iobase::chstat(int newstat)
+void iobase::chstat(int newstat) 
 {
     status = newstat;
     if (onstatus != nil)
@@ -196,7 +198,7 @@ void iobase::chstat(int newstat)
 }
 
 
-void iobase::errstminactive()
+void iobase::errstminactive() 
 {
     error(EIO, "Stream inactive");
 }
@@ -208,7 +210,15 @@ void iobase::errbufrequired()
 }
 
 
-void iobase::open()
+int iobase::convertoffset(large offs)
+{
+    if (offs < 0 || offs > INT_MAX)
+        error(EFBIG, "File offset value too large");
+    return (int)offs;
+}
+
+
+void iobase::open() 
 {
     cancel();
     chstat(IO_OPENING);
@@ -225,18 +235,18 @@ void iobase::open()
 }
 
 
-void iobase::close()
+void iobase::close() 
 {
     if (!active)
         return;
     stmbalance--;
-    try
+    try 
     {
         if (bufdata != 0 && !cancelled)
             flush();
         doclose();
     }
-    catch(estream* e)
+    catch(estream* e) 
     {
         delete e;
     }
@@ -247,19 +257,19 @@ void iobase::close()
 }
 
 
-void iobase::cancel()
+void iobase::cancel() 
 {
     cancelled = true;
     close();
 }
 
 
-int iobase::seek(int newpos, ioseekmode mode)
+large iobase::seekx(large newpos, ioseekmode mode) 
 {
     if (!active)
         errstminactive();
     flush();
-    int ret = doseek(newpos, mode);
+    large ret = doseek(newpos, mode);
     if (ret < 0)
         error(ESPIPE, "Seek failed");
     bufclear();
@@ -269,12 +279,12 @@ int iobase::seek(int newpos, ioseekmode mode)
 }
 
 
-void iobase::flush()
+void iobase::flush() 
 {
 }
 
 
-int iobase::doseek(int newpos, ioseekmode mode)
+large iobase::doseek(large newpos, ioseekmode mode)
 {
     if (handle == invhandle)
     {
@@ -283,7 +293,12 @@ int iobase::doseek(int newpos, ioseekmode mode)
     }
 #ifdef WIN32
     static int wmode[3] = {FILE_BEGIN, FILE_CURRENT, FILE_END};
-    return SetFilePointer(HANDLE(handle), newpos, nil, wmode[mode]);
+    LARGE_INTEGER li;
+    li.QuadPart = newpos;
+    li.LowPart = SetFilePointer(HANDLE(handle), li.LowPart, &li.HighPart, wmode[mode]);
+    if (li.LowPart == INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR)
+        return -1;
+    return li.QuadPart;
 #else
     static int umode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
     return lseek(handle, newpos, umode[mode]);
@@ -301,7 +316,7 @@ void iobase::doclose()
 }
 
 
-void iobase::set_active(bool newval)
+void iobase::set_active(bool newval) 
 {
     if (newval != active)
         if (newval)
@@ -311,7 +326,7 @@ void iobase::set_active(bool newval)
 }
 
 
-void iobase::set_bufsize(int newval)
+void iobase::set_bufsize(int newval) 
 {
     if (active)
         fatal(CRIT_FIRST + 12, "Cannot change buffer size while stream is active");
@@ -322,7 +337,7 @@ void iobase::set_bufsize(int newval)
 }
 
 
-string iobase::get_errstmname()
+string iobase::get_errstmname() 
 {
     return get_streamname();
 }
@@ -340,7 +355,7 @@ int iobase::uerrno()
 }
 
 
-string iobase::get_errormsg()
+string iobase::get_errormsg() 
 {
     string s = uerrmsg(stmerrno);
     if (isempty(s))
@@ -359,7 +374,7 @@ string iobase::get_errormsg()
 #  pragma warning (disable: 4702)
 #endif
 
-void iobase::error(int code, const char* defmsg)
+void iobase::error(int code, const char* defmsg) 
 {
     eof = true;
     stmerrno = code;

@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -128,7 +128,7 @@ int _strlist::put(const string& key, void* obj)
 int _strlist::add(const string& key, void* obj)
 {
     int index;
-    if (config.sorted)
+    if (config.sorted) 
     {
         if (search(key, index) && !config.duplicates)
             duperror();
@@ -154,13 +154,13 @@ void* _strlist::operator [](const char* key) const
 
 int _strlist::indexof(const char* key) const
 {
-    if (config.sorted)
+    if (config.sorted) 
     {
         int index;
         if (search(key, index))
             return index;
     }
-    else
+    else 
     {
         for (int i = 0; i < count; i++)
             if (compare(key, doget(i)) == 0)

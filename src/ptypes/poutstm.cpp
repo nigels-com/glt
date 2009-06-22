@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -27,7 +27,7 @@ outstm::outstm(bool iflusheol, int ibufsize)
     : iobase(ibufsize), flusheol(iflusheol) {}
 
 
-outstm::~outstm()
+outstm::~outstm() 
 {
 }
 
@@ -41,10 +41,10 @@ int outstm::classid()
 int outstm::dorawwrite(const char* buf, int count)
 {
     if (handle == invhandle)
-    return -1;
+	return -1;
 #ifdef WIN32
     unsigned long ret;
-    if (!WriteFile(HANDLE(handle), buf, count, &ret, nil))
+    if (!WriteFile(HANDLE(handle), buf, count, &ret, nil)) 
     {
         error(uerrno(), "Couldn't write");
         ret = uint(-1);
@@ -58,11 +58,11 @@ int outstm::dorawwrite(const char* buf, int count)
 }
 
 
-int outstm::rawwrite(const char* buf, int count)
+int outstm::rawwrite(const char* buf, int count) 
 {
     if (!active)
         errstminactive();
-    try
+    try 
     {
         int ret = dorawwrite(buf, count);
         if (ret < 0)
@@ -70,14 +70,14 @@ int outstm::rawwrite(const char* buf, int count)
         else
             abspos += ret;
         chstat(IO_WRITING);
-        if (ret < count)
+        if (ret < count) 
         {
             eof = true;
             chstat(IO_EOF);
         }
         return ret;
     }
-    catch (estream*)
+    catch (estream*) 
     {
         eof = true;
         chstat(IO_EOF);
@@ -86,7 +86,7 @@ int outstm::rawwrite(const char* buf, int count)
 }
 
 
-void outstm::bufvalidate()
+void outstm::bufvalidate() 
 {
     if (!active)
         errstminactive();
@@ -96,30 +96,30 @@ void outstm::bufvalidate()
 }
 
 
-int outstm::seek(int newpos, ioseekmode mode)
+large outstm::seekx(large newpos, ioseekmode mode) 
 {
-    if (bufdata != 0 && mode != IO_END)
+    if (bufdata != 0 && mode != IO_END) 
     {
-        int pos;
+        large pos;
         if (mode == IO_BEGIN)
             pos = newpos;
         else
-            pos = tell() + newpos;
+            pos = tellx() + newpos;
         pos -= abspos;
-        if (pos >= 0 && pos <= bufpos)
+        if (pos >= 0 && pos <= bufpos) 
         {
-            bufpos = pos;
+            bufpos = (int)pos;
             eof = false;
-            return tell();
+            return tellx();
         }
     }
-    return iobase::seek(newpos, mode);
+    return iobase::seekx(newpos, mode);
 }
 
 
-bool outstm::canwrite()
+bool outstm::canwrite() 
 {
-    if (bufdata != 0 && bufpos >= bufsize)
+    if (bufdata != 0 && bufpos >= bufsize) 
     {
         bufvalidate();
         return bufend < bufsize;
@@ -129,22 +129,22 @@ bool outstm::canwrite()
 }
 
 
-void outstm::flush()
+void outstm::flush() 
 {
     if (bufdata != 0 && stmerrno == 0)
         bufvalidate();
 }
 
 
-void outstm::put(char c)
+void outstm::put(char c) 
 {
     if (!active)
         errstminactive();
     if (bufdata == 0)
         rawwrite(&c, 1);
-    else if (canwrite())
+    else if (canwrite()) 
     {
-        bufdata[bufpos] = c;
+        bufdata[bufpos] = c;    
         bufadvance(1);
         if (c == 10 && flusheol)
             flush();
@@ -152,16 +152,16 @@ void outstm::put(char c)
 }
 
 
-int outstm::write(const void* buf, int count)
+int outstm::write(const void* buf, int count) 
 {
     if (!active)
         errstminactive();
     int ret = 0;
     if (bufdata == 0)
         ret = rawwrite(pconst(buf), count);
-    else
+    else 
     {
-        while (count > 0 && canwrite())
+        while (count > 0 && canwrite()) 
         {
             int n = imin(count, bufsize - bufpos);
             memcpy(bufdata + bufpos, buf, n);
@@ -176,34 +176,34 @@ int outstm::write(const void* buf, int count)
 }
 
 
-void outstm::put(const char* str)
+void outstm::put(const char* str) 
 {
     if (str != nil)
         write(str, hstrlen(str));
 }
 
 
-void outstm::put(const string& str)
+void outstm::put(const string& str) 
 {
     write(pconst(str), length(str));
 }
 
 
-void outstm::putline(const char* s)
+void outstm::putline(const char* s) 
 {
     put(s);
     puteol();
 }
 
 
-void outstm::putline(const string& s)
+void outstm::putline(const string& s) 
 {
     put(s);
     puteol();
 }
 
 
-void outstm::puteol()
+void outstm::puteol() 
 {
 #ifdef WIN32
     put(13);

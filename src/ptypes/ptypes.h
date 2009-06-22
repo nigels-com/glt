@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -42,7 +42,7 @@ template <class T> inline T* tpexchange(T** target, T* value)
     { return (T*)pexchange((void**)target, (void*)value); }
 
 
-#if (__GNUC__ == 3) && (__GNUC_MINOR__ >= 3)
+#if ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3)) || (__GNUC__ == 4) || defined(__hpux)
 #  define VARIANT_TYPECAST_HACK
 #endif
 
@@ -53,7 +53,7 @@ template <class T> inline T* tpexchange(T** target, T* value)
 
 // dynamic string class with thread-safe ref-counted buffer
 
-struct _strrec
+struct _strrec 
 {
     int refcount;
     int length;
@@ -71,9 +71,10 @@ typedef _strrec* _pstrrec;
 
 ptpublic extern char* emptystr;
 
-class variant;
+class ptpublic variant;
 
-class ptpublic string
+
+class ptpublic string 
 {
     friend class variant;
 
@@ -237,10 +238,10 @@ ptpublic string ptdecl lowercase(const string& s);
 
 char hex4(char c);
 
-inline char locase(char c)
+inline char locase(char c) 
     { if (c >= 'A' && c <= 'Z') return char(c + 32); return c; }
 
-inline char upcase(char c)
+inline char upcase(char c) 
     { if (c >= 'a' && c <= 'z') return char(c - 32); return c; }
 
 inline int hstrlen(const char* p) // some Unix systems do not accept NULL
@@ -260,7 +261,7 @@ const int  _csetwords = _csetbytes / sizeof(int);
 const char _csetesc = '~';
 
 
-class ptpublic cset
+class ptpublic cset 
 {
 protected:
     char data[_csetbytes];
@@ -336,7 +337,7 @@ inline void exclude(cset& s, char b)              { s.exclude(b); }
 
 ptpublic extern int objalloc;
 
-class ptpublic unknown
+class ptpublic unknown 
 {
 private:
     // make all classes non-copyable by default
@@ -358,7 +359,7 @@ typedef unknown* punknown;
 // provide non-copyable base for all classes that are
 // not derived from 'unknown'
 
-class ptpublic noncopyable
+class ptpublic noncopyable 
 {
 private:
     noncopyable(const noncopyable&);
@@ -377,7 +378,7 @@ public:
 // the basic exception class. NOTE: the library always throws dynamically
 // allocated exception objects.
 
-class ptpublic exception: public unknown
+class ptpublic exception: public unknown 
 {
 protected:
     string message;
@@ -481,7 +482,7 @@ public:
     X&   add()                              { grow(); return dozero(doget(count++)); }
     void add(const X& item)                 { grow(); doget(count++) = item; }
     void add(const tpodlist<X, initzero>& t)
-                        { _podlist::add(t); }
+					    { _podlist::add(t); }
     X&   operator [](int index)             { idx(index); return doget(index); }
     const X& operator [](int index) const   { idx(index); return doget(index); }
     X&   top()                              { idx(0); return doget(count - 1); }
@@ -508,7 +509,7 @@ protected:
         unsigned _reserved :27;
     } config;
 
-    _objlist(bool ownobjects);    // we hide this ctor, since _objlist actually can't free objects
+    _objlist(bool ownobjects);	  // we hide this ctor, since _objlist actually can't free objects
 
     void* doget(int index) const            { return ((void**)list)[index]; }
     void  doput(int index, void* obj);
@@ -600,13 +601,12 @@ template <class X> tobjlist<X>::~tobjlist()
 // _strlist is a base for the tstrlist template
 
 
-enum slflags
-{
-    SL_SORTED = 0x0001,
-    SL_DUPLICATES = 0x0002,
-    SL_CASESENS = 0x0004,
-    SL_OWNOBJECTS = 0x0008,
-};
+typedef int slflags; // left for compatibility
+
+#define SL_SORTED      1
+#define SL_DUPLICATES  2
+#define SL_CASESENS    4
+#define SL_OWNOBJECTS  8
 
 
 struct _stritem
@@ -792,7 +792,7 @@ const int CLASS3_IPSTM     = 0x00020000 | CLASS2_FDX;
 const int CLASS3_NPIPE     = 0x00030000 | CLASS2_FDX;
 
 
-class ptpublic component: public unknown
+class ptpublic component: public unknown 
 {
 protected:
     int                  refcount;     // reference counting, used by addref() and release()
@@ -806,7 +806,7 @@ public:
     virtual ~component();
     void addnotification(component* obj);
     void delnotification(component* obj);
-
+    
     ptpublic friend component* ptdecl addref(component*);
     ptpublic friend bool ptdecl release(component*);
     friend int refcount(component* c);
@@ -872,7 +872,9 @@ enum {
     VAR_COMPOUND = VAR_STRING
 };
 
-class _varray;
+
+class ptpublic _varray;
+
 
 class ptpublic variant
 {
@@ -1139,16 +1141,6 @@ inline void  del(textmap& m, const string& k)                   { m.del(k); }
 
 
 #endif // PTYPES19_COMPAT
-
-
-#ifdef PTYPES18_COMPAT
-
-inline string itobase(large value, int base, int width = 0, char pad = 0)
-    { return itostring(value, base, width, pad); }
-
-typedef exception exceptobj;
-
-#endif // PTYPES18_COMPAT
 
 
 #ifdef _MSC_VER

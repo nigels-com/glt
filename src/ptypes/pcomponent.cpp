@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -19,9 +19,9 @@ component::component()
     : unknown(), refcount(0), freelist(nil), typeinfo(nil)  {}
 
 
-component::~component()
+component::~component() 
 {
-    if (freelist != nil)
+    if (freelist != nil) 
     {
         for (int i = 0; i < freelist->get_count(); i++)
             (*freelist)[i]->freenotify(this);
@@ -31,12 +31,12 @@ component::~component()
 }
 
 
-void component::freenotify(component*)
+void component::freenotify(component*) 
 {
 }
 
 
-void component::addnotification(component* obj)
+void component::addnotification(component* obj) 
 {
     if (freelist == nil)
         freelist = new tobjlist<component>(false);
@@ -44,15 +44,15 @@ void component::addnotification(component* obj)
 }
 
 
-void component::delnotification(component* obj)
+void component::delnotification(component* obj) 
 {
     int i = -1;
-    if (freelist != nil)
+    if (freelist != nil) 
     {
         i = freelist->indexof(obj);
         if (i >= 0) {
             freelist->del(i);
-            if (freelist->get_count() == 0)
+            if (freelist->get_count() == 0) 
             {
                 delete freelist;
                 freelist = nil;

@@ -1,13 +1,15 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
  */
+
+#include <errno.h>
 
 #ifdef WIN32
 #  include <windows.h>
@@ -30,27 +32,31 @@ static void sem_fail()
 }
 
 
-semaphore::semaphore(int initvalue)
+semaphore::semaphore(int initvalue) 
 {
     if (sem_init(&handle, 0, initvalue) != 0)
         sem_fail();
 }
 
 
-semaphore::~semaphore()
+semaphore::~semaphore() 
 {
     sem_destroy(&handle);
 }
 
 
-void semaphore::wait()
+void semaphore::wait() 
 {
-    if (sem_wait(&handle) != 0)
+    int err;
+    do {
+        err = sem_wait(&handle);
+    } while (err == -1 && errno == EINTR);
+    if (err != 0)
         sem_fail();
 }
 
 
-void semaphore::post()
+void semaphore::post() 
 {
     if (sem_post(&handle) != 0)
         sem_fail();

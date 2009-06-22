@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -52,20 +52,20 @@ void npserver::error(int code, const char* defmsg)
 
 void npserver::openinst()
 {
-    // called once at startup and then again, after
+    // called once at startup and then again, after 
     // each client connection. strange logic, to say the least...
     SECURITY_ATTRIBUTES sa;
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     sa.lpSecurityDescriptor = NULL;
     sa.bInheritHandle = TRUE;
 
-    handle = (int)CreateNamedPipe(pipename,
+    handle = (int)CreateNamedPipe(pipename, 
         PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
         PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES,
+        PIPE_UNLIMITED_INSTANCES, 
         DEF_PIPE_SYSTEM_BUF_SIZE, DEF_PIPE_SYSTEM_BUF_SIZE,
         DEF_PIPE_TIMEOUT, &sa);
-
+    
     if (handle == invhandle)
         error(unixerrno(), "Couldn't create");
 }
@@ -99,7 +99,7 @@ void npserver::open()
     unlink(pipename);
     if (::bind(handle, (sockaddr*)&sa, sizeof(sa)) != 0)
         error(unixerrno(), "Couldn't bind local socket");
-
+    
     if (::listen(handle, SOMAXCONN) != 0)
         error(unixerrno(), "Couldn't listen on local socket");
 

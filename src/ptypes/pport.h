@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -49,17 +49,17 @@
 
 #ifdef WIN32
 #  if defined(PTYPES_DLL_EXPORTS)
-#    define ptpublic     __declspec(dllexport)
+#    define ptpublic	 __declspec(dllexport)
 #  elif defined(PTYPES_DLL)
-#    define ptpublic    __declspec(dllimport)
+#    define ptpublic	__declspec(dllimport)
 #  else
 #    define ptpublic
 #  endif
-#  define ptdecl    __stdcall
+#  define ptdecl	__stdcall
 #  define __PFASTCALL __fastcall
 #else
-#  define ptpublic
-#  define ptdecl
+#  define ptpublic	
+#  define ptdecl	
 #  define __PFASTCALL
 #endif
 
@@ -70,10 +70,6 @@
 
 
 extern "C" ptpublic unsigned long __ptypes_version;
-
-// this enables outdated class names, such as exceptobj, tsemaphore,
-// ipsocket, ipserver, etc.
-// #define PTYPES18_COMPAT
 
 // this enables old algebraic list interfaces; NO_PTYPES19_COMPAT
 // can be defined at command line
@@ -91,6 +87,8 @@ PTYPES_BEGIN
 // ... also "copy constructor/assignment operator could not be generated"
 #  pragma warning (disable: 4511)
 #  pragma warning (disable: 4512)
+// disable deprecation warnings for snprintf and others
+#  pragma warning (disable: 4996)
 #endif
 
 #if defined(_DEBUG) && !defined(DEBUG)

@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -94,12 +94,12 @@ void outstm::vputf(const char* fmt, va_list va)
         fmt_type_t fmt_type = FMT_NONE;
         switch(*e)
         {
-        case 'h':
-            fmt_type = FMT_SHORT;
+        case 'h': 
+            fmt_type = FMT_SHORT; 
             *f++ = *e++;
             break;
-        case 'L':
-            fmt_type = FMT_LONG_DOUBLE;
+        case 'L': 
+            fmt_type = FMT_LONG_DOUBLE; 
             *f++ = *e++;
             break;
         case 'l':
@@ -184,25 +184,25 @@ void outstm::vputf(const char* fmt, va_list va)
         int s = 0;
         switch(fmt_type)
         {
-        case FMT_NONE:
+        case FMT_NONE: 
             break; // to avoid compiler warning
         case FMT_CHAR:
             if (modif)
-                s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,int));
+                s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,int)); 
             else
                 put(char(va_arg(va,int)));
             break;
         case FMT_SHORT:
-            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,int));
+            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,int)); 
             break;
         case FMT_INT:
-            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,int));
+            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,int)); 
             break;
         case FMT_LONG:
-            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,long));
+            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,long)); 
             break;
         case FMT_LARGE:
-            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,large));
+            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,large)); 
             break;
         case FMT_STR:
             if (modif)
@@ -211,19 +211,19 @@ void outstm::vputf(const char* fmt, va_list va)
                 put(va_arg(va,const char*));
             break;
         case FMT_PTR:
-            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,void*));
+            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,void*)); 
             break;
         case FMT_DOUBLE:
-            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,double));
+            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,double)); 
             break;
         case FMT_LONG_DOUBLE:
-            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,long double));
+            s = snprintf(buf, sizeof(buf), fbuf, va_arg(va,long double)); 
             break;
 
         case FMT_IPADDR:
             {
                 ipaddress ip = va_arg(va,long);
-                s = snprintf(buf, sizeof(buf), "%d.%d.%d.%d",
+                s = snprintf(buf, sizeof(buf), "%d.%d.%d.%d", 
                     uint(ip[0]), uint(ip[1]), uint(ip[2]), uint(ip[3]));
             }
             break;
@@ -242,7 +242,7 @@ void outstm::vputf(const char* fmt, va_list va)
         }
         if (s > 0)
             write(buf, s);
-
+        
         p = e;
     }
 }

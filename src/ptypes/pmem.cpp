@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -37,27 +37,27 @@ int ptdecl memquantize(int a)
 }
 
 
-void ptdecl memerror()
+void ptdecl memerror() 
 {
     fatal(CRIT_FIRST + 5, "Not enough memory");
 }
 
 
-void* ptdecl memalloc(uint a)
+void* ptdecl memalloc(uint a) 
 {
     if (a == 0)
         return nil;
     else
     {
         void* p = malloc(a);
-        if (p == nil)
+        if (p == nil) 
             memerror();
         return p;
     }
 }
 
 
-void* ptdecl memrealloc(void* p, uint a)
+void* ptdecl memrealloc(void* p, uint a) 
 {
     if (a == 0)
     {
@@ -69,14 +69,14 @@ void* ptdecl memrealloc(void* p, uint a)
     else
     {
         p = realloc(p, a);
-        if (p == nil)
+        if (p == nil) 
             memerror();
         return p;
     }
 }
 
 
-void ptdecl memfree(void* p)
+void ptdecl memfree(void* p) 
 {
     if (p != nil)
         free(p);

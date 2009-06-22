@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -16,12 +16,12 @@ PTYPES_BEGIN
 
 
 inmemory::inmemory(const string& imem)
-    : instm(length(imem)), mem(imem)
+    : instm(length(imem)), mem(imem) 
 {
 }
 
 
-inmemory::~inmemory()
+inmemory::~inmemory() 
 {
     close();
 }
@@ -33,62 +33,64 @@ int inmemory::classid()
 }
 
 
-void inmemory::bufalloc()
+void inmemory::bufalloc() 
 {
     bufdata = pchar(pconst(mem));
     abspos = bufsize = bufend = length(mem);
 }
 
 
-void inmemory::buffree()
+void inmemory::buffree() 
 {
     bufclear();
     bufdata = nil;
 }
 
 
-void inmemory::bufvalidate()
+void inmemory::bufvalidate() 
 {
     eof = bufpos >= bufend;
 }
 
 
-void inmemory::doopen()
+void inmemory::doopen() 
 {
 }
 
 
-void inmemory::doclose()
+void inmemory::doclose() 
 {
 }
 
 
-int inmemory::doseek(int, ioseekmode)
+large inmemory::doseek(large, ioseekmode)
 {
+    // normally shouldn't reach this point, because seek is
+    // supposed to happen within the I/O buffer
     return -1;
 }
 
 
-int inmemory::dorawread(char*, int)
+int inmemory::dorawread(char*, int) 
 {
     return 0;
 }
 
 
-string inmemory::get_streamname()
+string inmemory::get_streamname() 
 {
     return "mem";
 }
 
 
-int inmemory::seek(int newpos, ioseekmode mode)
+large inmemory::seekx(large newpos, ioseekmode mode)
 {
     if (mode == IO_END)
     {
         newpos += bufsize;
         mode = IO_BEGIN;
     }
-    return instm::seek(newpos, mode);
+    return instm::seekx(newpos, mode);
 }
 
 

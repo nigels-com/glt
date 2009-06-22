@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -38,10 +38,10 @@ void ptdecl concat(string& s, const char* sc, int catlen)
 {
     if (length(s) == 0)
         s.assign(sc, catlen);
-    else if (catlen > 0)
+    else if (catlen > 0) 
     {
         int oldlen = length(s);
-
+        
         // we must check this before calling setlength(), since
         // the buffer pointer may be changed during reallocation
         if (s.data == sc)
@@ -68,7 +68,7 @@ void ptdecl concat(string& s, char c)
 {
     if (length(s) == 0)
         s.assign(c);
-    else
+    else 
     {
         setlength(s, length(s) + 1);
         s.data[length(s) - 1] = c;
@@ -110,7 +110,7 @@ bool ptdecl contains(const string& s1, const string& s, int at)
 }
 
 
-string string::operator+ (const char* sc) const
+string string::operator+ (const char* sc) const  
 {
     if (length(*this) == 0)
         return string(sc);
@@ -120,7 +120,7 @@ string string::operator+ (const char* sc) const
 
 
 string string::operator+ (char c) const
-{
+{ 
     if (length(*this) == 0)
         return string(c);
     else
@@ -157,14 +157,14 @@ string ptdecl operator+ (char c, const string& s)
 }
 
 
-bool string::operator== (const string& s) const
+bool string::operator== (const string& s) const 
 {
     return (length(*this) == length(s))
         && ((length(*this) == 0) || (memcmp(data, s.data, length(*this)) == 0));
 }
 
 
-bool string::operator== (char c) const
+bool string::operator== (char c) const 
 {
     return (length(*this) == 1) && (data[0] == c);
 }
@@ -173,12 +173,12 @@ bool string::operator== (char c) const
 string ptdecl copy(const string& s, int from, int cnt)
 {
     string t;
-    if (length(s) > 0 && from >= 0 && from < length(s))
+    if (length(s) > 0 && from >= 0 && from < length(s)) 
     {
         int l = imin(cnt, length(s) - from);
         if (from == 0 && l == length(s))
             t = s;
-        else if (l > 0)
+        else if (l > 0) 
         {
             t._alloc(l);
             memmove(t.data, s.data + from, l);
@@ -198,16 +198,16 @@ string ptdecl copy(const string& s, int from)
 void ptdecl ins(const char* s1, int s1len, string& s, int at)
 {
     int curlen = length(s);
-    if (s1len > 0 && at >= 0 && at <= curlen)
+    if (s1len > 0 && at >= 0 && at <= curlen) 
     {
         if (curlen == 0)
             s.assign(s1, s1len);
-        else
+        else 
         {
             setlength(s, curlen + s1len);
             int t = length(s) - at - s1len;
             char* p = s.data + at;
-            if (t > 0)
+            if (t > 0) 
                 memmove(p + s1len, p, t);
             memmove(p, s1, s1len);
         }
@@ -236,15 +236,16 @@ void ptdecl ins(const string& s1, string& s, int at)
 void ptdecl del(string& s, int from, int cnt)
 {
     int l = length(s);
-    if (from >= 0 && from < l && cnt > 0)
+    int d = l - from;
+    if (from >= 0 && d > 0 && cnt > 0) 
     {
-        if (from + cnt >= l)
-            cnt = l - from;
-        else if (l - from > cnt)
+        if (cnt < d)
         {
             unique(s);
-            memmove(s.data + from, s.data + from + cnt, l - from - cnt);
+            memmove(s.data + from, s.data + from + cnt, d - cnt);
         }
+        else
+            cnt = d;
         setlength(s, l - cnt);
     }
 }
@@ -252,7 +253,7 @@ void ptdecl del(string& s, int from, int cnt)
 
 void ptdecl del(string& s, int from)
 {
-    del(s, from, INT_MAX);
+    setlength(s, from);
 }
 
 

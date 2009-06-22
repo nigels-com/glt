@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -24,6 +24,12 @@
 PTYPES_BEGIN
 
 
+// *BSD hack
+#ifndef O_LARGEFILE
+#  define O_LARGEFILE 0
+#endif
+
+
 outfile::outfile()
     : outstm(), filename(), syshandle(invhandle), peerhandle(invhandle),
       umode(0644), append(false)  {}
@@ -39,7 +45,7 @@ outfile::outfile(string const& ifn, bool iappend)
       umode(0644), append(iappend)  {}
 
 
-outfile::~outfile()
+outfile::~outfile() 
 {
     close();
 }
@@ -51,13 +57,13 @@ int outfile::classid()
 }
 
 
-string outfile::get_streamname()
+string outfile::get_streamname() 
 {
     return filename;
 }
 
 
-void outfile::doopen()
+void outfile::doopen() 
 {
     if (syshandle != invhandle)
         handle = syshandle;
@@ -70,11 +76,11 @@ void outfile::doopen()
         sa.bInheritHandle = TRUE;
 
         handle = int(CreateFile(filename, GENERIC_WRITE,
-            FILE_SHARE_READ | FILE_SHARE_WRITE, &sa,
+            FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, 
             (append ? OPEN_ALWAYS : CREATE_ALWAYS), 0, 0));
 #else
-        handle = ::open(filename,
-            O_WRONLY | O_CREAT | (append ? 0 : O_TRUNC), umode);
+        handle = ::open(filename, 
+            O_WRONLY | O_CREAT | O_LARGEFILE | (append ? 0 : O_TRUNC), umode);
 #endif
         if (handle == invhandle)
             error(uerrno(), "Couldn't open");

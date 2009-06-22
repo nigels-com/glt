@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -16,41 +16,41 @@ PTYPES_BEGIN
 
 
 intee::intee(instm* istm, const char* ifn, bool iappend)
-    : infilter(istm, -1), file(ifn, iappend)
+    : infilter(istm, -1), file(ifn, iappend)  
 {
 }
 
 
 intee::intee(instm* istm, const string& ifn, bool iappend)
-    : infilter(istm, -1), file(ifn, iappend)
+    : infilter(istm, -1), file(ifn, iappend)  
 {
 }
 
 
-intee::~intee()
+intee::~intee() 
 {
     close();
 }
 
 
-void intee::doopen()
+void intee::doopen() 
 {
     infilter::doopen();
     file.open();
 }
 
 
-void intee::doclose()
+void intee::doclose() 
 {
     file.close();
     infilter::doclose();
 }
 
 
-void intee::dofilter()
+void intee::dofilter() 
 {
     int count = stm->read(savebuf, savecount);
-    if (count > 0)
+    if (count > 0) 
     {
         file.write(savebuf, count);
         savebuf += count;
@@ -59,7 +59,7 @@ void intee::dofilter()
 }
 
 
-string intee::get_streamname()
+string intee::get_streamname() 
 {
     return "tee: " + file.get_filename();
 }

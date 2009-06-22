@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -40,7 +40,7 @@ PTYPES_BEGIN
 #if defined(PTYPES_ST)
 #  define USE_GETHOSTBY
 #else
-#  if defined(WIN32)
+#  if defined(WIN32) || defined(__hpux)
 #    define USE_GETHOSTBY
 #  elif defined(__FreeBSD__) || defined(__DARWIN__)
 #    define USE_GETIPNODEBY
@@ -374,6 +374,8 @@ bool ptdecl psockwait(int handle, int timeout)
 // disable "condition always true" warning caused by Microsoft's FD_SET macro
 #  pragma warning (disable: 4127)
 #endif
+    if (handle < 0)
+        return false;
     fd_set readfds;
     FD_ZERO(&readfds);
     FD_SET((uint)handle, &readfds);

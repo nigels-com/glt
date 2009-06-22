@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -31,33 +31,33 @@ void cset::include(char min, char max)
     uchar lbits = lbitmask[uchar(min) % 8];
     uchar rbits = rbitmask[uchar(max) % 8];
 
-    if (lidx == ridx)
+    if (lidx == ridx) 
     {
         data[lidx] |= lbits & rbits;
     }
-    else
+    else 
     {
         data[lidx] |= lbits;
         for (int i = lidx + 1; i < ridx; i++)
-            data[i] = uchar(-1);
+            data[i] = -1;
         data[ridx] |= rbits;
     }
 
 }
 
 
-char hex4(char c)
+char hex4(char c) 
 {
-    if (c >= 'a')
+    if (c >= 'a') 
         return uchar(c - 'a' + 10);
-    else if (c >= 'A')
+    else if (c >= 'A') 
         return uchar(c - 'A' + 10);
-    else
+    else 
         return char(c - '0');
 }
 
 
-static uchar parsechar(const char*& p)
+static uchar parsechar(const char*& p) 
 {
     uchar ret = *p;
     if (ret == _csetesc) {
@@ -74,11 +74,11 @@ static uchar parsechar(const char*& p)
 }
 
 
-void cset::assign(const char* p)
+void cset::assign(const char* p) 
 {
     if (*p == '*' && *(p + 1) == 0)
         fill();
-    else
+    else 
     {
         clear();
         for (; *p != 0; p++) {
@@ -95,37 +95,37 @@ void cset::assign(const char* p)
 }
 
 
-void cset::unite(const cset& s)
+void cset::unite(const cset& s) 
 {
-    for(int i = 0; i < _csetwords; i++)
+    for(int i = 0; i < _csetwords; i++) 
         *(pint(data) + i) |= *(pint(s.data) + i);
 }
 
 
-void cset::subtract(const cset& s)
+void cset::subtract(const cset& s) 
 {
-    for(int i = 0; i < _csetwords; i++)
+    for(int i = 0; i < _csetwords; i++) 
         *(pint(data) + i) &= ~(*(pint(s.data) + i));
 }
 
 
-void cset::intersect(const cset& s)
+void cset::intersect(const cset& s) 
 {
-    for(int i = 0; i < _csetwords; i++)
+    for(int i = 0; i < _csetwords; i++) 
         *(pint(data) + i) &= *(pint(s.data) + i);
 }
 
 
-void cset::invert()
+void cset::invert() 
 {
-    for(int i = 0; i < _csetwords; i++)
+    for(int i = 0; i < _csetwords; i++) 
         *(pint(data) + i) = ~(*(pint(data) + i));
 }
 
 
-bool cset::le(const cset& s) const
+bool cset::le(const cset& s) const 
 {
-    for (int i = 0; i < _csetwords; i++)
+    for (int i = 0; i < _csetwords; i++) 
     {
         int w1 = *(pint(data) + i);
         int w2 = *(pint(s.data) + i);

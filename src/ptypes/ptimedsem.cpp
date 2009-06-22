@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -40,7 +40,7 @@ timedsem::timedsem(int initvalue)
 }
 
 
-timedsem::~timedsem()
+timedsem::~timedsem() 
 {
     CloseHandle(handle);
 }
@@ -90,34 +90,35 @@ timedsem::~timedsem()
 bool timedsem::wait(int timeout)
 {
     pthread_mutex_lock(&mtx);
-    while (count <= 0) {
+    while (count <= 0)
+    { 
         if (timeout >= 0)
         {
-            timespec abs_ts;
+            timespec abs_ts; 
             timeval cur_tv;
             gettimeofday(&cur_tv, NULL);
-            abs_ts.tv_sec = cur_tv.tv_sec + timeout / 1000;
+            abs_ts.tv_sec = cur_tv.tv_sec + timeout / 1000; 
             abs_ts.tv_nsec = cur_tv.tv_usec * 1000
                 + (timeout % 1000) * 1000000;
             int rc = pthread_cond_timedwait(&cond, &mtx, &abs_ts);
-            if (rc == ETIMEDOUT) {
+            if (rc == ETIMEDOUT) { 
                 pthread_mutex_unlock(&mtx);
                 return false;
             }
         }
         else
             pthread_cond_wait(&cond, &mtx);
-    }
+    } 
     count--;
     pthread_mutex_unlock(&mtx);
     return true;
-}
+} 
 
 
 void timedsem::post()
 {
     pthread_mutex_lock(&mtx);
-    count++;
+    count++; 
     pthread_cond_signal(&cond);
     pthread_mutex_unlock(&mtx);
 }

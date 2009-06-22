@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -43,7 +43,7 @@ bool ptdecl isvalid(datetime d)
 
 bool ptdecl isleapyear(int year)
 {
-    return year > 0 && year % 4 == 0
+    return year > 0 && year % 4 == 0 
         && (year % 100 != 0 || year % 400 == 0);
 }
 
@@ -82,7 +82,7 @@ int ptdecl dayofweek(datetime d)
 
 bool ptdecl isdatevalid(int year, int month, int day)
 {
-    return year >= 1 && year <= 9999
+    return year >= 1 && year <= 9999 
         && month >= 1 && month <= 12
         && day >= 1 && day <= daysinmonth(year, month);
 }
@@ -153,9 +153,9 @@ bool ptdecl decodedate(datetime date, int& year, int& month, int& day)
 
 bool ptdecl istimevalid(int hour, int min, int sec, int msec)
 {
-    return hour >= 0 && hour < 24
-        && min >= 0 && min < 60
-        && sec >= 0 && sec < 60
+    return hour >= 0 && hour < 24 
+        && min >= 0 && min < 60 
+        && sec >= 0 && sec < 60 
         && msec >= 0 && msec < 1000;
 }
 
@@ -200,7 +200,7 @@ bool ptdecl decodetime(datetime t, int& hour, int& min, int& sec)
 tm* ptdecl dttotm(datetime dt, tm& t)
 {
     memset(&t, 0, sizeof(tm));
-    if (!decodedate(dt, t.tm_year, t.tm_mon, t.tm_mday)
+    if (!decodedate(dt, t.tm_year, t.tm_mon, t.tm_mday) 
         || !decodetime(dt, t.tm_hour, t.tm_min, t.tm_sec))
             return nil;
     t.tm_mon--;
@@ -276,29 +276,35 @@ int ptdecl tzoffset()
         return - tz.Bias;
 
 #else   // UNIX
-    time_t t0;
-    time(&t0);
+    time_t t0 = time(0);
 
 #if defined(__sun__)
 #ifdef PTYPES_ST
     // localtime_r() is not available without -D_REENTRANT
     tm* t = localtime(&t0);
-    if(t->tm_isdst != 0 && daylight != 0)
+    if(t->tm_isdst != 0 && daylight != 0) 
 #else
     tm t;
-    localtime_r(&t0, &t);
-    if(t.tm_isdst != 0 && daylight != 0)
+    localtime_r(&t0, &t); 
+    if(t.tm_isdst != 0 && daylight != 0) 
 #endif
-        return - altzone / 60;
-    else
-        return - timezone / 60;
+        return - altzone / 60; 
+    else 
+        return - timezone / 60; 
 
 #elif defined(__CYGWIN__)
     time_t local_time = time(NULL);
-    struct tm gt;
+    tm gt;
     gmtime_r(&local_time, &gt);
     time_t gmt_time = mktime(&gt);
     return (local_time - gmt_time) / 60;
+
+#elif defined(__hpux)
+    tm local;
+    localtime_r(&t0, &local);
+    local.tm_isdst = 0;
+    time_t t1 = mktime(&local);
+    return - (timezone - (t1 - t0)) / 60;
 
 #else   // other UNIX
     tm t;

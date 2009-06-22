@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -117,7 +117,7 @@ typedef char* sockval_t;
 #endif
 
 
-#if defined(__DARWIN__) || defined(WIN32)
+#if (defined(__DARWIN__) && !defined(_SOCKLEN_T)) || defined(WIN32) || defined(__hpux)
   typedef int psocklen;
 #else
   typedef socklen_t psocklen;
@@ -222,9 +222,7 @@ protected:
     int svsocket;   // server socket descriptor, used internally by ipstmserver
 
 #ifdef WIN32
-    // A citation from MSDN: "While nothing in the Windows Sockets prevents an
-    // implementation from using regular file handles to identify sockets, nothing requires
-    // it either". Nothing requires us to spend less time writing programs?
+    // sockets are not compatible with file handles on Windows
     virtual int dorawread(char* buf, int count);
     virtual int dorawwrite(const char* buf, int count);
 #endif
@@ -232,8 +230,9 @@ protected:
     virtual int  uerrno();
     virtual const char* uerrmsg(int code);
     virtual void doopen();
-    virtual int  doseek(int newpos, ioseekmode mode);
+    virtual large doseek(large newpos, ioseekmode mode);
     virtual void doclose();
+    virtual void sockopt(int socket);
     void closehandle();
 
 public:
@@ -283,6 +282,7 @@ protected:
     virtual void open();
     virtual void close();
     virtual void dobind(ipbindinfo*) = 0;
+    virtual void sockopt(int socket);
 
 public:
     ipsvbase(int isocktype);
@@ -315,12 +315,6 @@ public:
 };
 
 
-#ifdef PTYPES18_COMPAT
-    typedef ipstream ipsocket;      // pre-1.7 compatibility aliases
-    typedef ipstmserver ipserver;
-#endif
-
-
 // -------------------------------------------------------------------- //
 // ---  UDP socket classes -------------------------------------------- //
 // -------------------------------------------------------------------- //
@@ -338,6 +332,7 @@ protected:
     void error(int code, const char* msg);
     void open();
     void close();
+    virtual void sockopt(int socket);
 
 public:
     ipmessage();

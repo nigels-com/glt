@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -15,13 +15,13 @@
 PTYPES_BEGIN
 
 
-string ptdecl lowercase(const char* p)
+string ptdecl lowercase(const char* p) 
 {
     // we rely on the function locase() which converts one single
     // character to lower case. all locale specific things can be
     // settled down in the future releases.
     string r;
-    if (p != nil)
+    if (p != nil) 
     {
         char* d = setlength(r, strlen(p));
         while (*p != 0)
@@ -35,7 +35,7 @@ string ptdecl lowercase(const string& s)
 {
     // this function does practically nothing if the string s
     // contains no uppercase characters. once an uppercase character
-    // is encountered, the string is copied to another buffer and the
+    // is encountered, the string is copied to another buffer and the 
     // rest is done as usual.
 
     string r = s;
@@ -45,7 +45,7 @@ string ptdecl lowercase(const string& s)
     char* p = pchar(pconst(r));
     bool u = false;
     int i = 0;
-
+    
     while (*p != 0)
     {
         char c = locase(*p);

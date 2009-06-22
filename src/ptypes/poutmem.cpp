@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -15,8 +15,8 @@
 PTYPES_BEGIN
 
 
-outmemory::outmemory(int ilimit, int iincrement)
-    : outstm(false, 0), mem(), limit(ilimit), increment(iincrement)
+outmemory::outmemory(int ilimit)
+    : outstm(false, 0), mem(), limit(ilimit)
 {
 }
 
@@ -44,9 +44,9 @@ void outmemory::doclose()
 }
 
 
-int outmemory::doseek(int newpos, ioseekmode mode)
+large outmemory::doseek(large newpos, ioseekmode mode)
 {
-    int pos;
+    large pos;
 
     switch (mode)
     {
@@ -61,9 +61,9 @@ int outmemory::doseek(int newpos, ioseekmode mode)
         break;
     }
 
-    if (pos > limit)
+    if (limit >= 0 && pos > limit)
         pos = limit;
-
+    
     return pos;
 }
 
@@ -72,22 +72,22 @@ int outmemory::dorawwrite(const char* buf, int count)
 {
     if (count <= 0)
         return 0;
-    if (limit > 0 && abspos + count > limit)
+    if (limit >= 0 && abspos + count > limit)
     {
-        count = limit - abspos;
+        count = limit - (int)abspos;
         if (count <= 0)
             return 0;
     }
 
     // the string reallocator takes care of efficiency
-    if (abspos + count > length(mem))
-        setlength(mem, abspos + count);
-    memcpy(pchar(pconst(mem)) + abspos, buf, count);
+    if ((int)abspos + count > length(mem))
+        setlength(mem, (int)abspos + count);
+    memcpy(pchar(pconst(mem)) + (int)abspos, buf, count);
     return count;
 }
 
 
-string outmemory::get_streamname()
+string outmemory::get_streamname() 
 {
     return "mem";
 }

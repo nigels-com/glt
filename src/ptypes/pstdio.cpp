@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -40,7 +40,7 @@ static HANDLE DuplicateSysHandle(DWORD stdh)
 {
     HANDLE hold = GetStdHandle(stdh);
     HANDLE hnew = 0;
-    DuplicateHandle(GetCurrentProcess(), hold, GetCurrentProcess(),
+    DuplicateHandle(GetCurrentProcess(), hold, GetCurrentProcess(), 
         &hnew, 0, true, DUPLICATE_SAME_ACCESS);
     return hnew;
 }

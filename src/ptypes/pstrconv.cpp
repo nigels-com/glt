@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -19,22 +19,22 @@ PTYPES_BEGIN
 
 static char* _itobase(large value, char* buf, int base, int& len, bool _signed)
 {
-    // internal conversion routine: converts the value to a string
+    // internal conversion routine: converts the value to a string 
     // at the end of the buffer and returns a pointer to the first
-    // character. this is to get rid of copying the string to the
-    // beginning of the buffer, since finally the string is supposed
-    // to be copied to a dynamic string in itostring(). the buffer
+    // character. this is to get rid of copying the string to the 
+    // beginning of the buffer, since finally the string is supposed 
+    // to be copied to a dynamic string in itostring(). the buffer 
     // must be at least 65 bytes long.
 
-    static char digits[65] =
+    static char digits[65] = 
         "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     char* pdigits;
     if (base > 36)
-    pdigits = digits;       // start from '.'
+	pdigits = digits;       // start from '.'
     else
-    pdigits = digits + 2;   // start from '0'
-
+	pdigits = digits + 2;   // start from '0'
+    
     int i = 64;
     buf[i] = 0;
 
@@ -100,12 +100,12 @@ static void _itobase2(string& result, large value, int base, int width, char pad
         if (neg)
             *pchar(pconst(result)) = '-';
     }
-    else
+    else 
         assign(result, p, reslen);
 }
 
 
-string ptdecl itostring(large value, int base, int width, char padchar)
+string ptdecl itostring(large value, int base, int width, char padchar) 
 {
     string result;
     _itobase2(result, value, base, width, padchar, true);
@@ -113,7 +113,7 @@ string ptdecl itostring(large value, int base, int width, char padchar)
 }
 
 
-string ptdecl itostring(ularge value, int base, int width, char padchar)
+string ptdecl itostring(ularge value, int base, int width, char padchar) 
 {
     string result;
     _itobase2(result, value, base, width, padchar, false);
@@ -121,7 +121,7 @@ string ptdecl itostring(ularge value, int base, int width, char padchar)
 }
 
 
-string ptdecl itostring(int value, int base, int width, char padchar)
+string ptdecl itostring(int value, int base, int width, char padchar) 
 {
     string result;
     _itobase2(result, large(value), base, width, padchar, true);
@@ -129,7 +129,7 @@ string ptdecl itostring(int value, int base, int width, char padchar)
 }
 
 
-string ptdecl itostring(uint value, int base, int width, char padchar)
+string ptdecl itostring(uint value, int base, int width, char padchar) 
 {
     string result;
     _itobase2(result, ularge(value), base, width, padchar, false);

@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -25,12 +25,12 @@
 PTYPES_BEGIN
 
 
-instm::instm(int ibufsize): iobase(ibufsize)
+instm::instm(int ibufsize): iobase(ibufsize) 
 {
 }
 
 
-instm::~instm()
+instm::~instm() 
 {
 }
 
@@ -44,10 +44,10 @@ int instm::classid()
 int instm::dorawread(char* buf, int count)
 {
     if (handle == invhandle)
-    return -1;
+	return -1;
 #ifdef WIN32
     unsigned long ret;
-    if (!ReadFile(HANDLE(handle), buf, count, &ret, nil))
+    if (!ReadFile(HANDLE(handle), buf, count, &ret, nil)) 
 #else
     int ret;
     if ((ret = ::read(handle, buf, count)) < 0)
@@ -63,10 +63,10 @@ int instm::dorawread(char* buf, int count)
 }
 
 
-int instm::rawread(char* buf, int count)
+int instm::rawread(char* buf, int count) 
 {
     requireactive();
-    try
+    try 
     {
         int ret = dorawread(buf, count);
         if (ret <= 0) {
@@ -74,14 +74,14 @@ int instm::rawread(char* buf, int count)
             eof = true;
             chstat(IO_EOF);
         }
-        else
+        else 
         {
             abspos += ret;
             chstat(IO_READING);
         }
         return ret;
     }
-    catch (estream*)
+    catch (estream*) 
     {
         eof = true;
         chstat(IO_EOF);
@@ -90,13 +90,13 @@ int instm::rawread(char* buf, int count)
 }
 
 
-int instm::tell()
+large instm::tellx()
 {
     return abspos - bufend + bufpos;
 }
 
 
-void instm::bufvalidate()
+void instm::bufvalidate() 
 {
     requirebuf();
     bufclear();
@@ -104,32 +104,32 @@ void instm::bufvalidate()
 }
 
 
-int instm::seek(int newpos, ioseekmode mode)
+large instm::seekx(large newpos, ioseekmode mode) 
 {
-    if (bufdata != 0 && mode != IO_END)
+    if (bufdata != 0 && mode != IO_END) 
     {
-        int pos;
-        if (mode == IO_BEGIN)
-            pos = newpos;
-        else
-            pos = tell() + newpos;
+        if (mode == IO_CURRENT)
+        {
+            newpos += tellx();
+            mode = IO_BEGIN;
+        }
 
         // see if it is possible to seek within the buffer
-        int newbufpos = pos - (abspos - bufend);
-        if (newbufpos >= 0 && newbufpos <= bufend)
+        large newbufpos = newpos - (abspos - bufend);
+        if (newbufpos >= 0 && newbufpos <= bufend) 
         {
-            bufpos = newbufpos;
+            bufpos = (int)newbufpos;
             eof = false;
-            return tell();
+            return tellx();
         }
     }
 
     // if IO_END or if not possible to seek within the buffer
-    return iobase::seek(newpos, mode);
+    return iobase::seekx(newpos, mode);
 }
 
 
-bool instm::get_eof()
+bool instm::get_eof() 
 {
     if (!eof && bufdata != 0 && bufpos >= bufend)
         bufvalidate();
@@ -144,7 +144,7 @@ int instm::get_dataavail()
 }
 
 
-char instm::preview()
+char instm::preview() 
 {
     if (!eof && bufpos >= bufend)
         bufvalidate();
@@ -164,19 +164,19 @@ void instm::putback()
 }
 
 
-bool instm::get_eol()
+bool instm::get_eol() 
 {
     char c = preview();
     return (eof || c == 10 || c == 13);
 }
 
 
-void instm::skipeol()
+void instm::skipeol() 
 {
-    switch (preview())
+    switch (preview()) 
     {
-    case 10:
-        get();
+    case 10: 
+        get(); 
         break;
     case 13:
         get();
@@ -187,7 +187,7 @@ void instm::skipeol()
 }
 
 
-char instm::get()
+char instm::get() 
 {
     char ret = preview();
     if (!eof)
@@ -196,11 +196,11 @@ char instm::get()
 }
 
 
-string instm::token(const cset& chars, int limit)
+string instm::token(const cset& chars, int limit) 
 {
     requirebuf();
     string ret;
-    while (!get_eof())
+    while (!get_eof()) 
     {
         char* b = bufdata + bufpos;
         char* e = bufdata + bufend;
@@ -223,7 +223,7 @@ string instm::token(const cset& chars, int limit)
 }
 
 
-string instm::token(const cset& chars)
+string instm::token(const cset& chars) 
 {
     return token(chars, INT_MAX);
 }
@@ -232,7 +232,7 @@ string instm::token(const cset& chars)
 static cset linechars = cset("*") - cset("~0a~0d");
 
 
-string instm::line(int limit)
+string instm::line(int limit) 
 {
     string ret = token(linechars, limit);
     skipeol();
@@ -248,11 +248,11 @@ string instm::line()
 }
 
 
-int instm::token(const cset& chars, char* buf, int count)
+int instm::token(const cset& chars, char* buf, int count) 
 {
     requirebuf();
     int ret = 0;
-    while (count > 0 && !get_eof())
+    while (count > 0 && !get_eof()) 
     {
         char* b = bufdata + bufpos;
         char* e = b + imin(count, bufend - bufpos);
@@ -272,7 +272,7 @@ int instm::token(const cset& chars, char* buf, int count)
 }
 
 
-int instm::line(char* buf, int size, bool eateol)
+int instm::line(char* buf, int size, bool eateol) 
 {
     int ret = token(linechars, buf, size);
     if (eateol)
@@ -281,14 +281,14 @@ int instm::line(char* buf, int size, bool eateol)
 }
 
 
-int instm::read(void* buf, int count)
+int instm::read(void* buf, int count) 
 {
     int ret = 0;
-    if (bufdata == 0)
+    if (bufdata == 0) 
         ret = rawread(pchar(buf), count);
-    else
+    else 
     {
-        while (count > 0 && !get_eof())
+        while (count > 0 && !get_eof()) 
         {
             int n = imin(count, bufend - bufpos);
             memcpy(buf, bufdata + bufpos, n);
@@ -302,11 +302,11 @@ int instm::read(void* buf, int count)
 }
 
 
-int instm::skip(int count)
+int instm::skip(int count) 
 {
     int ret = 0;
     requirebuf();
-    while (count > 0 && !get_eof())
+    while (count > 0 && !get_eof()) 
     {
         int n = imin(count, bufend - bufpos);
         ret += n;
@@ -317,7 +317,7 @@ int instm::skip(int count)
 }
 
 
-int instm::skiptoken(const cset& chars)
+int instm::skiptoken(const cset& chars) 
 {
     int ret = 0;
     requirebuf();
@@ -338,7 +338,7 @@ int instm::skiptoken(const cset& chars)
 }
 
 
-void instm::skipline(bool eateol)
+void instm::skipline(bool eateol) 
 {
     if (!get_eol())
         skiptoken(linechars);

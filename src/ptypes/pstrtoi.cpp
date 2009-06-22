@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -29,7 +29,7 @@ large ptdecl stringtoi(const char* p)
         return -1;
 
     large r = 0;
-    do
+    do 
     {
         char c = *p++;
         if (c < '0' || c > '9')
@@ -62,7 +62,7 @@ ularge ptdecl stringtoue(const char* str, int base)
     const char* p = str;
     ularge result = 0;
 
-    do
+    do 
     {
         int c = *p++;
 

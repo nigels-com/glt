@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -63,6 +63,8 @@ int __PFASTCALL pdecrement(int* target)
 #  define MSC_i386
 #elif defined(__BORLANDC__) && defined(_M_IX86)
 #  define BCC_i386
+#elif defined(__GNUC__) && defined(__sparc__) && !defined(__arch64__)
+#  define GCC_sparc
 #endif
 
 
@@ -83,7 +85,7 @@ int __PFASTCALL pdecrement(int* target)
 // the following functions implement atomic exchange/inc/dec on
 // windows. they are dangerous in that they rely on the calling
 // conventions of MSVC and BCC. the first one passes the first
-// two arguments in ECX and EDX, and the second one - in EAX and
+// two arguments in ECX and EDX, and the second one - in EAX and 
 // EDX.
 
 int __PFASTCALL pincrement(int*)
@@ -191,13 +193,13 @@ int pexchange(int* target, int value)
     int temp;
     __asm__ __volatile (
 "1: lwarx  %0,0,%1\n\
-    stwcx. %2,0,%1\n\
-    bne-   1b\n\
-    isync"
-    : "=&r" (temp)
-    : "r" (target), "r" (value)
-    : "cc", "memory"
-    );
+	stwcx. %2,0,%1\n\
+	bne-   1b\n\
+	isync"
+	: "=&r" (temp)
+	: "r" (target), "r" (value)
+	: "cc", "memory"
+	);
     return temp;
 }
 
@@ -207,13 +209,13 @@ void* pexchange(void** target, void* value)
     void* temp;
     __asm__ __volatile (
 "1: lwarx  %0,0,%1\n\
-    stwcx. %2,0,%1\n\
-    bne-   1b\n\
-    isync"
-    : "=&r" (temp)
-    : "r" (target), "r" (value)
-    : "cc", "memory"
-    );
+	stwcx. %2,0,%1\n\
+	bne-   1b\n\
+	isync"
+	: "=&r" (temp)
+	: "r" (target), "r" (value)
+	: "cc", "memory"
+	);
     return temp;
 }
 
@@ -223,14 +225,14 @@ int pincrement(int* target)
     int temp;
     __asm__ __volatile (
 "1: lwarx  %0,0,%1\n\
-    addic  %0,%0,1\n\
-    stwcx. %0,0,%1\n\
-    bne-   1b\n\
-    isync"
-    : "=&r" (temp)
-    : "r" (target)
-    : "cc", "memory"
-    );
+	addic  %0,%0,1\n\
+	stwcx. %0,0,%1\n\
+	bne-   1b\n\
+	isync"
+	: "=&r" (temp)
+	: "r" (target)
+	: "cc", "memory"
+	);
     return temp;
 }
 
@@ -240,16 +242,60 @@ int pdecrement(int* target)
     int temp;
     __asm__ __volatile (
 "1: lwarx  %0,0,%1\n\
-    addic  %0,%0,-1\n\
-    stwcx. %0,0,%1\n\
-    bne-   1b\n\
-    isync"
-    : "=&r" (temp)
-    : "r" (target)
-    : "cc", "memory"
-    );
+	addic  %0,%0,-1\n\
+	stwcx. %0,0,%1\n\
+	bne-   1b\n\
+	isync"
+	: "=&r" (temp)
+	: "r" (target)
+	: "cc", "memory"
+	);
     return temp;
 }
+
+
+#elif defined GCC_sparc
+
+//
+// GNU C compiler on SPARC in 32-bit mode (pointers are 32-bit)
+//
+
+// assembly routines defined in patomic.sparc.s
+// we currently don't use CAS in the library, but let it be there
+extern "C" {
+    int __patomic_add(volatile int* __mem, int __val);
+    int __patomic_swap(volatile int* __mem, int __val);
+    int __patomic_cas(volatile int* __mem, int __expected, int __newval);
+}
+
+#define __patomic_swap_p(mem,val) \
+    (void*)(__patomic_swap((int*)(mem), (int)(val)))
+
+
+int pexchange(int* target, int value)
+{
+    return __patomic_swap(target, value);
+}
+
+
+void* pexchange(void** target, void* value)
+{
+    return __patomic_swap_p(target, value);
+}
+
+
+int pincrement(int* target)
+{
+    return __patomic_add(target, 1);
+}
+
+
+int pdecrement(int* target)
+{
+    return __patomic_add(target, -1);
+}
+
+
 
 
 #else

@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -145,7 +145,7 @@ void namedpipe::set_pipename(const char* newvalue)
 }
 
 
-int namedpipe::doseek(int, ioseekmode)
+large namedpipe::doseek(large, ioseekmode)
 {
     return -1;
 }
@@ -191,26 +191,26 @@ retry:
 #else
     if (svhandle != invhandle)
     {
-    if ((handle = ::accept(svhandle, 0, 0)) < 0)
-        error(uerrno(), "Couldn't create local socket");
+	if ((handle = ::accept(svhandle, 0, 0)) < 0)
+	    error(uerrno(), "Couldn't create local socket");
     }
-
+    
     else
     {
         sockaddr_un sa;
-    if (!setupsockaddr(pipename, &sa))
-            error(ERANGE, "Socket name too long");
+	if (!setupsockaddr(pipename, &sa))
+    	    error(ERANGE, "Socket name too long");
 
         // cteate a client socket
-    if ((handle = ::socket(sa.sun_family, SOCK_STREAM, 0)) < 0)
-            error(uerrno(), "Couldn't create local socket");
+	if ((handle = ::socket(sa.sun_family, SOCK_STREAM, 0)) < 0)
+    	    error(uerrno(), "Couldn't create local socket");
 
         // ... and connect to the local socket
-    if (::connect(handle, (sockaddr*)&sa, sizeof(sa)) < 0)
-    {
-            int e = uerrno();
+	if (::connect(handle, (sockaddr*)&sa, sizeof(sa)) < 0)
+	{
+    	    int e = uerrno();
             doclose();
-        error(e, "Couldn't connect to local socket");
+	    error(e, "Couldn't connect to local socket");
         }
     }
 
@@ -225,7 +225,7 @@ int namedpipe::dorawread(char* buf, int count)
     unsigned long ret = uint(-1);
     ovr.Offset = 0;
     ovr.OffsetHigh = 0;
-    if (!ReadFile(HANDLE(handle), buf, count, &ret, &ovr))
+    if (!ReadFile(HANDLE(handle), buf, count, &ret, &ovr)) 
     {
         if (GetLastError() == ERROR_IO_PENDING)
         {
@@ -269,7 +269,7 @@ void namedpipe::doclose()
 {
 #ifdef WIN32
     if (svhandle != invhandle)
-        DisconnectNamedPipe(HANDLE(handle));
+        DisconnectNamedPipe(HANDLE(handle)); 
 #endif
     svhandle = invhandle;
     fdxstm::doclose();

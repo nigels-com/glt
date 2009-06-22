@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -23,7 +23,7 @@ PTYPES_BEGIN
 const int strrecsize = sizeof(_strrec);
 
 
-static void stringoverflow()
+static void stringoverflow() 
 {
     fatal(CRIT_FIRST + 21, "String overflow");
 }
@@ -44,13 +44,13 @@ char*  emptystr = emptystrbuf + strrecsize;
 string nullstring;
 
 
-inline int quantize(int numchars)
+inline int quantize(int numchars) 
 {
-    return memquantize(numchars + 1 + strrecsize);
+	return memquantize(numchars + 1 + strrecsize);
 }
 
 
-void string::_alloc(int numchars)
+void string::_alloc(int numchars) 
 {
     if (numchars <= 0)
         stringoverflow();
@@ -65,7 +65,7 @@ void string::_alloc(int numchars)
 }
 
 
-void string::_realloc(int numchars)
+void string::_realloc(int numchars) 
 {
     if (numchars <= 0 || STR_LENGTH(data) <= 0)
         stringoverflow();
@@ -92,18 +92,18 @@ inline void _freestrbuf(char* data)
 }
 
 
-void string::_free()
+void string::_free() 
 {
     _freestrbuf(data);
     data = emptystr;
 }
 
 
-void string::initialize(const char* sc, int initlen)
+void string::initialize(const char* sc, int initlen) 
 {
     if (initlen <= 0 || sc == nil)
-        data = emptystr;
-    else
+        data = emptystr; 
+    else 
     {
         _alloc(initlen);
         memmove(data, sc, initlen);
@@ -111,13 +111,13 @@ void string::initialize(const char* sc, int initlen)
 }
 
 
-void string::initialize(const char* sc)
+void string::initialize(const char* sc) 
 {
     initialize(sc, hstrlen(sc));
 }
 
 
-void string::initialize(char c)
+void string::initialize(char c) 
 {
     _alloc(1);
     data[0] = c;
@@ -135,7 +135,7 @@ void string::initialize(const string& s)
 }
 
 
-void string::finalize()
+void string::finalize() 
 {
     if (STR_LENGTH(data) != 0)
     {
@@ -211,7 +211,7 @@ char* ptdecl setlength(string& s, int newlen)
 }
 
 
-void string::assign(const char* sc, int initlen)
+void string::assign(const char* sc, int initlen) 
 {
     if (STR_LENGTH(data) > 0 && initlen > 0 && STR_REFCOUNT(data) == 1)
     {
@@ -230,19 +230,19 @@ void string::assign(const char* sc, int initlen)
 }
 
 
-void string::assign(const char* sc)
+void string::assign(const char* sc) 
 {
     assign(sc, hstrlen(sc));
 }
 
 
-void string::assign(char c)
+void string::assign(char c) 
 {
     assign(&c, 1);
 }
 
 
-void string::assign(const string& s)
+void string::assign(const string& s) 
 {
     if (data != s.data)
     {

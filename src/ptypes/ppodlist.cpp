@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -51,7 +51,7 @@ void _podlist::grow()
 {
     if (capacity > count)
         return;
-    set_capacity(capacity == 0 ? 4 : (capacity / 2) * 3);
+    set_capacity(capacity == 0 ? 4 : ((capacity + 1) / 2) * 3);
 }
 
 
@@ -69,7 +69,7 @@ void _podlist::set_count(int newcount, bool zero)
     {
         if (newcount < 0)
             // wrong newcount: we don't want to generate an error here.
-            // instead, we'll set count to 0 and wait until some other
+            // instead, we'll set count to 0 and wait until some other 
             // operation raises an error
             newcount = 0;
         count = newcount;

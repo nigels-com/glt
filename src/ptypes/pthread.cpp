@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -35,6 +35,8 @@ thread::thread(bool iautofree)
 
 thread::~thread()
 {
+    if (pexchange(&freed, 1) != 0)
+        return;
 #ifdef WIN32
     if (autofree)
         // MSDN states this is not necessary, however, without closing
@@ -44,7 +46,7 @@ thread::~thread()
     // though we require non-autofree threads to always call waitfor(),
     // the statement below is provided to cleanup thread resources even
     // if waitfor() was not called.
-    if (!autofree && pexchange(&freed, 1) == 0)
+    if (!autofree && running)
         pthread_detach(handle);
 #endif
 }
@@ -82,7 +84,7 @@ void thread::waitfor()
 unsigned _stdcall _threadproc(void* arg)
 {
 #else
-void* _threadproc(void* arg)
+void* _threadproc(void* arg) 
 {
 #endif
     thread* thr = (thread*)arg;
@@ -91,7 +93,7 @@ void* _threadproc(void* arg)
         // start() does not assign the handle for autofree threads
         thr->handle = pthread_self();
 #endif
-    try
+    try 
     {
         thr->execute();
     }
@@ -133,7 +135,7 @@ void thread::start()
         pthread_t temp_handle;
         pthread_attr_t attr;
         pthread_attr_init(&attr);
-        pthread_attr_setdetachstate(&attr,
+        pthread_attr_setdetachstate(&attr, 
             autofree ? PTHREAD_CREATE_DETACHED : PTHREAD_CREATE_JOINABLE);
         if (pthread_create(autofree ? &temp_handle : &handle,
                 &attr, _threadproc, this) != 0)

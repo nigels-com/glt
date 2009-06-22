@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -112,16 +112,16 @@ bool _objlist::search(const void* key, int& index) const
     bool ret = false;
     l = 0;
     h = count - 1;
-    while (l <= h)
+    while (l <= h) 
     {
         i = (l + h) / 2;
         c = compare(key, doget(i));
         if (c > 0)
             l = i + 1;
-        else
+        else 
         {
             h = i - 1;
-            if (c == 0)
+            if (c == 0) 
             {
                 ret = true;
                 if (!config.duplicates)

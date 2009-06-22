@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -103,6 +103,7 @@ void ipsvbase::open()
         b->handle = ::socket(AF_INET, socktype, 0);
         if (b->handle < 0)
             error(*b, usockerrno(), "Couldn't create socket");
+        sockopt(b->handle);
         dobind(b);
     }
 }
@@ -134,7 +135,7 @@ bool ipsvbase::dopoll(int* i, int timeout)
             return true;
         // if the user selected -1 (all), find the socket which has a pending connection
         // and assign it to i
-        for (int j = 0; j < addrlist.get_count(); j++)
+        for (int j = 0; j < addrlist.get_count(); j++)   
             if (FD_ISSET(uint(addrlist[j]->handle), &set))
             {
                 *i = j;
@@ -165,6 +166,11 @@ void ipsvbase::setupfds(void* set, int i)
             if (h >= 0)
                 FD_SET((uint)h, (fd_set*)set);
         }
+}
+
+
+void ipsvbase::sockopt(int)
+{
 }
 
 

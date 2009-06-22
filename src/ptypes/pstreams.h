@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -55,7 +55,7 @@ PTYPES_BEGIN
 
 class iobase;
 
-class ptpublic estream: public exception
+class ptpublic estream: public exception 
 {
 protected:
     int code;
@@ -92,7 +92,7 @@ const int IO_CLOSED = 253;
 // iobase
 //
 
-enum ioseekmode
+enum ioseekmode 
 {
     IO_BEGIN,
     IO_CURRENT,
@@ -103,7 +103,7 @@ enum ioseekmode
 const int invhandle = -1;
 
 
-class ptpublic iobase: public component
+class ptpublic iobase: public component 
 {
     friend class fdxoutstm;
 
@@ -112,7 +112,7 @@ protected:
     bool    cancelled;      // the stream was cancelled by cancel()
     bool    eof;            // end of file reached, only for input streams
     int     handle;         // used in many derivative classes
-    int     abspos;         // physical stream position
+    large   abspos;         // physical stream position
     int     bufsize;        // buffer size, can be changed only when not active
     char*   bufdata;        // internal: allocated buffer data
     int     bufpos;         // internal: current position
@@ -130,10 +130,11 @@ protected:
     void errbufrequired();
     void requireactive()        { if (!active) errstminactive(); }
     void requirebuf()           { requireactive(); if (bufdata == 0) errbufrequired(); }
+    int  convertoffset(large);
 
     virtual void doopen() = 0;
     virtual void doclose();
-    virtual int  doseek(int newpos, ioseekmode mode);
+    virtual large doseek(large newpos, ioseekmode mode);
 
     virtual void chstat(int newstat);
     virtual int uerrno();
@@ -147,7 +148,8 @@ public:
     void close();
     void cancel();
     void reopen()                                   { open(); }
-    int  seek(int newpos, ioseekmode mode = IO_BEGIN);
+    large seekx(large newpos, ioseekmode mode = IO_BEGIN);
+    int seek(int newpos, ioseekmode mode = IO_BEGIN) { return convertoffset(seekx(newpos, mode)); }
     void error(int code, const char* defmsg);
     virtual void flush();
 
@@ -180,7 +182,7 @@ ptpublic extern int stmbalance;
 
 const char eofchar = 0;
 
-class ptpublic instm: public iobase
+class ptpublic instm: public iobase 
 {
 protected:
     virtual int dorawread(char* buf, int count);
@@ -210,8 +212,10 @@ public:
     int skip(int count);
     int skiptoken(const cset& chars);
     void skipline(bool eateol = true);
-    int tell();
-    int seek(int newpos, ioseekmode mode = IO_BEGIN);
+    large tellx();
+    int tell()  { return convertoffset(tellx()); }
+    large seekx(large newpos, ioseekmode mode = IO_BEGIN);
+    int seek(int newpos, ioseekmode mode = IO_BEGIN)   { return convertoffset(seekx(newpos, mode)); }
 };
 typedef instm* pinstm;
 
@@ -220,7 +224,7 @@ typedef instm* pinstm;
 // outstm - abstract output stream
 //
 
-class ptpublic outstm: public iobase
+class ptpublic outstm: public iobase 
 {
 protected:
     bool flusheol;
@@ -228,7 +232,7 @@ protected:
     virtual int dorawwrite(const char* buf, int count);
     int rawwrite(const char* buf, int count);
     virtual void bufvalidate();
-    void bufadvance(int delta)
+    void bufadvance(int delta)  
         { bufpos += delta; if (bufend < bufpos) bufend = bufpos; }
     bool canwrite();
 
@@ -250,9 +254,11 @@ public:
     void putline(const char* str);
     void putline(const string& str);
     void puteol();
-    int  write(const void* buf, int count);
-    int  tell()                      { return abspos + bufpos; }
-    int  seek(int newpos, ioseekmode mode = IO_BEGIN);
+    int write(const void* buf, int count);
+    large tellx()                   { return abspos + bufpos; }
+    int tell()                      { return convertoffset(tellx()); }
+    large seekx(large newpos, ioseekmode mode = IO_BEGIN);
+    int seek(int newpos, ioseekmode mode = IO_BEGIN)  { return convertoffset(seekx(newpos, mode)); }
 };
 typedef outstm* poutstm;
 
@@ -266,7 +272,8 @@ ptpublic extern char* longtimefmt;   // "%a %b %d %X %Y"
 // internal class used in fdxstm
 //
 
-class fdxstm;
+class ptpublic fdxstm;
+
 
 class ptpublic fdxoutstm: public outstm
 {
@@ -314,7 +321,8 @@ public:
     void close();
     void cancel();
     virtual void flush();
-    int tell(bool);         // true for input and false for output
+    large tellx(bool);      // true for input and false for output
+    int tell(bool forin)                    { return convertoffset(tellx(forin)); }
 
     // output interface: pretend this class is derived both
     // from instm and outstm. actually we can't use multiple
@@ -331,7 +339,7 @@ public:
     bool get_flusheol()                     { return out.get_flusheol(); }
     void set_flusheol(bool newval)          { out.set_flusheol(newval); }
 
-    operator outstm&()              { return out; }
+    operator outstm&()			            { return out; }
 };
 
 
@@ -339,7 +347,7 @@ public:
 // abstract input filter class
 //
 
-class ptpublic infilter: public instm
+class ptpublic infilter: public instm 
 {
 protected:
     instm*   stm;
@@ -399,7 +407,7 @@ public:
 // inmemory - memory stream
 //
 
-class ptpublic inmemory: public instm
+class ptpublic inmemory: public instm 
 {
 protected:
     string mem;
@@ -408,15 +416,16 @@ protected:
     virtual void bufvalidate();
     virtual void doopen();
     virtual void doclose();
-    virtual int  doseek(int newpos, ioseekmode mode);
-    virtual int  dorawread(char* buf, int count);
+    virtual large doseek(large newpos, ioseekmode mode);
+    virtual int dorawread(char* buf, int count);
 
 public:
     inmemory(const string& imem);
     virtual ~inmemory();
     virtual int classid();
     virtual string get_streamname();
-    int seek(int newpos, ioseekmode mode = IO_BEGIN);
+    large seekx(large newpos, ioseekmode mode = IO_BEGIN);
+    int seek(int newpos, ioseekmode mode = IO_BEGIN)  { return convertoffset(seekx(newpos, mode)); }
     string get_strdata()  { return mem; }
     void set_strdata(const string& data);
 };
@@ -426,27 +435,25 @@ public:
 // outmemory - memory stream
 //
 
-class ptpublic outmemory: public outstm
+class ptpublic outmemory: public outstm 
 {
 protected:
     string mem;
     int limit;
-    int increment;      // deprecated
 
     virtual void doopen();
     virtual void doclose();
-    virtual int  doseek(int newpos, ioseekmode mode);
-    virtual int  dorawwrite(const char* buf, int count);
+    virtual large doseek(large newpos, ioseekmode mode);
+    virtual int dorawwrite(const char* buf, int count);
 
 public:
-    outmemory(int limit = -1, int increment = 0);      // increment is deprecated
+    outmemory(int limit = -1);
     virtual ~outmemory();
     virtual int classid();
     virtual string get_streamname();
-    int tell()               { return abspos; }
+    large tellx()               { return abspos; }
+    int tell()                  { return (int)abspos; }
     string get_strdata();
-
-    const char* get_data()   { return pconst(mem); }    // deprecated
 };
 
 
@@ -578,7 +585,7 @@ public:
 
 
 // on Unix this directory can be overridden by providing the
-// full path, e.g. '/var/run/mypipe'. the path is ignored on
+// full path, e.g. '/var/run/mypipe'. the path is ignored on 
 // Windows and is always replaced with '\\<server>\pipe\'
 
 #ifndef WIN32
@@ -621,7 +628,7 @@ protected:
 
     virtual void doopen();
     virtual void doclose();
-    virtual int  doseek(int, ioseekmode);
+    virtual large doseek(large, ioseekmode);
 
 public:
     namedpipe();
@@ -684,9 +691,9 @@ typedef unsigned int md5_word_t; /* 32-bit word */
 
 typedef struct md5_state_s
 {
-    md5_word_t count[2];    /* message length in bits, lsw first */
-    md5_word_t abcd[4];     /* digest buffer */
-    md5_byte_t buf[64];     /* accumulate block */
+    md5_word_t count[2];	/* message length in bits, lsw first */
+    md5_word_t abcd[4];		/* digest buffer */
+    md5_byte_t buf[64];		/* accumulate block */
 } md5_state_t;
 
 
@@ -703,7 +710,7 @@ protected:
 public:
     outmd5(outstm* istm = nil);
     virtual ~outmd5();
-
+    
     virtual string get_streamname();
 
     const unsigned char* get_bindigest()  { close(); return digest; }
@@ -737,7 +744,7 @@ public:
 #ifdef _MSC_VER
 // disable "type name first seen using 'struct' now seen using 'class'" warning
 #  pragma warning (disable: 4099)
-// disable "class '...' needs to have dll-interface to be used by clients of class
+// disable "class '...' needs to have dll-interface to be used by clients of class 
 // '...'" warning, since the compiler may sometimes give this warning incorrectly.
 #  pragma warning (disable: 4251)
 #endif

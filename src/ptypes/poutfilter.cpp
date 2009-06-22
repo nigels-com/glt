@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -32,9 +32,9 @@ outfilter::~outfilter()
 }
 
 
-void outfilter::freenotify(component* sender)
+void outfilter::freenotify(component* sender) 
 {
-    if (sender == stm)
+    if (sender == stm) 
     {
         stm = nil;
         close();
@@ -42,19 +42,19 @@ void outfilter::freenotify(component* sender)
 }
 
 
-void outfilter::doopen()
+void outfilter::doopen() 
 {
     if (stm != nil && !stm->get_active())
         stm->open();
 }
 
 
-void outfilter::doclose()
+void outfilter::doclose() 
 {
 }
 
 
-string outfilter::get_errstmname()
+string outfilter::get_errstmname() 
 {
     if (stm == nil)
         return get_streamname();
@@ -63,7 +63,7 @@ string outfilter::get_errstmname()
 }
 
 
-void outfilter::set_stm(outstm* istm)
+void outfilter::set_stm(outstm* istm) 
 {
     close();
     if (stm != nil)

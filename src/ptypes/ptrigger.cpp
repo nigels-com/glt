@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -72,9 +72,9 @@ void trigger::wait()
     while (state == 0)
         pthread_cond_wait(&cond, &mtx);
     if (autoreset)
-    state = 0;
+	state = 0;
     pthread_mutex_unlock(&mtx);
-}
+} 
 
 
 void trigger::post()

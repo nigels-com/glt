@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -63,7 +63,7 @@ void unit_thread::execute()
 //
 
 unit::unit()
-    : component(), pipe_next(nil), main_thread(nil),
+    : component(), pipe_next(nil), main_thread(nil), 
       running(0), uin(&pin), uout(&pout)
 {
 }
@@ -159,7 +159,7 @@ void unit::run(bool async)
 
     if (main_thread != nil)
         fatal(CRIT_FIRST + 60, "Unit already running");
-
+    
     if (pipe_next != nil)
         pipe_next->run(true);
 

@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -24,7 +24,7 @@
 PTYPES_BEGIN
 
 
-static void ptdecl defhandler(int code, const char* msg)
+static void ptdecl defhandler(int code, const char* msg) 
 {
 #ifdef CRIT_MSGBOX
     char buf[2048];
@@ -38,13 +38,13 @@ static void ptdecl defhandler(int code, const char* msg)
 static _pcrithandler crith = defhandler;
 
 
-_pcrithandler ptdecl getcrithandler()
+_pcrithandler ptdecl getcrithandler() 
 {
     return crith;
 }
 
 
-_pcrithandler ptdecl setcrithandler(_pcrithandler newh)
+_pcrithandler ptdecl setcrithandler(_pcrithandler newh) 
 {
     _pcrithandler ret = crith;
     crith = newh;

@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -17,7 +17,7 @@
 PTYPES_BEGIN
 
 
-string infilter::get_errstmname()
+string infilter::get_errstmname() 
 {
     if (stm == nil)
         return get_streamname();
@@ -26,10 +26,10 @@ string infilter::get_errstmname()
 }
 
 
-void infilter::copytobuf(string& s)
+void infilter::copytobuf(string& s) 
 {
     int n = imin(savecount, length(s));
-    if (n > 0)
+    if (n > 0) 
     {
         memcpy(savebuf, pconst(s), n);
         savebuf += n;
@@ -42,10 +42,10 @@ void infilter::copytobuf(string& s)
 }
 
 
-void infilter::copytobuf(pconst& buf, int& count)
+void infilter::copytobuf(pconst& buf, int& count) 
 {
     int n = imin(savecount, count);
-    if (n > 0)
+    if (n > 0) 
     {
         memcpy(savebuf, buf, n);
         savebuf += n;
@@ -56,7 +56,7 @@ void infilter::copytobuf(pconst& buf, int& count)
 }
 
 
-bool infilter::copytobuf(char c)
+bool infilter::copytobuf(char c) 
 {
     if (savecount > 0) {
         *savebuf = c;
@@ -70,23 +70,23 @@ bool infilter::copytobuf(char c)
 
 
 infilter::infilter(instm* istm, int ibufsize)
-    : instm(ibufsize), stm(istm), savebuf(nil), savecount(0)
+    : instm(ibufsize), stm(istm), savebuf(nil), savecount(0)  
 {
     if (stm != nil)
         stm->addnotification(this);
 }
 
 
-infilter::~infilter()
+infilter::~infilter() 
 {
     if (stm != nil)
         stm->delnotification(this);
 }
 
 
-void infilter::freenotify(component* sender)
+void infilter::freenotify(component* sender) 
 {
-    if (sender == stm)
+    if (sender == stm) 
     {
         stm = nil;
         close();
@@ -94,14 +94,14 @@ void infilter::freenotify(component* sender)
 }
 
 
-void infilter::doopen()
+void infilter::doopen() 
 {
     if (stm != nil && !stm->get_active())
         stm->open();
 }
 
 
-void infilter::doclose()
+void infilter::doclose() 
 {
     savebuf = nil;
     savecount = 0;
@@ -109,7 +109,7 @@ void infilter::doclose()
 }
 
 
-void infilter::set_stm(instm* istm)
+void infilter::set_stm(instm* istm) 
 {
     close();
     if (stm != nil)
@@ -120,7 +120,7 @@ void infilter::set_stm(instm* istm)
 }
 
 
-int infilter::dorawread(char* buf, int count)
+int infilter::dorawread(char* buf, int count) 
 {
     savebuf = buf;
     savecount = count;
@@ -132,9 +132,9 @@ int infilter::dorawread(char* buf, int count)
 }
 
 
-void infilter::post(const char* buf, int count)
+void infilter::post(const char* buf, int count) 
 {
-    if (count > 0)
+    if (count > 0) 
     {
         copytobuf(buf, count);
         if (count > 0)
@@ -143,9 +143,9 @@ void infilter::post(const char* buf, int count)
 }
 
 
-void infilter::post(string s)
+void infilter::post(string s) 
 {
-    if (!isempty(s))
+    if (!isempty(s)) 
     {
         copytobuf(s);
         if (!isempty(s))
@@ -154,13 +154,13 @@ void infilter::post(string s)
 }
 
 
-void infilter::post(const char* s)
+void infilter::post(const char* s) 
 {
     post(s, strlen(s));
 }
 
 
-void infilter::post(char c)
+void infilter::post(char c) 
 {
     if (!copytobuf(c))
         concat(postponed, c);

@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -64,10 +64,10 @@ void ipstmserver::dobind(ipbindinfo* b)
     sa.sin_family = AF_INET;
     sa.sin_port = htons(ushort(b->get_port()));
     sa.sin_addr.s_addr = b->get_ip();
-
+    
     if (::bind(b->handle, (sockaddr*)&sa, sizeof(sa)) != 0)
         error(*b, usockerrno(), "Couldn't bind address");
-
+    
     if (::listen(b->handle, SOMAXCONN) != 0)
         error(*b, usockerrno(), "Couldn't listen on socket");
 }

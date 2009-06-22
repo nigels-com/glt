@@ -1,9 +1,9 @@
 /*
  *
  *  C++ Portable Types Library (PTypes)
- *  Version 2.0.2  Released 17-May-2004
+ *  Version 2.1.1  Released 27-Jun-2007
  *
- *  Copyright (C) 2001-2004 Hovik Melikyan
+ *  Copyright (C) 2001-2007 Hovik Melikyan
  *
  *  http://www.melikyan.com/ptypes/
  *
@@ -233,8 +233,8 @@ void variant::assign(double v)          { finalize(); initialize(v); }
 void variant::assign(const char* v)     { finalize(); initialize(v); }
 
 
-void variant::assign(const string& v)
-{
+void variant::assign(const string& v)   
+{ 
     if (tag == VAR_STRING)
         PTR_TO_STRING(value.s) = v;
     else
@@ -350,7 +350,7 @@ variant::operator large() const
     case VAR_INT: return value.i;
     case VAR_BOOL: return int(value.b);
     case VAR_FLOAT: return int(value.f);
-    case VAR_STRING:
+    case VAR_STRING: 
         {
             const char* p = PTR_TO_STRING(value.s);
             bool neg = *p == '-';
@@ -395,7 +395,7 @@ variant::operator double() const
     case VAR_INT: return double(value.i);
     case VAR_BOOL: return int(value.b);
     case VAR_FLOAT: return value.f;
-    case VAR_STRING:
+    case VAR_STRING: 
         {
             char* e;
             double t = strtod(PTR_TO_STRING(value.s), &e);
@@ -440,7 +440,7 @@ variant::operator string() const
     // handle variant::operator string() pretty well, while gcc 3.3 requires
     // to explicitly declare a constructor string::string(const variant&).
     // ironically, the presence of both the typecast operator and the constructor
-    // confuses the MSVC compiler. so the only thing we can do to please all
+    // confuses the MSVC compiler. so the only thing we can do to please all 
     // those compilers [that "move towards the c++ standard"] is to conditionally
     // exclude the constructor string(const variant&). and this is not the whole
     // story. i see you are bored with it and i let you go. nobody would ever care
