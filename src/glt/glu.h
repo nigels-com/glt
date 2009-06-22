@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: glu.h,v 2.2 2007/05/06 16:46:24 nigels Exp $ */
+/* $Id: glu.h,v 2.3 2009/06/22 05:03:21 nigels Exp $ */
 
 /*! \file
     \brief   GLU (proxy) header file
@@ -36,6 +36,10 @@
 #include <glt/config.h>
 #include <glt/gl.h>
 
+#if defined(__APPLE__)
+#include <OpenGL/GLU.h>
+#else
 #include <GL/glu.h>
+#endif
 
 #endif

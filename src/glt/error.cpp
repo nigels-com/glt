@@ -1,4 +1,4 @@
-/* $Id: error.cpp,v 2.4 2007/08/14 04:04:12 nigels Exp $ */
+/* $Id: error.cpp,v 2.5 2009/06/22 05:03:21 nigels Exp $ */
 
 #include "error.h"
 
@@ -21,7 +21,7 @@ using namespace std;
 
 #include <cstdarg>
 
-#ifdef GLT_UNIX
+#if defined(GLT_UNIX) && !defined(__APPLE__)
 #include <GL/glx.h>
 #endif
 
@@ -59,7 +59,11 @@ gltCurrentContext()
     #endif
 
     #ifdef GLT_UNIX
+    #ifdef __APPLE__
+    return true;
+    #else
     return glXGetCurrentContext()!=NULL;
+    #endif
     #endif
 
     return false;

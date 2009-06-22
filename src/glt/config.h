@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: config.h,v 2.6 2007/08/14 04:03:28 nigels Exp $ */
+/* $Id: config.h,v 2.7 2009/06/22 05:03:21 nigels Exp $ */
 
 /*! \file
     \brief GLT Configuration File
@@ -85,13 +85,23 @@
 #endif
 
 //
-// iMac OSX Config
+// Mac OSX PPC Config
 //
 
 #if defined(__APPLE__) && defined(__ppc__)
 #define GLT_UNIX
 #define GLT_DARWIN
 #define GLT_BIG_ENDIAN
+#endif
+
+//
+// Mac OSX Intel Config
+//
+
+#if defined(__APPLE__) && !defined(__ppc__)
+#define GLT_UNIX
+#define GLT_DARWIN
+#define GLT_LITTLE_ENDIAN
 #endif
 
 //

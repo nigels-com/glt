@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: gl.h,v 2.5 2007/08/14 04:04:42 nigels Exp $ */
+/* $Id: gl.h,v 2.6 2009/06/22 05:03:21 nigels Exp $ */
 
 /*! \file
     \brief   OpenGL (proxy) header file
@@ -47,6 +47,11 @@
 #endif
 
 #include <GL/glew.h>
+
+#if defined(__APPLE__)
+#include <OpenGL/OpenGL.h>
+#else
 #include <GL/gl.h>
+#endif
 
 #endif

@@ -3,7 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: countsrf.cpp,v 2.2 2009/05/09 20:20:13 nigels Exp $
+    $Id: countsrf.cpp,v 2.3 2009/06/22 05:03:21 nigels Exp $
 */
 
 #include <glt/rgb.h>
@@ -233,7 +233,7 @@ stencilMax(const GLuint min, const GLuint max)
     //
 
     GLuint begin = min;
-    GLuint end   = std::min(max,255u);
+    GLuint end   = std::min<GLuint>(max,255);
 
     //
 
