@@ -1,3 +1,5 @@
+IF (APPLE)
+ELSE (APPLE)
 IF (WIN32)
 FILE(GLOB SOURCES .
 glut_cindex.c  glut_event.c     glut_gamemode.c  glut_hel18.c
@@ -21,3 +23,5 @@ glut_bwidth.c   glut_dstr.c    glut_fullscrn.c  glut_hel12.c     glut_key.c    g
 )
 ENDIF (WIN32)
 ADD_LIBRARY(glut ${SOURCES})
+ENDIF (APPLE)
+
