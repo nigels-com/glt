@@ -566,8 +566,12 @@ GlutMaster::CheckOnOpen(int val)
         #endif
 
         glutSetWindow(id);
-        window->OnPreOpen();             // Do GlutMaster housekeeping first
-        window->OnOpen();
+        if (window->_onOpenPending)
+        {
+          window->OnPreOpen();             // Do GlutMaster housekeeping first
+          window->OnOpen();
+          window->_onOpenPending = false;
+        }
         setTick(window,window->_tick);
         _toOpen.pop_front();
     }
@@ -662,14 +666,27 @@ GlutMaster::OnDisplay()
     GlutWindow *window = currentWindow();
 
     assert(_glutInit);
+    
+    #ifndef __APPLE__
     assert(window);
-
+    #endif
+    
     #ifdef GLUTM_DEBUG
     cout << DEBUG_TITLE("GlutMaster::OnDisplay") << window << endl;
     #endif
 
     if (window)
     {
+        // On OSX, GLUT call redisplay ahead of timer function
+        // that would call GlutMaster::CheckOnOpen
+        
+        if (window->_onOpenPending)
+        {
+          window->OnPreOpen();             // Do GlutMaster housekeeping first
+          window->OnOpen();
+          window->_onOpenPending = false;
+        }
+
         window->OnPreDisplay();
         window->OnDisplay();
         window->OnPostDisplay();

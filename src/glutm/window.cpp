@@ -28,6 +28,7 @@ GlutWindow::GlutWindow(const std::string &title,const int width,const int height
   _shiftModifier(false),
   _ctrlModifier(false),
   _altModifier(false),
+  _onOpenPending(true),
   _x(x),
   _y(y),
   _width(width),

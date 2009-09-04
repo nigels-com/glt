@@ -387,6 +387,8 @@ private:
     bool _ctrlModifier;             ///< Control keyboard modifier
     bool _altModifier;              ///< Alt keyboard modifier
 
+    bool _onOpenPending;            ///< Has the window been initialised yet?
+    
     // These are used each time open() is called
 
     int          _x,_y;
