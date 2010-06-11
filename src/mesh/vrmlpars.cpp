@@ -500,6 +500,7 @@ char     *sval;
 
 
 #include <iostream>
+#include <cstdlib>
 #include <cassert>
 #include <vector>
 using namespace std;

@@ -5,7 +5,7 @@
     \ingroup Misc
 */
 
-/* $Id: jpeg.cpp,v 2.4 2009/06/22 04:43:57 nigels Exp $ */
+/* $Id: jpeg.cpp,v 2.5 2010/06/11 18:26:25 nigels Exp $ */
 
 #ifdef GLT_JPEG
 
@@ -16,6 +16,7 @@
 #include <math/real.h>
 
 #include <cassert>
+#include <cstring>
 #include <string>
 #include <list>
 using namespace std;

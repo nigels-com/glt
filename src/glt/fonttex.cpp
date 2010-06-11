@@ -3,11 +3,12 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fonttex.cpp,v 2.3 2006/07/01 13:40:59 nigels Exp $
+    $Id: fonttex.cpp,v 2.4 2010/06/11 18:26:59 nigels Exp $
 */
 
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 #include <cstdio>
 #include <cassert>
 using namespace std;

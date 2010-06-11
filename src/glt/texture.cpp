@@ -3,7 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: texture.cpp,v 2.5 2007/08/24 05:18:04 nigels Exp $
+    $Id: texture.cpp,v 2.6 2010/06/11 18:26:59 nigels Exp $
 */
 
 #include <glt/gl.h>
@@ -16,10 +16,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include <cassert>
+#include <cstring>
 #include <cstdio>
-#include <string>
+
 using namespace std;
 
 //#define DEBUG_THIS 0

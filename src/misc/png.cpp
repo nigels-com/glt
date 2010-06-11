@@ -4,22 +4,11 @@
     \brief   PNG image encoding and decoding
     \ingroup Misc
 
-    $Id: png.cpp,v 2.2 2007/04/22 19:47:37 nigels Exp $
-
-    $Log: png.cpp,v $
-    Revision 2.2  2007/04/22 19:47:37  nigels
-    Extra error checking
-
-    Revision 2.1  2004/02/10 13:43:46  nigels
-    no message
-
-    Revision 1.4  2003/05/10 17:03:46  nigels
-    int -> uint32
-
-    Revision 1.3  2003/03/06 12:34:47  nigels
-    *** empty log message ***
+    $Id: png.cpp,v 2.3 2010/06/11 18:26:25 nigels Exp $
 
 */
+
+#include <cstdlib>
 
 #include <list>
 #include <cassert>

@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cctype>
+#include <cstring>
 
 #include <glutm/window.h>
 #include <glutm/main.h>

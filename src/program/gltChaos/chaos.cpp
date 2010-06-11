@@ -4,6 +4,8 @@
 #include <glt/error.h>
 
 #include <iostream>
+#include <cstring>
+
 using namespace std;
 
 GltRandomDouble<GltRandomLCG> ChaosSystem::_random(-1.2,1.2);

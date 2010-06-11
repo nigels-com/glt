@@ -5,7 +5,7 @@
     \ingroup Misc
 */
 
-/* $Id: string.cpp,v 2.2 2007/08/07 02:31:50 nigels Exp $ */
+/* $Id: string.cpp,v 2.3 2010/06/11 18:26:25 nigels Exp $ */
 
 /*! \example string.cpp
 
@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstdarg>
+#include <cstring>
 
 #include <iostream>
 #include <iomanip>

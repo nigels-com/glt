@@ -3,8 +3,10 @@
 /*! \file
     \ingroup Math
 
-    $Id: umatrix.cpp,v 2.2 2009/05/10 22:02:50 nigels Exp $
+    $Id: umatrix.cpp,v 2.3 2010/06/11 18:30:31 nigels Exp $
 */
+
+#include <cstring>
 
 #include <iostream>
 using namespace std;

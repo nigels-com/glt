@@ -2,6 +2,9 @@
 
 #include "terminal.h"
 
+#include <cstring>
+using namespace std;
+
 GltPlayback::GltPlayback(GltNoteTerminal &terminal,unsigned char *buffer,int size)
 : _terminal(terminal),
   _record(false),

@@ -19,21 +19,7 @@
     \brief   Compression routines
     \ingroup Misc
 
-    $Id: compress.cpp,v 2.1 2004/02/10 13:39:12 nigels Exp $
-
-    $Log: compress.cpp,v $
-    Revision 2.1  2004/02/10 13:39:12  nigels
-    no message
-
-    Revision 1.16  2003/07/29 08:33:19  nigels
-    *** empty log message ***
-
-    Revision 1.15  2003/05/10 17:02:33  nigels
-    *** empty log message ***
-
-    Revision 1.13  2003/03/06 12:34:46  nigels
-    *** empty log message ***
-
+    $Id: compress.cpp,v 2.2 2010/06/11 18:26:25 nigels Exp $
 */
 
 #include <glt/config.h>
@@ -51,6 +37,7 @@ extern "C"
 #endif
 
 #include <cstdio>
+#include <cstring>
 #include <cassert>
 using namespace std;
 

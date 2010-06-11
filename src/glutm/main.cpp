@@ -4,6 +4,8 @@
     \ingroup GlutMaster
 */
 
+#include <cstdlib>
+
 #include <glutm/master.h>
 #include <misc/string.h>
 

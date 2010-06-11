@@ -3,40 +3,13 @@
 /*! \file
     \ingroup Math
 
-    $Id: matrix4.cpp,v 2.2 2004/04/26 02:59:54 nigels Exp $
-
-    $Log: matrix4.cpp,v $
-    Revision 2.2  2004/04/26 02:59:54  nigels
-    Added Matrix destructor
-    Some reformatting of Matrix header
-
-    Revision 2.1  2004/02/16 02:43:16  nigels
-    Added shadow and reflection matrices
-
-    Revision 1.24  2003/10/01 02:34:07  nigels
-    *** empty log message ***
-
-    Revision 1.23  2003/09/16 01:43:44  nigels
-    Added shadow and mirror transformation matrices
-
-    Revision 1.22  2003/07/22 03:58:05  nigels
-    Vector -> Vector3
-    CLAMP -> clamp
-    LERP -> lerp
-
-    Revision 1.21  2003/03/14 09:39:09  nigels
-    *** empty log message ***
-
-    Revision 1.20  2003/03/13 11:36:14  nigels
-    bug fix in non-uniform scale
-
-    Revision 1.19  2003/03/06 12:27:48  nigels
-    Generalised scale to non-uniform
-
+    $Id: matrix4.cpp,v 2.3 2010/06/11 18:30:31 nigels Exp $
 */
 
 #include <cmath>
 #include <cassert>
+#include <cstring>
+
 #include <string>
 #include <iostream>
 #include <iomanip>

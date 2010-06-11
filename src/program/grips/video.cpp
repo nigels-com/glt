@@ -148,7 +148,7 @@ Video::OnReceive(const std::string &data)
         const byte *j = reinterpret_cast<const byte *>(&_image[0]);
 
         for (uint32 k=0; k<_mask.size(); k++)
-            _mask[k] = abs(int32(*(i++)) - int32(*(j++)));
+            _mask[k] = abs(float(int32(*(i++)) - int32(*(j++))));
 //          _mask[k] = *(i++) - *(j++);
     }
     else

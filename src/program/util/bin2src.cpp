@@ -21,7 +21,7 @@
 
 */
 
-/* $Id: bin2src.cpp,v 2.4 2009/05/09 19:09:43 nigels Exp $ */
+/* $Id: bin2src.cpp,v 2.5 2010/06/11 18:27:52 nigels Exp $ */
 
 /*! \file
     \brief   Utility for converting binary data into C/C++ source
@@ -31,7 +31,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+
 #include <cassert>
+#include <cstdlib>
+#include <cstring>
+
 using namespace std;
 
 #include <misc/string.h>

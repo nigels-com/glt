@@ -4,27 +4,14 @@
     \brief   PPM image encoding and decoding
     \ingroup Misc
 
-    $Id: ppm.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
-
-    $Log: ppm.cpp,v $
-    Revision 2.1  2004/02/10 13:43:46  nigels
-    no message
-
-    Revision 1.6  2003/08/25 06:08:32  nigels
-    Improved PPM error handling
-
-    Revision 1.5  2003/05/10 17:04:06  nigels
-    Handle ASCII ppm and pgm
-
-    Revision 1.4  2003/03/06 12:34:47  nigels
-    *** empty log message ***
-
+    $Id: ppm.cpp,v 2.2 2010/06/11 18:26:25 nigels Exp $
 */
 
 #include <misc/string.h>
 #include <glt/error.h>
 
 #include <cassert>
+#include <cstring>
 #include <cstdlib>
 using namespace std;
 

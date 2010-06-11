@@ -3,36 +3,7 @@
 /*! \file
     \ingroup GLT
 
-    $Id: fontasci.cpp,v 2.2 2004/02/16 01:26:18 nigels Exp $
-
-    $Log: fontasci.cpp,v $
-    Revision 2.2  2004/02/16 01:26:18  nigels
-    Whitespace differences
-
-    Revision 2.1  2004/02/12 13:48:56  nigels
-    no message
-
-    Revision 2.0  2004/02/08 19:44:11  nigels
-    Migrate to CVS on sourceforge, revision incremented to 2.0
-
-    Revision 1.2  2004/02/08 14:13:21  jgasseli
-    Sorry, first commit included some minor changes to the Makefiles to make GLT compile without
-    errors on my puter.
-
-    - Jacques.
-
-    Revision 1.16  2003/02/07 09:57:10  nigels
-    Added GltChar and GltString
-
-    Revision 1.15  2002/11/27 00:57:28  nigels
-    expand
-
-    Revision 1.14  2002/11/07 15:40:44  nigels
-    *** empty log message ***
-
-    Revision 1.13  2002/10/09 15:09:38  nigels
-    Added RCS Id and Log tags
-
+    $Id: fontasci.cpp,v 2.3 2010/06/11 18:26:59 nigels Exp $
 
 */
 
@@ -40,7 +11,9 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 #include <cassert>
+
 using namespace std;
 
 GltFontAscii::GltFontAscii(void *data)

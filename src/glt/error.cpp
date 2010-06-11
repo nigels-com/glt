@@ -1,8 +1,11 @@
-/* $Id: error.cpp,v 2.5 2009/06/22 05:03:21 nigels Exp $ */
+/* $Id: error.cpp,v 2.6 2010/06/11 18:26:59 nigels Exp $ */
 
 #include "error.h"
 
 #include <glt/config.h>
+
+#include <cstdio>
+#include <cstring>
 
 #include <string>
 #include <iostream>

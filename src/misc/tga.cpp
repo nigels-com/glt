@@ -6,24 +6,7 @@
 
     \todo Graceful warning/failure
 
-    $Id: tga.cpp,v 2.1 2004/02/10 13:43:46 nigels Exp $
-
-    $Log: tga.cpp,v $
-    Revision 2.1  2004/02/10 13:43:46  nigels
-    no message
-
-    Revision 1.5  2003/08/25 06:09:00  nigels
-    Added RLE indexed support
-
-    Revision 1.4  2003/07/22 03:58:58  nigels
-    *** empty log message ***
-
-    Revision 1.3  2003/05/10 17:04:23  nigels
-    *** empty log message ***
-
-    Revision 1.2  2003/03/06 12:34:47  nigels
-    *** empty log message ***
-
+    $Id: tga.cpp,v 2.2 2010/06/11 18:26:25 nigels Exp $
 */
 
 #include <glt/error.h>
@@ -32,6 +15,7 @@
 #include <misc/string.h>
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
 using namespace std;
 

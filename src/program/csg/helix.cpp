@@ -15,6 +15,7 @@
 #include <node/shapes.h>
 
 #include <iostream>
+#include <cstdlib>
 #include <fstream>
 #include <string>
 #include <vector>
