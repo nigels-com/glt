@@ -1,5 +1,6 @@
 #include <misc/stlutil.h>
 
+#include <cstdlib>
 #include <iostream>
 using namespace std;
 

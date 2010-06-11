@@ -1,6 +1,7 @@
 #include <misc/observer.h>
 
 #include <vector>
+#include <cstdlib>
 #include <iostream>
 using namespace std;
 

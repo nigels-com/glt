@@ -127,8 +127,8 @@ CsgShape::draw() const
             case CSG_DRAW_GROUP:
                 if (_options.groups>0)
                 {
-                    const int n = std::abs(_options.groups);
-                    const int g = std::abs(_options.group)%n;
+                    const int n = std::abs(float(_options.groups));
+                    const int g = int(std::abs(float(_options.group)))%n;
 
                     uint32 k = 0;
                     for (uint32 i=0; i<products(); i++)
