@@ -5,7 +5,7 @@
 
   Glt OpenGL C++ Toolkit (Glt)
   Copyright (C) 2000 Nigel Stewart
-  Email: nigels@nigels.com   WWW: http://www.nigels.com/glt/
+  Email: nigels.com@gmail.com   WWW: http://www.nigels.com/glt/
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public

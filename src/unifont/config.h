@@ -24,11 +24,11 @@
 
 */
 
-/* $Id: config.h,v 2.1 2007/05/10 03:00:51 nigels Exp $ */
+/* $Id: config.h,v 2.2 2010/06/19 17:30:07 nigels Exp $ */
 
 /*! \file
  *  \brief   GLT Unifont Configuration File
- *  \author  Nigel Stewart (nigels@nigels.com)
+ *  \author  Nigel Stewart (nigels.com@gmail.com)
  *  \author  RMIT Dept. Mechanical and Manufacturing Engineering, Australia
  */
 
