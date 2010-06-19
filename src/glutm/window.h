@@ -62,7 +62,7 @@ const unsigned int displayModeDefault = GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE | G
 /*! \class   GlutWindow
     \brief   GLUT window base class
     \ingroup GlutMaster
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
 */
 
 class GlutWindow : public GlutTimer // , GlutInput

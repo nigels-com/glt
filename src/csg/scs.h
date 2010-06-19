@@ -21,7 +21,7 @@
     Computer Graphics, Visualization and Computer Vision'2002 - WSCG 2002,
     Volume II, pp. 437-444
 
-   \author  Nigel Stewart (nigels@nigels.com)
+   \author  Nigel Stewart (nigels.com@gmail.com)
 */
 
 #include <csg/scsseq.h>

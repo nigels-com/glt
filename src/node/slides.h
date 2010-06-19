@@ -26,7 +26,7 @@
 
 /*! \file
     \brief   Slideshow Node
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 
@@ -44,7 +44,7 @@
 
 /*! \class   GltSlides
     \brief   Slideshow
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 

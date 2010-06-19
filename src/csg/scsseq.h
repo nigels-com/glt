@@ -3,7 +3,7 @@
 
 /** \file
  *  \brief SCS (Sequenced Convex Subtraction) Sequence Generation
- *  \author  Nigel Stewart (nigels@nigels.com)
+ *  \author  Nigel Stewart (nigels.com@gmail.com)
  *  \author  RMIT Dept. Mechanical and Manufacturing Engineering, Australia
  *  \author  RMIT School of Computer Science and Information Technology, Australia
  */

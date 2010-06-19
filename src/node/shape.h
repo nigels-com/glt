@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   Scenegraph Leaf Node Base-Class
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 
@@ -50,7 +50,7 @@
 /*! \class   GltShape
     \brief   Scenegraph Node Base-Class
     \ingroup Node
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
 */
 
 class GltShape;

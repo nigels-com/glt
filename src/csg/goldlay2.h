@@ -4,7 +4,7 @@
 /*! \file
  *  \brief   Improved Layered Goldfeather CSG Rendering Algorithm
  *  \ingroup CSG
- *  \author  Nigel Stewart (nigels@nigels.com)
+ *  \author  Nigel Stewart (nigels.com@gmail.com)
  *
  *  Based on the the Layered Goldfeather algorithm,
  *  stencil buffers are saved of intermediate parity
@@ -27,7 +27,7 @@ class CsgInfo;
 /*!
  *  \brief  Improved Layered Goldfeather CSG Rendering Algorithm
  *  \ingroup    CSG
- *  \author Nigel Stewart (nigels@nigels.com)
+ *  \author Nigel Stewart (nigels.com@gmail.com)
  *  \param  sumOfProducts  CSG Tree in sum-of-products form
  *  \param  options        Rendering options
  *  \param  info           Runtime statistics info

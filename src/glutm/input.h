@@ -41,7 +41,7 @@
 /*! \class   GlutInput
     \brief   Base class for GLUT objects that receive keyboard and mouse events
     \ingroup GlutMaster
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
 */
 
 class GlutInput

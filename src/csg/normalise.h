@@ -4,7 +4,7 @@
 /** \file
  *  \brief   CSG Tree Normalisation
  *  \ingroup CSG
- *  \author  Nigel Stewart (nigels@nigels.com)
+ *  \author  Nigel Stewart (nigels.com@gmail.com)
  *  \author  RMIT School of Computer Science and Information Technology
  *  \author  RMIT Department of Mechanical and Manufacturing Engineering
  */

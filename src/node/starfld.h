@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   Starfield Node
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 
@@ -38,7 +38,7 @@
 
 /*! \class   GltStarField
     \brief   Starfield Node
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 

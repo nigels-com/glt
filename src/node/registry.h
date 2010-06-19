@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   Field heirachy based registry
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
     \todo    Make Registry library?  Keybindings?  Scripting?  Undo/Redo?
 */

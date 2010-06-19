@@ -45,7 +45,7 @@
     \class   Timer
     \brief   Elapsed Time Object
     \ingroup Misc
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \note    The precision of this object is limited to the ANSI C macro CLOCKS_PER_SEC
 
     The timer object can be used for measuring elapsed time

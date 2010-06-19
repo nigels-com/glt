@@ -38,7 +38,7 @@
 /*! \class   GlutMaster
     \brief   GlutMaster C++ Wrapper for GLUT event loop
     \ingroup GlutMaster
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
     \author  George Stetten and Korin Crawford (stetten@acpub.duke.edu)
 
     Adapted from original public domain version by George Stetten and

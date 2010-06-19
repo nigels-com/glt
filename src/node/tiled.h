@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   Tiled Texture Viewport Node
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 
@@ -41,7 +41,7 @@ class GltTexture;
 
 /*! \class   GltTextureViewport
     \brief   Tiled Texture Viewport Node
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 

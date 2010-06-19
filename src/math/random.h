@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: random.h,v 2.2 2007/05/06 16:47:28 nigels Exp $ */
+/* $Id: random.h,v 2.3 2010/06/19 17:18:41 nigels Exp $ */
 
 /*! \file
     \brief   Random Number Classes
@@ -84,7 +84,7 @@ private:
     \brief   Multiple LFSR (Linear Feedback Shift Register) generator
     \ingroup Math
     \author  Larry Smith
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \note    Original Pascal implementation from unknown source
 
     This random number generator uses three LFSRs (Linear Feedback Shift Registers)
@@ -259,7 +259,7 @@ private:
 /*! \class   GltRandomSphere
     \brief   Random points on the unit sphere
     \ingroup Math
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
 
       http://www.math.niu.edu/~rusin/known-math/96/sph.rand
 
@@ -339,7 +339,7 @@ private:
 /*! \class   GltRandomOrientation
     \brief   Random orientation matricies in 3D
     \ingroup Math
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
 */
 
 template<class R = GltRandomLFSRMix>

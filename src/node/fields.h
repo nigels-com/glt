@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   Base class for field serialisation/menu system
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
 */
 

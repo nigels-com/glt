@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: umatrix.h,v 2.2 2007/05/06 16:47:28 nigels Exp $ */
+/* $Id: umatrix.h,v 2.3 2010/06/19 17:18:41 nigels Exp $ */
 
 /*! \file
     \brief   4x4 UnMatrix
@@ -43,7 +43,7 @@ class Matrix;
 /*! \enum    UnMatrixField
     \brief   4x4 UnMatrix Field
     \ingroup Math
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \author  Spencer W. Thomas, University of Michigan
     \todo    Replace enums with descriptive class interface.
 */
@@ -72,7 +72,7 @@ typedef enum
 /*! \class   UnMatrix
     \brief   4x4 UnMatrix
     \ingroup Math
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \author  Spencer W. Thomas, University of Michigan
 
     Graphics Gems II - Decomposing a matrix into simple transformations. Pg. 320

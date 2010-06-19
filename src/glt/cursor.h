@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: cursor.h,v 2.2 2007/05/06 16:46:24 nigels Exp $ */
+/* $Id: cursor.h,v 2.3 2010/06/19 17:13:26 nigels Exp $ */
 
 /*! \file
     \brief OpenGL Cursor Interface
@@ -46,7 +46,7 @@ class GltViewport;
     Part of the Glt C++ OpenGL Library
     http://www.nigels.com/glt/
 
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
     \author  RMIT Dept. Mechanical and Manufacturing Engineering, Australia
 */
 

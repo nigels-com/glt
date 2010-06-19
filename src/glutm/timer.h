@@ -42,7 +42,7 @@
 /*! \class   GlutTimer
     \brief   Base class for GLUT objects that receive real-time events
     \ingroup GlutMaster
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
 
     The GlutTimer interface should be inherited by all
     classes that require idle, timer and tick events

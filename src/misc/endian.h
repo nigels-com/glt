@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   Endian conversion routines
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
     \ingroup Misc
     \todo    Endian test program
 */

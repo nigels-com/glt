@@ -4,7 +4,7 @@
 /*! \file
  *  \brief   Layered Goldfeather CSG Rendering Algorithm
  *  \ingroup CSG
- *  \author  Nigel Stewart (nigels@nigels.com)
+ *  \author  Nigel Stewart (nigels.com@gmail.com)
  *  \author  RMIT School of Computer Science and Information Technology
  *  \author  RMIT Department of Mechanical and Manufacturing Engineering
  *
@@ -25,7 +25,7 @@ class CsgInfo;
 /*!
  *  \brief  Layered Goldfeather CSG Rendering Algorithm
  *  \ingroup    CSG
- *  \author Nigel Stewart (nigels@nigels.com)
+ *  \author Nigel Stewart (nigels.com@gmail.com)
  *  \author RMIT School of Computer Science and Information Technology
  *  \author RMIT Department of Mechanical and Manufacturing Engineering
  *  \param  sumOfProducts  CSG Tree in sum-of-products form

@@ -24,11 +24,11 @@
 
 */
 
-/* $Id: string.h,v 2.3 2007/08/07 02:31:50 nigels Exp $ */
+/* $Id: string.h,v 2.4 2010/06/19 17:16:21 nigels Exp $ */
 
 /*! \file
     \brief   string and wstring utility routines
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Misc
     \todo    Implement utf8encode
     \note    The std::wstring class is for 16bit unicode text

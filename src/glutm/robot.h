@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   GLUT Window Event Trigger Class
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
     \ingroup GlutMaster
 */
 
@@ -42,7 +42,7 @@
 /*! \class   GlutRobot
     \brief   GLUT Window Event Trigger Class
     \ingroup GlutMaster
-    \author  Nigel Stewart (nigels@nigels.com)
+    \author  Nigel Stewart (nigels.com@gmail.com)
 
     A robot node will send a menu event to a select window
     when a particular node in the scene-graph expires.

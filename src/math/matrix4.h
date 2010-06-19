@@ -24,7 +24,7 @@
 
 */
 
-/* $Id: matrix4.h,v 2.5 2007/05/06 16:47:28 nigels Exp $ */
+/* $Id: matrix4.h,v 2.6 2010/06/19 17:18:41 nigels Exp $ */
 
 /*! \file
     \brief   4x4 Matrix
@@ -40,7 +40,7 @@
 /*! \class   Matrix
     \brief   4x4 Matrix
     \ingroup Math
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \todo    Nice pictures and explanation for 4x4 transformation matrices.
 */
 

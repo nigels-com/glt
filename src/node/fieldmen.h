@@ -28,7 +28,7 @@
 
 /*! \file
     \brief   Menu system for field heirachy
-    \author  Nigel Stewart, RMIT (nigels@nigels.com)
+    \author  Nigel Stewart, RMIT (nigels.com@gmail.com)
     \ingroup Node
     \todo    Document and rename GltFieldRegistry to Registry?
     \todo    Make Registry library?  Keybindings?  Scripting?  Undo/Redo?
