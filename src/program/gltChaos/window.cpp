@@ -1,6 +1,6 @@
 /*
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2007 Nigel Stewart
+  Copyright (C) 2000-2010 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -23,7 +23,7 @@
 
 #include "window.h"
 #include "chaos.h"
-#include "svg.h"
+//#include "svg.h"
 
 #include <glt/rgb.h>
 #include <glt/buffer.h>
@@ -44,7 +44,8 @@ GltChaos::GltChaos(int width,int height,int x,int y)
    _saveSeed(false),
    _demoMode(true),
    _demoIdx(-1),
-   _doClear(false)
+   _doClear(false),
+   _animationFrame(0)
 {
     _undo.resize(100);
     _redo.resize(100);
@@ -121,7 +122,7 @@ GltChaos::OnDisplay()
 
     if (_drawn<(_screenSize<<1))
     {
-        const uint32 n = (_screenSize>>6)+1;
+        const uint32 n = (_screenSize>>5)+1;
         draw(n);
         _drawn += n;
     }
@@ -292,12 +293,22 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
             output(svg,"p",40000);
 #endif
 
-#if 0
-            const int width  = 1024;
-            const int height = 1024;
+#if 1
+#if 1
+#if 1
+            const int width  = 8192;
+            const int height = 8192;
+#else
+            const int width  = 4096;
+            const int height = 4096;
+#endif
 #else
             const int width  = 2048;
             const int height = 2048;
+#endif
+#else
+            const int width  = 512;
+            const int height = 512;
 #endif
 
             unsigned int *image = new unsigned int [width*height];
@@ -306,7 +317,7 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
             double minx,miny,maxx,maxy;
             size(minx,miny,maxx,maxy);
 
-            draw(image,width,height,minx,miny,maxx,maxy,width*height*200);
+            draw(image,width,height,minx,miny,maxx,maxy,std::size_t(width)*height*200);
 
             unsigned int limit = 0;
             for (unsigned int i=0; i<width*height; ++i)
@@ -323,7 +334,7 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
             if (encodePNG(data,width,height,tmp))
             {
                 string filename;
-                sprintf(filename,"%u.png",lastSeed());
+                sprintf(filename,"%u.png",_animationFrame++);
 
                 ofstream os(filename.c_str(),ios::binary);
                 writeStream(os,data);
@@ -331,6 +342,38 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
             break;
         }
 
+    // Keyframe animation controls
+    
+    case 'p':
+        {
+            _animation.push_back(*this);
+            cout << "Stored keyframe #" << _animation.size() << endl;
+            break;
+        }
+
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        {
+          if (_animation.size()>=2)
+          {
+            ChaosSystem::operator=(_animation[0]);
+            interpolate(_animation[1],(key-'0')/9.0);
+            _doClear  = true;
+            _demoMode = false;
+            findSize();
+            redraw();
+          }
+          break;
+        }
+        
     default:
         GlutWindow::OnKeyboard(key,x,y);
     }
@@ -386,10 +429,10 @@ GltChaos::redraw()
 bool GlutMain(const std::vector<std::string> &arg)
 {
     cout << endl;
-    cout << "gltChaos 0.5" << endl;
+    cout << "gltChaos 0.6" << endl;
     cout << endl;
     cout << "gltChaos" << endl;
-    cout << "(C) 2001-2007 Nigel Stewart (nigels@nigels.com)" << endl;
+    cout << "(C) 2001-2010 Nigel Stewart (nigels.com@gmail.com)" << endl;
     cout << "Source code available under terms of LGPL." << endl;
     cout << "For updates, source code and information:" << endl;
     cout << "http://www.nigels.com/glt/gltchaos" << endl;

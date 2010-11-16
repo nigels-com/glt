@@ -37,7 +37,9 @@ public:
     void set(const uint32 seed = 0);    // Random number seed
     void set(const std::string &id);    // String style co-efficients
 
-    void mutate(const double m);
+    void mutate(const double m);        // Randomly change coefficients
+
+    void interpolate(const ChaosSystem &other, const double t); // Interpolate between a pair of systems
 
     void advancexy(const double x,const double y,double &xn,double &yn) const;
 
@@ -55,7 +57,7 @@ public:
         const double miny,
         const double maxx,
         const double maxy,
-        const int n
+        const std::size_t n
     );
 
     void size

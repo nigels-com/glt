@@ -32,6 +32,8 @@
 
 #include "chaos.h"
 
+#include <vector>
+
 class GltChaos : public GlutWindow, private ChaosSystem
 {
 public:
@@ -74,8 +76,11 @@ private:
 
     bool   _doClear;    // Flag screen-clear
 
-    cbuffer<ChaosSystem> _undo;
-    cbuffer<ChaosSystem> _redo;
+    cbuffer<ChaosSystem> _undo;          // Undo buffer
+    cbuffer<ChaosSystem> _redo;          // Redo buffer
+    
+    std::vector<ChaosSystem> _animation;      // Animation keyframes
+    uint32                   _animationFrame; // For output filename
 
     static uint32 _demoSeed[];  // Saved configurations
     static char  *_demoID[];    // Book examples

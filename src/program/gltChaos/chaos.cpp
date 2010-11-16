@@ -30,6 +30,12 @@ void ChaosSystem::mutate(const double m)
     findSize();
 }
 
+void ChaosSystem::interpolate(const ChaosSystem &other, const double t)
+{
+    for (int i=0; i<12; i++)
+      _a[i] += (other._a[i]-_a[i])*t;
+}
+
 void ChaosSystem::set(const std::string &id)
 {
     if (id.size()!=13)
@@ -274,20 +280,25 @@ ChaosSystem::draw
     const double miny,
     const double maxx,
     const double maxy,
-    const int n
+    const std::size_t n
 )
 {
     const double dx = width/(maxx-minx);
     const double dy = height/(maxy-miny);
 
-    for (int i=0; i<n; ++i)
+    for (std::size_t i=0; i<n; ++i)
     {
         advancexy(_x,_y,_x,_y);
         int x = int(std::floor((_x-minx)*dx));
         int y = int(std::floor((_y-miny)*dy));
         if (x>=0 && x<width && y>=0 && y<height)
 #if 1
-            image[x+height*y]++;
+        {
+            unsigned int &pixel = image[x+height*y];
+            pixel++;
+            if (!pixel)
+              pixel--;
+        }
 #else
         {
             byte &v = data[x+height*y];
