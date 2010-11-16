@@ -902,7 +902,10 @@ GlutMaster::OnReshape(int w, int h)
     GlutWindow *window = currentWindow();
 
     assert(_glutInit);
+
+    #ifndef __APPLE__
     assert(window);
+    #endif
 
     #ifdef GLUTM_DEBUG
     cout << DEBUG_TITLE("GlutMaster::OnReshape");
