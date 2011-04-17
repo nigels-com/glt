@@ -212,7 +212,7 @@ GlutMaster::closeWindow(GlutWindow *glutWindow)
 }
 
 void
-GlutMaster::init(int argc,char *argv[])
+GlutMaster::init(int argc,const char *argv[])
 {
     // glutInit should only be called once,
     // therefore we use a global variable to
@@ -221,7 +221,7 @@ GlutMaster::init(int argc,char *argv[])
 
     if (!_glutInit)
     {
-        glutInit(&argc,argv);
+        glutInit(&argc,const_cast<char **>(argv));
 
         // Initialise Open Inventor,
         // if necessary
@@ -256,7 +256,7 @@ GlutMaster::init()
 {
     // Fake a trivial command-line
     int argc = 1;
-    char *argv = "";
+    const char *argv = "";
     init(argc,&argv);
 }
 

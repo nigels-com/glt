@@ -553,7 +553,7 @@ void (*VrmlParseShape)         (GltShapePtr           &shape)    = NULL;
 
 //
 
-int yyerror(char *s);
+int yyerror(const char *s);
 int yyparseVrml(void);
 int Vrmllex(void);
 
@@ -5564,7 +5564,7 @@ using namespace std;
 extern  char    *Vrmltext;
 extern  int      VrmlCurrentLine;
 
-int yyerror(char *s)
+int yyerror(const char *s)
 {
     cerr << "VRML " << s << " in line " << VrmlCurrentLine << " near " << Vrmltext << endl;
     return 0;

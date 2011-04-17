@@ -39,7 +39,7 @@ int WINAPI   WinMain(HINSTANCE hInstance,
 
 #endif
 
-int main(int argc,char** argv)
+int main(int argc,const char** argv)
 {
     bool ok;
 

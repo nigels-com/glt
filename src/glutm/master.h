@@ -86,7 +86,7 @@ public:
         \note       GLUT can only be initialised once.
         \note       Initialisation should be done before any windows are created.
     */
-    static void init(int argc,char *argv[]);
+    static void init(int argc,const char *argv[]);
 
     /*! \brief      Enter the GLUT event loop
         \note       No windows will receive events until the event loop has started.
