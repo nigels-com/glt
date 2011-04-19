@@ -236,7 +236,7 @@ ENDIF (EXISTS src/glut)
 
 IF (EXISTS src/glui)
     ADD_SUBDIRECTORY(src/glui)
-#   ADD_SUBDIRECTORY(src/program/glui)
+    ADD_SUBDIRECTORY(src/program/glui)
 ENDIF (EXISTS src/glui)
 
 IF (EXISTS src/zlib)
