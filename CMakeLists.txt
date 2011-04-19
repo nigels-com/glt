@@ -281,6 +281,10 @@ IF (EXISTS src/program/raster)
     ADD_SUBDIRECTORY(src/program/raster)
 ENDIF (EXISTS src/program/raster)
 
+IF (EXISTS src/program/coaster)
+    ADD_SUBDIRECTORY(src/program/coaster)
+ENDIF (EXISTS src/program/coaster)
+
 IF (EXISTS src/program/gltChaos)
     ADD_SUBDIRECTORY(src/program/gltChaos)
 ENDIF (EXISTS src/program/gltChaos)
