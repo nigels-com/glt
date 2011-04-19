@@ -286,7 +286,7 @@ IF (EXISTS src/program/gltChaos)
 ENDIF (EXISTS src/program/gltChaos)
 
 IF (EXISTS src/program/gltPlasma)
-#   ADD_SUBDIRECTORY(src/program/gltPlasma)
+    ADD_SUBDIRECTORY(src/program/gltPlasma)
 ENDIF (EXISTS src/program/gltPlasma)
 
 IF (EXISTS src/program/gltLife)
