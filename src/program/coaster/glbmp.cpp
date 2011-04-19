@@ -4,13 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <GL/glu.h> /* for gluBuild2DMipmaps */
+#include <GL/glew.h>
 
 
 #define BM 19778
 #define TGA_RGB 2
 #define TGA_RLE 10
-#define GL_CLAMP_TO_EDGE 0x812f
 
 
 int GetRightShiftCount(DWORD dwVal);
