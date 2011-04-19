@@ -1,0 +1,2 @@
+ADD_EXECUTABLE(perlin perlin.cpp)
+TARGET_LINK_LIBRARIES(perlin ${GLT_LINK_LIBRARIES})

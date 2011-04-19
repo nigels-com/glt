@@ -311,7 +311,7 @@ IF (EXISTS src/csg)
 ENDIF (EXISTS src/csg)
 
 IF (EXISTS src/program/experimental)
-#   ADD_SUBDIRECTORY(src/program/experimental)
+    ADD_SUBDIRECTORY(src/program/experimental)
 ENDIF (EXISTS src/program/experimental)
 
 IF (EXISTS src/program/experimental/glsl)
