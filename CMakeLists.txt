@@ -290,7 +290,7 @@ IF (EXISTS src/program/gltPlasma)
 ENDIF (EXISTS src/program/gltPlasma)
 
 IF (EXISTS src/program/gltLife)
-#   ADD_SUBDIRECTORY(src/program/gltLife)
+    ADD_SUBDIRECTORY(src/program/gltLife)
 ENDIF (EXISTS src/program/gltLife)
 
 IF (EXISTS src/program/gltZpr)
