@@ -278,7 +278,7 @@ IF (EXISTS src/program/example/unifonte)
 ENDIF (EXISTS src/program/example/unifonte)
 
 IF (EXISTS src/program/raster)
-#   ADD_SUBDIRECTORY(src/program/raster)
+    ADD_SUBDIRECTORY(src/program/raster)
 ENDIF (EXISTS src/program/raster)
 
 IF (EXISTS src/program/gltChaos)
