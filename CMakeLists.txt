@@ -298,7 +298,7 @@ IF (EXISTS src/program/gltZpr)
 ENDIF (EXISTS src/program/gltZpr)
 
 IF (EXISTS src/program/grips)
-#   ADD_SUBDIRECTORY(src/program/grips)
+    ADD_SUBDIRECTORY(src/program/grips)
 ENDIF (EXISTS src/program/grips)
 
 IF (EXISTS src/csg)
