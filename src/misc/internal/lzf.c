@@ -11,9 +11,6 @@
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
  * 
- *   3.  The name of the author may not be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- * 
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MER-
  * CHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
@@ -26,38 +23,28 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Alternatively, the contents of this file may be used under the terms of
- * the GNU General Public License version 2 (the "GPL"), in which case the
- * provisions of the GPL are applicable instead of the above. If you wish to
- * allow the use of your version of this file only under the terms of the
- * GPL and not to allow others to use your version of this file under the
- * BSD license, indicate your decision by deleting the provisions above and
- * replace them with the notice and other provisions required by the GPL. If
- * you do not delete the provisions above, a recipient may use your version
- * of this file under either the BSD or the GPL License.
+ * the GNU General Public License ("GPL") version 2 or any later version,
+ * in which case the provisions of the GPL are applicable instead of
+ * the above. If you wish to allow the use of your version of this file
+ * only under the terms of the GPL and not to allow others to use your
+ * version of this file under the BSD license, indicate your decision
+ * by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL. If you do not delete the
+ * provisions above, a recipient may use your version of this file under
+ * either the BSD or the GPL.
  */
 
+#include "config.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef _MSC_VER
-#define PATH_MAX 4096
-#define HAVE_GETOPT_LONG 1
-#include <io.h>
-#else
 #include <unistd.h>
-#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <limits.h>
 #include "lzf.h"
-
-#ifdef _MSC_VER
-#define size_t  unsigned long 
-#define ssize_t long 
-#endif
 
 #ifdef HAVE_GETOPT_H
 # include <getopt.h>
@@ -125,7 +112,7 @@ usage (int rc)
   exit (rc);
 }
 
-static ssize_t
+static inline ssize_t
 rread (int fd, void *buf, size_t len)
 {
   ssize_t rc = 0, offset = 0;
@@ -146,7 +133,7 @@ rread (int fd, void *buf, size_t len)
 }
 
 /* returns 0 if all written else -1 */
-static ssize_t
+static inline ssize_t
 wwrite (int fd, void *buf, size_t len)
 {
   ssize_t rc;
@@ -334,6 +321,9 @@ open_out (const char *name)
     m = 0;
 
   fd = open (name, O_CREAT | O_WRONLY | O_TRUNC | m, 600);
+#if defined(__MINGW32__)
+  _setmode(fd, _O_BINARY);
+#endif
   return fd;
 }
 
@@ -387,8 +377,15 @@ run_file (const char *fname)
     if (compose_name (fname, oname))
       return -1;
 
+#if !defined(__MINGW32__)
   rc = lstat (fname, &mystat);
+#else
+  rc = stat (fname, &mystat);
+#endif
   fd = open (fname, O_RDONLY);
+#if defined(__MINGW32__)
+  _setmode(fd, _O_BINARY);
+#endif
   if (rc || fd == -1)
     {
       fprintf (stderr, "%s: %s: ", imagename, fname);
@@ -434,7 +431,11 @@ run_file (const char *fname)
                  fname, nr_written == 0 ? 0 : 100.0 - nr_read / ((double) nr_written / 100.0), oname);
     }
 
+#if !defined(__MINGW32__)
   fchmod (fd2, mystat.st_mode);
+#else
+  chmod (oname, mystat.st_mode);
+#endif
   close (fd);
   close (fd2);
 
@@ -494,12 +495,10 @@ main (int argc, char *argv[])
             break;
           case 'b':
             errno = 0;
-#if 0
-			blocksize = strtoul (optarg, 0, 0);
+            blocksize = strtoul (optarg, 0, 0);
             if (errno || !blocksize || blocksize > MAX_BLOCKSIZE)
               blocksize = BLOCKSIZE;
-#endif
-			break;
+            break;
           default:
             usage (1);
             break;
