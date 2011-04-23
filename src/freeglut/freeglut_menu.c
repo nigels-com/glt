@@ -25,6 +25,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#define FREEGLUT_BUILDING_LIB
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
@@ -777,6 +778,14 @@ int FGAPIENTRY glutCreateMenu( void(* callback)( int ) )
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutCreateMenu" );
     return fgCreateMenu( callback )->ID;
 }
+
+#if TARGET_HOST_MS_WINDOWS
+int FGAPIENTRY __glutCreateMenuWithExit( void(* callback)( int ), void (__cdecl *exit_function)(int) )
+{
+  __glutExitFunc = exit_function;
+  return glutCreateMenu( callback );
+}
+#endif
 
 /*
  * Destroys a menu object, removing all references to it

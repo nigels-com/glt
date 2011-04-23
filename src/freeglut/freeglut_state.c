@@ -68,23 +68,9 @@ static int fghGetConfig( int attribute )
 static int fghCheckFullScreen(void)
 {
 #if TARGET_HOST_POSIX_X11
-
-  int result;
-
-  result = 0;
-  if (fgDisplay.StateFullScreen != None)
-    {
-      result = fgHintPresent(fgStructure.CurrentWindow->Window.Handle,
-			     fgDisplay.State,
-			     fgDisplay.StateFullScreen);
-    }
-
-  return result;
-
+    return fgStructure.CurrentWindow->State.IsFullscreen;
 #else
-
-  return 0;
-
+    return 0;
 #endif
 }
 
@@ -206,6 +192,7 @@ int FGAPIENTRY glutGet( GLenum eWhat )
     case GLUT_INIT_MAJOR_VERSION:   return fgState.MajorVersion    ;
     case GLUT_INIT_MINOR_VERSION:   return fgState.MinorVersion    ;
     case GLUT_INIT_FLAGS:           return fgState.ContextFlags    ;
+    case GLUT_INIT_PROFILE:         return fgState.ContextProfile  ;
 
 #if TARGET_HOST_POSIX_X11
     /*
@@ -333,7 +320,7 @@ int FGAPIENTRY glutGet( GLenum eWhat )
         GLXFBConfig * fbconfig;
         int isPossible;
 
-        fbconfig = fgChooseFBConfig();
+        fbconfig = fgChooseFBConfig(NULL);
 
         if (fbconfig == NULL)
         {
@@ -363,16 +350,28 @@ int FGAPIENTRY glutGet( GLenum eWhat )
 
     /* Handle the OpenGL inquiries */
     case GLUT_WINDOW_RGBA:
+#if defined(_WIN32_WCE)
+      boolValue = (GLboolean)0;  /* WinCE doesn't support this feature */
+#else
       glGetBooleanv ( GL_RGBA_MODE, &boolValue );
       returnValue = boolValue ? 1 : 0;
+#endif
       return returnValue;
     case GLUT_WINDOW_DOUBLEBUFFER:
+#if defined(_WIN32_WCE)
+      boolValue = (GLboolean)0;  /* WinCE doesn't support this feature */
+#else
       glGetBooleanv ( GL_DOUBLEBUFFER, &boolValue );
       returnValue = boolValue ? 1 : 0;
+#endif
       return returnValue;
     case GLUT_WINDOW_STEREO:
+#if defined(_WIN32_WCE)
+      boolValue = (GLboolean)0;  /* WinCE doesn't support this feature */
+#else
       glGetBooleanv ( GL_STEREO, &boolValue );
       returnValue = boolValue ? 1 : 0;
+#endif
       return returnValue;
 
     case GLUT_WINDOW_RED_SIZE:
@@ -388,16 +387,32 @@ int FGAPIENTRY glutGet( GLenum eWhat )
       glGetIntegerv ( GL_ALPHA_BITS, &returnValue );
       return returnValue;
     case GLUT_WINDOW_ACCUM_RED_SIZE:
+#if defined(_WIN32_WCE)
+      returnValue = 0;  /* WinCE doesn't support this feature */
+#else
       glGetIntegerv ( GL_ACCUM_RED_BITS, &returnValue );
+#endif
       return returnValue;
     case GLUT_WINDOW_ACCUM_GREEN_SIZE:
+#if defined(_WIN32_WCE)
+      returnValue = 0;  /* WinCE doesn't support this feature */
+#else
       glGetIntegerv ( GL_ACCUM_GREEN_BITS, &returnValue );
+#endif
       return returnValue;
     case GLUT_WINDOW_ACCUM_BLUE_SIZE:
+#if defined(_WIN32_WCE)
+      returnValue = 0;  /* WinCE doesn't support this feature */
+#else
       glGetIntegerv ( GL_ACCUM_BLUE_BITS, &returnValue );
+#endif
       return returnValue;
     case GLUT_WINDOW_ACCUM_ALPHA_SIZE:
+#if defined(_WIN32_WCE)
+      returnValue = 0;  /* WinCE doesn't support this feature */
+#else
       glGetIntegerv ( GL_ACCUM_ALPHA_BITS, &returnValue );
+#endif
       return returnValue;
     case GLUT_WINDOW_DEPTH_SIZE:
       glGetIntegerv ( GL_DEPTH_BITS, &returnValue );
@@ -646,10 +661,14 @@ int FGAPIENTRY glutDeviceGet( GLenum eWhat )
         return 0;
 
     case GLUT_HAS_SPACEBALL:
+        return fgHasSpaceball();
+
     case GLUT_HAS_TABLET:
         return 0;
 
     case GLUT_NUM_SPACEBALL_BUTTONS:
+        return fgSpaceballNumButtons();
+
     case GLUT_NUM_TABLET_BUTTONS:
         return 0;
 

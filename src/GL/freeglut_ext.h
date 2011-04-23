@@ -38,6 +38,12 @@
 #define GLUT_KEY_NUM_LOCK           0x006D
 #define GLUT_KEY_BEGIN              0x006E
 #define GLUT_KEY_DELETE             0x006F
+#define GLUT_KEY_SHIFT_L            0x0070
+#define GLUT_KEY_SHIFT_R            0x0071
+#define GLUT_KEY_CTRL_L             0x0072
+#define GLUT_KEY_CTRL_R             0x0073
+#define GLUT_KEY_ALT_L              0x0074
+#define GLUT_KEY_ALT_R              0x0075
 
 /*
  * GLUT API Extension macro definitions -- behaviour when the user clicks on an "x" to close a window
@@ -95,12 +101,20 @@
 #define  GLUT_INIT_MAJOR_VERSION            0x0200
 #define  GLUT_INIT_MINOR_VERSION            0x0201
 #define  GLUT_INIT_FLAGS                    0x0202
+#define  GLUT_INIT_PROFILE                  0x0203
 
 /*
  * Flags for glutInitContextFlags, see freeglut_init.c
  */
 #define  GLUT_DEBUG                         0x0001
 #define  GLUT_FORWARD_COMPATIBLE            0x0002
+
+
+/*
+ * Flags for glutInitContextProfile, see freeglut_init.c
+ */
+#define GLUT_CORE_PROFILE                   0x0001
+#define	GLUT_COMPATIBILITY_PROFILE          0x0002
 
 /*
  * Process loop function, see freeglut_main.c
@@ -159,6 +173,17 @@ typedef void (*GLUTproc)();
 FGAPI GLUTproc FGAPIENTRY glutGetProcAddress( const char *procName );
 
 /*
+ * Multi-touch/multi-pointer extensions
+ */
+
+#define GLUT_HAS_MULTI 1
+
+FGAPI void FGAPIENTRY glutMultiEntryFunc( void (* callback)( int, int ) );
+FGAPI void FGAPIENTRY glutMultiButtonFunc( void (* callback)( int, int, int, int, int ) );
+FGAPI void FGAPIENTRY glutMultiMotionFunc( void (* callback)( int, int, int ) );
+FGAPI void FGAPIENTRY glutMultiPassiveFunc( void (* callback)( int, int, int ) );
+
+/*
  * Joystick functions, see freeglut_joystick.c
  */
 /* USE OF THESE FUNCTIONS IS DEPRECATED !!!!! */
@@ -186,6 +211,20 @@ void    glutJoystickGetCenter( int ident, float *axes );
  */
 FGAPI void    FGAPIENTRY glutInitContextVersion( int majorVersion, int minorVersion );
 FGAPI void    FGAPIENTRY glutInitContextFlags( int flags );
+FGAPI void    FGAPIENTRY glutInitContextProfile( int profile );
+
+/* to get the typedef for va_list */
+#include <stdarg.h>
+
+FGAPI void    FGAPIENTRY glutInitErrorFunc( void (* vError)( const char *fmt, va_list ap ) );
+FGAPI void    FGAPIENTRY glutInitWarningFunc( void (* vWarning)( const char *fmt, va_list ap ) );
+
+/*
+ * GLUT API macro definitions -- the display mode definitions
+ */
+#define  GLUT_CAPTIONLESS                   0x0400
+#define  GLUT_BORDERLESS                    0x0800
+#define  GLUT_SRGB                          0x1000
 
 #ifdef __cplusplus
     }

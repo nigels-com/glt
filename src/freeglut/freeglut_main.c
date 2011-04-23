@@ -27,11 +27,13 @@
 
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
-#include <errno.h>
+#ifdef HAVE_ERRNO_H
+#    include <errno.h>
+#endif
 #include <stdarg.h>
-#if  HAVE_VPRINTF
+#ifdef  HAVE_VFPRINTF
 #    define VFPRINTF(s,f,a) vfprintf((s),(f),(a))
-#elif HAVE_DOPRNT
+#elif defined(HAVE__DOPRNT)
 #    define VFPRINTF(s,f,a) _doprnt((f),(a),(s))
 #else
 #    define VFPRINTF(s,f,a)
@@ -57,7 +59,7 @@ struct GXKeyList gxKeyList;
  * Try to get the maximum value allowed for ints, falling back to the minimum
  * guaranteed by ISO C99 if there is no suitable header.
  */
-#if HAVE_LIMITS_H
+#ifdef HAVE_LIMITS_H
 #    include <limits.h>
 #endif
 #ifndef INT_MAX
@@ -336,36 +338,61 @@ void fgError( const char *fmt, ... )
 {
     va_list ap;
 
-    va_start( ap, fmt );
+    if (fgState.ErrorFunc) {
 
-    fprintf( stderr, "freeglut ");
-    if( fgState.ProgramName )
-        fprintf( stderr, "(%s): ", fgState.ProgramName );
-    VFPRINTF( stderr, fmt, ap );
-    fprintf( stderr, "\n" );
+        va_start( ap, fmt );
 
-    va_end( ap );
+        /* call user set error handler here */
+        fgState.ErrorFunc(fmt, ap);
 
-    if ( fgState.Initialised )
-        fgDeinitialize ();
+        va_end( ap );
 
-    exit( 1 );
+    } else {
+
+        va_start( ap, fmt );
+
+        fprintf( stderr, "freeglut ");
+        if( fgState.ProgramName )
+            fprintf( stderr, "(%s): ", fgState.ProgramName );
+        VFPRINTF( stderr, fmt, ap );
+        fprintf( stderr, "\n" );
+
+        va_end( ap );
+
+        if ( fgState.Initialised )
+            fgDeinitialize ();
+
+        exit( 1 );
+    }
 }
 
 void fgWarning( const char *fmt, ... )
 {
     va_list ap;
 
-    va_start( ap, fmt );
+    if (fgState.WarningFunc) {
 
-    fprintf( stderr, "freeglut ");
-    if( fgState.ProgramName )
-        fprintf( stderr, "(%s): ", fgState.ProgramName );
-    VFPRINTF( stderr, fmt, ap );
-    fprintf( stderr, "\n" );
+        va_start( ap, fmt );
 
-    va_end( ap );
+        /* call user set warning handler here */
+        fgState.WarningFunc(fmt, ap);
+
+        va_end( ap );
+
+    } else {
+
+        va_start( ap, fmt );
+
+        fprintf( stderr, "freeglut ");
+        if( fgState.ProgramName )
+            fprintf( stderr, "(%s): ", fgState.ProgramName );
+        VFPRINTF( stderr, fmt, ap );
+        fprintf( stderr, "\n" );
+
+        va_end( ap );
+    }
 }
+
 
 /*
  * Indicates whether Joystick events are being used by ANY window.
@@ -471,8 +498,10 @@ static void fghSleepForEvents( void )
         wait.tv_usec = (msec % 1000) * 1000;
         err = select( socket+1, &fdset, NULL, NULL, &wait );
 
+#ifdef HAVE_ERRNO_H
         if( ( -1 == err ) && ( errno != EINTR ) )
             fgWarning ( "freeglut select() error: %d", errno );
+#endif
     }
 #elif TARGET_HOST_MS_WINDOWS
     MsgWaitForMultipleObjects( 0, NULL, FALSE, msec, QS_ALLINPUT );
@@ -483,7 +512,7 @@ static void fghSleepForEvents( void )
 /*
  * Returns GLUT modifier mask for the state field of an X11 event.
  */
-static int fghGetXModifiers( int state )
+int fghGetXModifiers( int state )
 {
     int ret = 0;
 
@@ -976,6 +1005,10 @@ void FGAPIENTRY glutMainLoopEvent( void )
         switch( event.type )
         {
         case ClientMessage:
+            if(fgIsSpaceballXEvent(&event)) {
+                fgSpaceballHandleXEvent(&event);
+                break;
+            }
             /* Destroy the window when the WM_DELETE_WINDOW message arrives */
             if( (Atom) event.xclient.data.l[ 0 ] == fgDisplay.DeleteWindow )
             {
@@ -1379,6 +1412,13 @@ void FGAPIENTRY glutMainLoopEvent( void )
                     case XK_Num_Lock :  special = GLUT_KEY_NUM_LOCK;  break;
                     case XK_KP_Begin :  special = GLUT_KEY_BEGIN;     break;
                     case XK_KP_Delete:  special = GLUT_KEY_DELETE;    break;
+
+                    case XK_Shift_L:   special = GLUT_KEY_SHIFT_L;    break;
+                    case XK_Shift_R:   special = GLUT_KEY_SHIFT_R;    break;
+                    case XK_Control_L: special = GLUT_KEY_CTRL_L;     break;
+                    case XK_Control_R: special = GLUT_KEY_CTRL_R;     break;
+                    case XK_Alt_L:     special = GLUT_KEY_ALT_L;      break;
+                    case XK_Alt_R:     special = GLUT_KEY_ALT_R;      break;
                     }
 
                     /*
@@ -1405,7 +1445,10 @@ void FGAPIENTRY glutMainLoopEvent( void )
             break;
 
         default:
-            fgWarning ("Unknown X event type: %d\n", event.type);
+            /* enter handling of Extension Events here */
+            #ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
+                fgHandleExtensionEvents( &event );
+            #endif
             break;
         }
     }
@@ -1558,6 +1601,9 @@ static int fghGetWin32Modifiers (void)
 LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
                                LPARAM lParam )
 {
+    static unsigned char lControl = 0, rControl = 0, lShift = 0,
+                         rShift = 0, lAlt = 0, rAlt = 0;
+
     SFG_Window* window;
     PAINTSTRUCT ps;
     LRESULT lRet = 1;
@@ -1571,6 +1617,120 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 
     /* printf ( "Window %3d message <%04x> %12d %12d\n", window?window->ID:0,
              uMsg, wParam, lParam ); */
+
+    if ( window )
+    {
+      /* Checking for CTRL, ALT, and SHIFT key positions:  Key Down! */
+      if ( !lControl && GetAsyncKeyState ( VK_LCONTROL ) )
+      {
+          INVOKE_WCB	( *window, Special,
+                        ( GLUT_KEY_CTRL_L, window->State.MouseX, window->State.MouseY )
+                      );
+
+          lControl = 1;
+      }
+
+      if ( !rControl && GetAsyncKeyState ( VK_RCONTROL ) )
+      {
+          INVOKE_WCB ( *window, Special,
+                       ( GLUT_KEY_CTRL_R, window->State.MouseX, window->State.MouseY )
+                     );
+
+          rControl = 1;
+      }
+
+      if ( !lShift && GetAsyncKeyState ( VK_LSHIFT ) )
+      {
+          INVOKE_WCB ( *window, Special,
+                       ( GLUT_KEY_SHIFT_L, window->State.MouseX, window->State.MouseY )
+                     );
+
+          lShift = 1;
+      }
+
+      if ( !rShift && GetAsyncKeyState ( VK_RSHIFT ) )
+      {
+          INVOKE_WCB ( *window, Special,
+                       ( GLUT_KEY_SHIFT_R, window->State.MouseX, window->State.MouseY )
+                     );
+
+          rShift = 1;
+      }
+
+      if ( !lAlt && GetAsyncKeyState ( VK_LMENU ) )
+      {
+          INVOKE_WCB ( *window, Special,
+                       ( GLUT_KEY_ALT_L, window->State.MouseX, window->State.MouseY )
+                     );
+
+          lAlt = 1;
+      }
+
+      if ( !rAlt && GetAsyncKeyState ( VK_RMENU ) )
+      {
+          INVOKE_WCB ( *window, Special,
+                       ( GLUT_KEY_ALT_R, window->State.MouseX, window->State.MouseY )
+                     );
+
+          rAlt = 1;
+      }
+
+      /* Checking for CTRL, ALT, and SHIFT key positions:  Key Up! */
+      if ( lControl && !GetAsyncKeyState ( VK_LCONTROL ) )
+      {
+          INVOKE_WCB ( *window, SpecialUp,
+                       ( GLUT_KEY_CTRL_L, window->State.MouseX, window->State.MouseY )
+                     );
+
+          lControl = 0;
+      }
+
+      if ( rControl && !GetAsyncKeyState ( VK_RCONTROL ) )
+      {
+          INVOKE_WCB ( *window, SpecialUp,
+                       ( GLUT_KEY_CTRL_R, window->State.MouseX, window->State.MouseY )
+                     );
+
+          rControl = 0;
+      }
+
+      if ( lShift && !GetAsyncKeyState ( VK_LSHIFT ) )
+      {
+          INVOKE_WCB ( *window, SpecialUp,
+                       ( GLUT_KEY_SHIFT_L, window->State.MouseX, window->State.MouseY )
+                     );
+
+          lShift = 0;
+      }
+
+      if ( rShift && !GetAsyncKeyState ( VK_RSHIFT ) )
+      {
+          INVOKE_WCB ( *window, SpecialUp,
+                       ( GLUT_KEY_SHIFT_R, window->State.MouseX, window->State.MouseY )
+                     );
+
+          rShift = 0;
+      }
+
+      if ( lAlt && !GetAsyncKeyState ( VK_LMENU ) )
+      {
+          INVOKE_WCB ( *window, SpecialUp,
+                       ( GLUT_KEY_ALT_L, window->State.MouseX, window->State.MouseY )
+                     );
+
+          lAlt = 0;
+      }
+
+      if ( rAlt && !GetAsyncKeyState ( VK_RMENU ) )
+      {
+          INVOKE_WCB ( *window, SpecialUp,
+                       ( GLUT_KEY_ALT_R, window->State.MouseX, window->State.MouseY )
+                     );
+
+          rAlt = 0;
+      }
+    }
+
     switch( uMsg )
     {
     case WM_CREATE:
@@ -1678,12 +1838,25 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         }
 
         break;
-#if 0
+
     case WM_SETFOCUS:
 /*        printf("WM_SETFOCUS: %p\n", window ); */
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
+        INVOKE_WCB( *window, Entry, ( GLUT_ENTERED ) );
         break;
 
+    case WM_KILLFOCUS:
+/*        printf("WM_KILLFOCUS: %p\n", window ); */
+        lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
+        INVOKE_WCB( *window, Entry, ( GLUT_LEFT ) );
+
+        if( window->IsMenu &&
+            window->ActiveMenu && window->ActiveMenu->IsActive )
+            fgUpdateMenuHighlight( window->ActiveMenu );
+
+        break;
+
+#if 0
     case WM_ACTIVATE:
         if (LOWORD(wParam) != WA_INACTIVE)
         {
@@ -1729,20 +1902,6 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
          */
         return 0;
 
-    /* XXX For a future patch:  we need a mouse entry event.  Unfortunately Windows
-     * XXX doesn't give us one, so we will probably need a "MouseInWindow" flag in
-     * XXX the SFG_Window structure.  Set it to true to begin with and then have the
-     * XXX WM_MOUSELEAVE code set it to false.  Then when we get a WM_MOUSEMOVE event,
-     * XXX if the flag is false we invoke the Entry callback and set the flag to true.
-     */
-    case 0x02a2:  /* This is the message we get when the mouse is leaving the window */
-        if( window->IsMenu &&
-            window->ActiveMenu && window->ActiveMenu->IsActive )
-            fgUpdateMenuHighlight( window->ActiveMenu );
-
-        INVOKE_WCB( *window, Entry, ( GLUT_LEFT ) );
-        break ;
-
     case WM_MOUSEMOVE:
     {
 #if defined(_WIN32_WCE)
@@ -1762,6 +1921,7 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             fgUpdateMenuHighlight( window->ActiveMenu );
             break;
         }
+        SetFocus(window->Window.Handle);
 
         fgState.Modifiers = fghGetWin32Modifiers( );
 
@@ -2002,6 +2162,12 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             KEY( VK_RIGHT,  GLUT_KEY_RIGHT     );
             KEY( VK_DOWN,   GLUT_KEY_DOWN      );
             KEY( VK_INSERT, GLUT_KEY_INSERT    );
+            KEY( VK_LCONTROL, GLUT_KEY_CTRL_L  );
+            KEY( VK_RCONTROL, GLUT_KEY_CTRL_R  );
+            KEY( VK_LSHIFT, GLUT_KEY_SHIFT_L   );
+            KEY( VK_RSHIFT, GLUT_KEY_SHIFT_R   );
+            KEY( VK_LMENU,  GLUT_KEY_ALT_L     );
+            KEY( VK_RMENU,  GLUT_KEY_ALT_R     );
 
         case VK_DELETE:
             /* The delete key should be treated as an ASCII keypress: */
@@ -2088,6 +2254,12 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
             KEY( VK_RIGHT,  GLUT_KEY_RIGHT     );
             KEY( VK_DOWN,   GLUT_KEY_DOWN      );
             KEY( VK_INSERT, GLUT_KEY_INSERT    );
+            KEY( VK_LCONTROL, GLUT_KEY_CTRL_L  );
+            KEY( VK_RCONTROL, GLUT_KEY_CTRL_R  );
+            KEY( VK_LSHIFT, GLUT_KEY_SHIFT_L   );
+            KEY( VK_RSHIFT, GLUT_KEY_SHIFT_R   );
+            KEY( VK_LMENU,  GLUT_KEY_ALT_L     );
+            KEY( VK_RMENU,  GLUT_KEY_ALT_R     );
 
           case VK_DELETE:
               /* The delete key should be treated as an ASCII keypress: */
@@ -2276,6 +2448,41 @@ LRESULT CALLBACK fgWindowProc( HWND hWnd, UINT uMsg, WPARAM wParam,
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );
         break;
 
+#ifdef WM_TOUCH
+	/* handle multi-touch messages */
+	case WM_TOUCH:
+	{
+		unsigned int numInputs = (unsigned int)wParam;
+		unsigned int i = 0;
+		TOUCHINPUT* ti = (TOUCHINPUT*)malloc( sizeof(TOUCHINPUT)*numInputs);
+		if (GetTouchInputInfo( (HTOUCHINPUT)lParam, numInputs, ti, sizeof(TOUCHINPUT) )) {
+			/* Handle each contact point */
+			for (i = 0; i < numInputs; ++i ) {
+
+				POINT tp;
+				tp.x = TOUCH_COORD_TO_PIXEL(ti[i].x);
+				tp.y = TOUCH_COORD_TO_PIXEL(ti[i].y);
+				ScreenToClient( hWnd, &tp );
+
+				ti[i].dwID = ti[i].dwID * 2;
+
+				if (ti[i].dwFlags & TOUCHEVENTF_DOWN) {
+					INVOKE_WCB( *window, MultiEntry,  ( ti[i].dwID, GLUT_ENTERED ) );
+					INVOKE_WCB( *window, MultiButton, ( ti[i].dwID, tp.x, tp.y, 0, GLUT_DOWN ) );
+				} else if (ti[i].dwFlags & TOUCHEVENTF_MOVE) {
+					INVOKE_WCB( *window, MultiMotion, ( ti[i].dwID, tp.x, tp.y ) );
+				} else if (ti[i].dwFlags & TOUCHEVENTF_UP)   { 
+					INVOKE_WCB( *window, MultiButton, ( ti[i].dwID, tp.x, tp.y, 0, GLUT_UP ) );
+					INVOKE_WCB( *window, MultiEntry,  ( ti[i].dwID, GLUT_LEFT ) );
+				}
+			}
+		}
+		CloseTouchInputHandle((HTOUCHINPUT)lParam);
+		free( (void*)ti );
+		lRet = 0; /*DefWindowProc( hWnd, uMsg, wParam, lParam );*/
+		break;
+	}
+#endif
     default:
         /* Handle unhandled messages */
         lRet = DefWindowProc( hWnd, uMsg, wParam, lParam );

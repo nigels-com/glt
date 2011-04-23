@@ -25,6 +25,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#define FREEGLUT_BUILDING_LIB
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
@@ -83,12 +84,16 @@ SFG_State fgState = { { -1, -1, GL_FALSE },  /* Position */
                       GLUT_EXEC_STATE_INIT,   /* ExecState */
                       NULL,                   /* ProgramName */
                       GL_FALSE,               /* JoysticksInitialised */
+                      0,                      /* NumActiveJoysticks */
                       GL_FALSE,               /* InputDevsInitialised */
                       1,                      /* AuxiliaryBufferNumber */
                       4,                      /* SampleNumber */
                       1,                      /* MajorVersion */
-                      0,                      /* MajorVersion */
-                      0                       /* ContextFlags */
+                      0,                      /* MinorVersion */
+                      0,                      /* ContextFlags */
+                      0,                      /* ContextProfile */
+                      NULL,                   /* ErrorFunc */
+                      NULL                    /* WarningFunc */
 };
 
 
@@ -308,7 +313,7 @@ static void fghInitialize( const char* displayName )
 
     /* What we need to do is to initialize the fgDisplay global structure here. */
     fgDisplay.Instance = GetModuleHandle( NULL );
-
+    fgDisplay.DisplayName=strdup(displayName);
     atom = GetClassInfo( fgDisplay.Instance, _T("FREEGLUT"), &wc );
 
     if( atom == 0 )
@@ -360,13 +365,31 @@ static void fghInitialize( const char* displayName )
 
         ReleaseDC( desktop, context );
     }
-
+    /* If we have a DisplayName try to use it for metrics */
+    if( fgDisplay.DisplayName )
+    {
+        HDC context = CreateDC(fgDisplay.DisplayName,0,0,0);
+        if( context )
+        {
+	    fgDisplay.ScreenWidth  = GetDeviceCaps( context, HORZRES );
+	    fgDisplay.ScreenHeight = GetDeviceCaps( context, VERTRES );
+	    fgDisplay.ScreenWidthMM  = GetDeviceCaps( context, HORZSIZE );
+	    fgDisplay.ScreenHeightMM = GetDeviceCaps( context, VERTSIZE );
+	    DeleteDC(context);
+        }
+        else
+	    fgWarning("fghInitialize: "
+		      "CreateDC failed, Screen size info may be incorrect\n"
+          "This is quite likely caused by a bad '-display' parameter");
+      
+    }
     /* Set the timer granularity to 1 ms */
     timeBeginPeriod ( 1 );
 
 #endif
 
     fgState.Initialised = GL_TRUE;
+    atexit(fgDeinitialize);
 
     /* InputDevice uses GlutTimerFunc(), so fgState.Initialised must be TRUE */
     fgInitialiseInputDevices();
@@ -381,8 +404,6 @@ void fgDeinitialize( void )
 
     if( !fgState.Initialised )
     {
-        fgWarning( "fgDeinitialize(): "
-                   "no valid initialization has been performed" );
         return;
     }
 
@@ -424,6 +445,7 @@ void fgDeinitialize( void )
     fgState.MajorVersion = 1;
     fgState.MinorVersion = 0;
     fgState.ContextFlags = 0;
+    fgState.ContextProfile = 0;
 
     fgState.Initialised = GL_FALSE;
 
@@ -485,6 +507,11 @@ void fgDeinitialize( void )
     XCloseDisplay( fgDisplay.Display );
 
 #elif TARGET_HOST_MS_WINDOWS
+    if( fgDisplay.DisplayName )
+    {
+        free( fgDisplay.DisplayName );
+        fgDisplay.DisplayName = NULL;
+    }
 
     /* Reset the timer granularity */
     timeEndPeriod ( 1 );
@@ -677,12 +704,6 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
     char* geometry = NULL;
     int i, j, argc = *pargc;
 
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-    size_t sLen;
-    errno_t err;
-#endif
-
     if( fgState.Initialised )
         fgError( "illegal glutInit() reinitialization attempt" );
 
@@ -702,15 +723,8 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
     /* check if GLUT_FPS env var is set */
 #ifndef _WIN32_WCE
     {
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-        char* fps = NULL;
-        err = _dupenv_s( &fps, &sLen, "GLUT_FPS" );
-        if (err)
-            fgError("Error getting GLUT_FPS environment variable"); 
-#else
         const char *fps = getenv( "GLUT_FPS" );
-#endif
+
         if( fps )
         {
             int interval;
@@ -721,20 +735,9 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
             else
                 fgState.FPSInterval = interval;
         }
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-        free ( fps );  fps = NULL;  /* dupenv_s allocates a string that we must free */
-#endif
     }
 
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-    err = _dupenv_s( &displayName, &sLen, "DISPLAY" );
-    if (err)
-        fgError("Error getting DISPLAY environment variable");
-#else
     displayName = getenv( "DISPLAY" );
-#endif
 
     for( i = 1; i < argc; i++ )
     {
@@ -819,10 +822,6 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
      * variable for opening the X display (see code above):
      */
     fghInitialize( displayName );
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-    free ( displayName );  displayName = NULL;  /* dupenv_s allocates a string that we must free */
-#endif
 
     /*
      * Geometry parsing deffered until here because we may need the screen
@@ -852,6 +851,16 @@ void FGAPIENTRY glutInit( int* pargc, char** argv )
             fgState.Position.Use = GL_TRUE;
     }
 }
+
+#if TARGET_HOST_MS_WINDOWS
+void (__cdecl *__glutExitFunc)( int return_value ) = NULL;
+
+void FGAPIENTRY __glutInitWithExit( int *pargc, char **argv, void (__cdecl *exit_function)(int) )
+{
+  __glutExitFunc = exit_function;
+  glutInit(pargc, argv);
+}
+#endif
 
 /*
  * Undoes all the "glutInit" stuff
@@ -921,21 +930,13 @@ void FGAPIENTRY glutInitDisplayString( const char* displayMode )
      * delimited by blanks or tabs.
      */
     char *token ;
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-    char *next_token = NULL;
-#endif
     size_t len = strlen ( displayMode );
     char *buffer = (char *)malloc ( (len+1) * sizeof(char) );
     memcpy ( buffer, displayMode, len );
     buffer[len] = '\0';
 
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-    token = strtok_s ( buffer, " \t", &next_token );
-#else
     token = strtok ( buffer, " \t" );
-#endif
+
     while ( token )
     {
         /* Process this token */
@@ -1112,12 +1113,7 @@ void FGAPIENTRY glutInitDisplayString( const char* displayMode )
             break ;
         }
 
-    /* will return true for VC8 (VC2005) and higher */
-#if TARGET_HOST_MS_WINDOWS && ( _MSC_VER >= 1400 )
-        token = strtok_s ( NULL, " \t", &next_token );
-#else
         token = strtok ( NULL, " \t" );
-#endif
     }
 
     free ( buffer );
@@ -1140,6 +1136,32 @@ void FGAPIENTRY glutInitContextFlags( int flags )
 {
     /* We will make use of this value when creating a new OpenGL context... */
     fgState.ContextFlags = flags;
+}
+
+void FGAPIENTRY glutInitContextProfile( int profile )
+{
+    /* We will make use of this value when creating a new OpenGL context... */
+    fgState.ContextProfile = profile;
+}
+
+/* -------------- User Defined Error/Warning Handler Support -------------- */
+
+/*
+ * Sets the user error handler (note the use of va_list for the args to the fmt)
+ */
+void FGAPIENTRY glutInitErrorFunc( void (* vfgError) ( const char *fmt, va_list ap ) )
+{
+    /* This allows user programs to handle freeglut errors */
+    fgState.ErrorFunc = vfgError;
+}
+
+/*
+ * Sets the user warning handler (note the use of va_list for the args to the fmt)
+ */
+void FGAPIENTRY glutInitWarningFunc( void (* vfgWarning) ( const char *fmt, va_list ap ) )
+{
+    /* This allows user programs to handle freeglut warnings */
+    fgState.WarningFunc = vfgWarning;
 }
 
 /*** END OF FILE ***/

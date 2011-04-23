@@ -25,11 +25,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#define FREEGLUT_BUILDING_LIB
 #include <GL/freeglut.h>
 #include "freeglut_internal.h"
 
 #if TARGET_HOST_POSIX_X11
 #include <limits.h>  /* LONG_MAX */
+#include <unistd.h>  /* usleep */
 #endif
 
 #if defined(_WIN32_WCE)
@@ -37,18 +39,112 @@
 #   ifdef FREEGLUT_LIB_PRAGMAS
 #       pragma comment( lib, "Aygshell.lib" )
 #   endif
-
-static wchar_t* fghWstrFromStr(const char* str)
-{
-    int i,len=strlen(str);
-    wchar_t* wstr = (wchar_t*)malloc(2*len+2);
-    for(i=0; i<len; i++)
-        wstr[i] = str[i];
-    wstr[len] = 0;
-    return wstr;
-}
-
 #endif /* defined(_WIN32_WCE) */
+
+
+#if TARGET_HOST_POSIX_X11
+#ifndef GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB
+#define GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20B2
+#endif
+
+#ifndef GLX_CONTEXT_MAJOR_VERSION_ARB
+#define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
+#endif
+
+#ifndef GLX_CONTEXT_MINOR_VERSION_ARB
+#define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
+#endif
+
+#ifndef GLX_CONTEXT_FLAGS_ARB
+#define GLX_CONTEXT_FLAGS_ARB 0x2094
+#endif
+
+#ifndef GLX_CONTEXT_PROFILE_MASK_ARB
+#define GLX_CONTEXT_PROFILE_MASK_ARB 0x9126
+#endif
+
+#ifndef GLX_CONTEXT_DEBUG_BIT_ARB
+#define GLX_CONTEXT_DEBUG_BIT_ARB 0x0001
+#endif
+
+#ifndef GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
+#define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
+#endif
+
+#ifndef GLX_CONTEXT_CORE_PROFILE_BIT_ARB
+#define GLX_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+#endif
+
+#ifndef GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
+#define GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#endif
+
+#ifndef GLX_RGBA_FLOAT_TYPE
+#define GLX_RGBA_FLOAT_TYPE 0x20B9
+#endif
+
+#ifndef GLX_RGBA_FLOAT_BIT
+#define GLX_RGBA_FLOAT_BIT 0x00000004
+#endif
+#endif  /* TARGET_HOST_POSIX_X11 */
+
+
+#if TARGET_HOST_MS_WINDOWS
+/* The following include file is available from SGI but is not standard:
+ *   #include <GL/wglext.h>
+ * So we copy the necessary parts out of it.
+ * XXX: should local definitions for extensions be put in a separate include file?
+ */
+typedef const char * (WINAPI * PFNWGLGETEXTENSIONSSTRINGARBPROC) (HDC hdc);
+
+typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+
+#define WGL_DRAW_TO_WINDOW_ARB         0x2001
+#define WGL_ACCELERATION_ARB           0x2003
+#define WGL_SUPPORT_OPENGL_ARB         0x2010
+#define WGL_DOUBLE_BUFFER_ARB          0x2011
+#define WGL_COLOR_BITS_ARB             0x2014
+#define WGL_ALPHA_BITS_ARB             0x201B
+#define WGL_DEPTH_BITS_ARB             0x2022
+#define WGL_STENCIL_BITS_ARB           0x2023
+#define WGL_FULL_ACCELERATION_ARB      0x2027
+
+#define WGL_SAMPLE_BUFFERS_ARB         0x2041
+#define WGL_SAMPLES_ARB                0x2042
+
+#define WGL_TYPE_RGBA_FLOAT_ARB        0x21A0
+
+#define WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20A9
+
+#ifndef WGL_ARB_create_context
+#define WGL_ARB_create_context 1
+#ifdef WGL_WGLEXT_PROTOTYPES
+extern HGLRC WINAPI wglCreateContextAttribsARB (HDC, HGLRC, const int *);
+#endif /* WGL_WGLEXT_PROTOTYPES */
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
+
+#define WGL_CONTEXT_MAJOR_VERSION_ARB  0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB  0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB    0x2093
+#define WGL_CONTEXT_FLAGS_ARB          0x2094
+#define WGL_CONTEXT_PROFILE_MASK_ARB   0x9126
+
+#define WGL_CONTEXT_DEBUG_BIT_ARB      0x0001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
+
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+
+#define ERROR_INVALID_VERSION_ARB      0x2095
+#define ERROR_INVALID_PROFILE_ARB      0x2096
+#endif
+
+#endif  /* TARGET_HOST_MS_WINDOWS */
+
+
+/* pushing attribute/value pairs into an array */
+#define ATTRIB(a) attributes[where++]=(a)
+#define ATTRIB_VAL(a,v) {ATTRIB(a); ATTRIB(v);}
 
 /*
  * TODO BEFORE THE STABLE RELEASE:
@@ -75,88 +171,119 @@ static wchar_t* fghWstrFromStr(const char* str)
 
 /* -- PRIVATE FUNCTIONS ---------------------------------------------------- */
 
+static int fghIsLegacyContextVersionRequested( void )
+{
+  return fgState.MajorVersion == 1 && fgState.MinorVersion == 0;
+}
+
+static int fghIsLegacyContextRequested( void )
+{
+  return fghIsLegacyContextVersionRequested() &&
+         fgState.ContextFlags == 0 &&
+         fgState.ContextProfile == 0;
+}
+
+static int fghNumberOfAuxBuffersRequested( void )
+{
+  if ( fgState.DisplayMode & GLUT_AUX4 ) {
+    return 4;
+  }
+  if ( fgState.DisplayMode & GLUT_AUX3 ) {
+    return 3;
+  }
+  if ( fgState.DisplayMode & GLUT_AUX2 ) {
+    return 2;
+  }
+  if ( fgState.DisplayMode & GLUT_AUX1 ) { /* NOTE: Same as GLUT_AUX! */
+    return fgState.AuxiliaryBufferNumber;
+  }
+  return 0;
+}
+
+static int fghMapBit( int mask, int from, int to )
+{
+  return ( mask & from ) ? to : 0;
+
+}
+
+static void fghContextCreationError( void )
+{
+    fgError( "Unable to create OpenGL %d.%d context (flags %x, profile %x)",
+             fgState.MajorVersion, fgState.MinorVersion, fgState.ContextFlags,
+             fgState.ContextProfile );
+}
+
+
+/* -- SYSTEM-DEPENDENT PRIVATE FUNCTIONS ------------------------------------ */
+
+#if TARGET_HOST_POSIX_X11
 /*
  * Chooses a visual basing on the current display mode settings
  */
-#if TARGET_HOST_POSIX_X11
 
-GLXFBConfig* fgChooseFBConfig( void )
+GLXFBConfig* fgChooseFBConfig( int *numcfgs )
 {
-    GLboolean wantIndexedMode = GL_FALSE;
-    int attributes[ 32 ];
-    int where = 0;
+  GLboolean wantIndexedMode = GL_FALSE;
+  int attributes[ 100 ];
+  int where = 0, numAuxBuffers;
 
-    /* First we have to process the display mode settings... */
-/*
- * XXX Why is there a semi-colon in this #define?  The code
- * XXX that uses the macro seems to always add more semicolons...
- */
-#define ATTRIB(a) attributes[where++]=a;
-#define ATTRIB_VAL(a,v) {ATTRIB(a); ATTRIB(v);}
+  /* First we have to process the display mode settings... */
+  if( fgState.DisplayMode & GLUT_INDEX ) {
+    ATTRIB_VAL( GLX_BUFFER_SIZE, 8 );
+    /*  Buffer size is selected later.  */
 
-    if( fgState.DisplayMode & GLUT_INDEX )
-    {
-        ATTRIB_VAL( GLX_BUFFER_SIZE, 8 );
-        /*  Buffer size is selected later.  */
-
-        ATTRIB_VAL( GLX_RENDER_TYPE, GLX_COLOR_INDEX_BIT );
-        wantIndexedMode = GL_TRUE;
+    ATTRIB_VAL( GLX_RENDER_TYPE, GLX_COLOR_INDEX_BIT );
+    wantIndexedMode = GL_TRUE;
+  } else {
+    ATTRIB_VAL( GLX_RED_SIZE,   1 );
+    ATTRIB_VAL( GLX_GREEN_SIZE, 1 );
+    ATTRIB_VAL( GLX_BLUE_SIZE,  1 );
+    if( fgState.DisplayMode & GLUT_ALPHA ) {
+      ATTRIB_VAL( GLX_ALPHA_SIZE, 1 );
     }
-    else
-    {
-        ATTRIB_VAL( GLX_RED_SIZE,   1 );
-        ATTRIB_VAL( GLX_GREEN_SIZE, 1 );
-        ATTRIB_VAL( GLX_BLUE_SIZE,  1 );
-        if( fgState.DisplayMode & GLUT_ALPHA )
-            ATTRIB_VAL( GLX_ALPHA_SIZE, 1 );
+  }
+
+  if( fgState.DisplayMode & GLUT_DOUBLE ) {
+    ATTRIB_VAL( GLX_DOUBLEBUFFER, True );
+  }
+
+  if( fgState.DisplayMode & GLUT_STEREO ) {
+    ATTRIB_VAL( GLX_STEREO, True );
+  }
+
+  if( fgState.DisplayMode & GLUT_DEPTH ) {
+    ATTRIB_VAL( GLX_DEPTH_SIZE, 1 );
+  }
+
+  if( fgState.DisplayMode & GLUT_STENCIL ) {
+    ATTRIB_VAL( GLX_STENCIL_SIZE, 1 );
+  }
+
+  if( fgState.DisplayMode & GLUT_ACCUM ) {
+    ATTRIB_VAL( GLX_ACCUM_RED_SIZE, 1 );
+    ATTRIB_VAL( GLX_ACCUM_GREEN_SIZE, 1 );
+    ATTRIB_VAL( GLX_ACCUM_BLUE_SIZE, 1 );
+    if( fgState.DisplayMode & GLUT_ALPHA ) {
+      ATTRIB_VAL( GLX_ACCUM_ALPHA_SIZE, 1 );
     }
+  }
 
-    if( fgState.DisplayMode & GLUT_DOUBLE )
-        ATTRIB_VAL( GLX_DOUBLEBUFFER, True );
+  numAuxBuffers = fghNumberOfAuxBuffersRequested();
+  if ( numAuxBuffers > 0 ) {
+    ATTRIB_VAL( GLX_AUX_BUFFERS, numAuxBuffers );
+  }
 
-    if( fgState.DisplayMode & GLUT_STEREO )
-        ATTRIB_VAL( GLX_STEREO, True );
+  if( fgState.DisplayMode & GLUT_SRGB ) {
+    ATTRIB_VAL( GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, True );
+  }
 
-    if( fgState.DisplayMode & GLUT_DEPTH )
-        ATTRIB_VAL( GLX_DEPTH_SIZE, 1 );
+  if (fgState.DisplayMode & GLUT_MULTISAMPLE) {
+    ATTRIB_VAL(GLX_SAMPLE_BUFFERS, 1);
+    ATTRIB_VAL(GLX_SAMPLES, fgState.SampleNumber);
+  }
 
-    if( fgState.DisplayMode & GLUT_STENCIL )
-        ATTRIB_VAL( GLX_STENCIL_SIZE, 1 );
-
-    if( fgState.DisplayMode & GLUT_ACCUM )
-    {
-        ATTRIB_VAL( GLX_ACCUM_RED_SIZE,   1 );
-        ATTRIB_VAL( GLX_ACCUM_GREEN_SIZE, 1 );
-        ATTRIB_VAL( GLX_ACCUM_BLUE_SIZE,  1 );
-        if( fgState.DisplayMode & GLUT_ALPHA )
-            ATTRIB_VAL( GLX_ACCUM_ALPHA_SIZE, 1 );
-    }
-
-    if( fgState.DisplayMode & GLUT_AUX4 )
-    {
-        ATTRIB_VAL(GLX_AUX_BUFFERS, 4);
-    }
-    else if( fgState.DisplayMode & GLUT_AUX3 )
-    {
-        ATTRIB_VAL(GLX_AUX_BUFFERS, 3);
-    }
-    else if( fgState.DisplayMode & GLUT_AUX2 )
-    {
-        ATTRIB_VAL(GLX_AUX_BUFFERS, 2);
-    }
-    else if( fgState.DisplayMode & GLUT_AUX1 ) /* NOTE: Same as GLUT_AUX! */
-    {
-        ATTRIB_VAL(GLX_AUX_BUFFERS, fgState.AuxiliaryBufferNumber);
-    }
-
-    if (fgState.DisplayMode & GLUT_MULTISAMPLE)
-      {
-        ATTRIB_VAL(GLX_SAMPLE_BUFFERS, 1)
-        ATTRIB_VAL(GLX_SAMPLES, fgState.SampleNumber)
-      }
-
-    /* Push a null at the end of the list */
-    ATTRIB( None );
+  /* Push a terminator at the end of the list */
+  ATTRIB( None );
 
     {
         GLXFBConfig * fbconfigArray;  /*  Array of FBConfigs  */
@@ -259,334 +386,38 @@ GLXFBConfig* fgChooseFBConfig( void )
            fbconfig = NULL;
         }
 
+	if (numcfgs)
+		*numcfgs = fbconfigArraySize;
+
         return fbconfig;
     }
 }
-#endif /* TARGET_HOST_POSIX_X11 */
-
-/*
- * Setup the pixel format for a Win32 window
- */
-#if TARGET_HOST_MS_WINDOWS
-/* The following include file is available from SGI but is not standard:
- *   #include <GL/wglext.h>
- * So we copy the necessary parts out of it.
- * XXX: should local definitions for extensions be put in a separate include file?
- */
-typedef const char * (WINAPI * PFNWGLGETEXTENSIONSSTRINGARBPROC) (HDC hdc);
-
-typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
-
-#define WGL_DRAW_TO_WINDOW_ARB         0x2001
-#define WGL_ACCELERATION_ARB           0x2003
-#define WGL_SUPPORT_OPENGL_ARB         0x2010
-#define WGL_DOUBLE_BUFFER_ARB          0x2011
-#define WGL_COLOR_BITS_ARB             0x2014
-#define WGL_ALPHA_BITS_ARB             0x201B
-#define WGL_DEPTH_BITS_ARB             0x2022
-#define WGL_STENCIL_BITS_ARB           0x2023
-#define WGL_FULL_ACCELERATION_ARB      0x2027
-
-#define WGL_SAMPLE_BUFFERS_ARB         0x2041
-#define WGL_SAMPLES_ARB                0x2042
 
 
-#ifndef WGL_ARB_create_context
-#define WGL_ARB_create_context 1
-#ifdef WGL_WGLEXT_PROTOTYPES
-extern HGLRC WINAPI wglCreateContextAttribsARB (HDC, HGLRC, const int *);
-#endif /* WGL_WGLEXT_PROTOTYPES */
-typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
+static void fghFillContextAttributes( int *attributes ) {
+  int where = 0, contextFlags, contextProfile;
 
-#define WGL_CONTEXT_DEBUG_BIT_ARB      0x0001
-#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
-#define WGL_CONTEXT_MAJOR_VERSION_ARB  0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB  0x2092
-#define WGL_CONTEXT_LAYER_PLANE_ARB    0x2093
-#define WGL_CONTEXT_FLAGS_ARB          0x2094
-#define ERROR_INVALID_VERSION_ARB      0x2095
-#endif
+  if ( !fghIsLegacyContextVersionRequested() ) {
+    ATTRIB_VAL( GLX_CONTEXT_MAJOR_VERSION_ARB, fgState.MajorVersion );
+    ATTRIB_VAL( GLX_CONTEXT_MINOR_VERSION_ARB, fgState.MinorVersion );
+  }
 
+  contextFlags =
+    fghMapBit( fgState.ContextFlags, GLUT_DEBUG, GLX_CONTEXT_DEBUG_BIT_ARB ) |
+    fghMapBit( fgState.ContextFlags, GLUT_FORWARD_COMPATIBLE, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB );
+  if ( contextFlags != 0 ) {
+    ATTRIB_VAL( GLX_CONTEXT_FLAGS_ARB, contextFlags );
+  }
 
-void fgNewWGLCreateContext( SFG_Window* window )
-{
-    PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetEntensionsStringARB;
-    HGLRC context;
-    int attribs[7];
-    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
-    const char * pWglExtString;
+  contextProfile =
+    fghMapBit( fgState.ContextProfile, GLUT_CORE_PROFILE, GLX_CONTEXT_CORE_PROFILE_BIT_ARB ) |
+    fghMapBit( fgState.ContextProfile, GLUT_COMPATIBILITY_PROFILE, GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB );
+  if ( contextProfile != 0 ) {
+    ATTRIB_VAL( GLX_CONTEXT_PROFILE_MASK_ARB, contextProfile );
+  }
 
-    /* If nothing fancy has been required, leave the context as it is */
-    if ( fgState.MajorVersion == 1 && fgState.MinorVersion == 0 && fgState.ContextFlags == 0 )
-    {
-        return;
-    }
-
-    wglMakeCurrent( window->Window.Device,
-                    window->Window.Context );
-
-    wglGetEntensionsStringARB=(PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-    if ( wglGetEntensionsStringARB == NULL )
-    {
-        return;
-    }
-
-    pWglExtString=wglGetEntensionsStringARB(window->Window.Device);
-    if (( pWglExtString == NULL ) || ( strstr(pWglExtString, "WGL_ARB_create_context") == NULL ))
-    {
-        return;
-    }
-
-    /* new context creation */
-    attribs[0] = WGL_CONTEXT_MAJOR_VERSION_ARB;
-    attribs[1] = fgState.MajorVersion;
-    attribs[2] = WGL_CONTEXT_MINOR_VERSION_ARB;
-    attribs[3] = fgState.MinorVersion;
-    attribs[4] = WGL_CONTEXT_FLAGS_ARB;
-    attribs[5] = ((fgState.ContextFlags & GLUT_DEBUG) ? WGL_CONTEXT_DEBUG_BIT_ARB : 0) |
-        ((fgState.ContextFlags & GLUT_FORWARD_COMPATIBLE) ? WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0);
-    attribs[6] = 0;
-
-    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress( "wglCreateContextAttribsARB" );
-    if ( wglCreateContextAttribsARB == NULL )
-    {
-        fgError( "wglCreateContextAttribsARB not found" );
-    }
-
-    context = wglCreateContextAttribsARB( window->Window.Device, 0, attribs );
-    if ( context == NULL )
-    {
-        fgError( "Unable to create OpenGL %d.%d context (flags %x)",
-            fgState.MajorVersion, fgState.MinorVersion, fgState.ContextFlags );
-    }
-
-    wglMakeCurrent( NULL, NULL );
-    wglDeleteContext( window->Window.Context );
-    window->Window.Context = context;
+  ATTRIB( 0 );
 }
-
-
-GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
-                              unsigned char layer_type )
-{
-#if defined(_WIN32_WCE)
-    return GL_TRUE;
-#else
-    PIXELFORMATDESCRIPTOR* ppfd, pfd;
-    int flags, pixelformat;
-
-    freeglut_return_val_if_fail( window != NULL, 0 );
-    flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
-    if( fgState.DisplayMode & GLUT_DOUBLE )
-        flags |= PFD_DOUBLEBUFFER;
-
-    if( fgState.DisplayMode & GLUT_STEREO )
-        flags |= PFD_STEREO;
-
-#if defined(_MSC_VER)
-#pragma message( "fgSetupPixelFormat(): there is still some work to do here!" )
-#endif
-
-    /* Specify which pixel format do we opt for... */
-    pfd.nSize           = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion        = 1;
-    pfd.dwFlags         = flags;
-
-    if( fgState.DisplayMode & GLUT_INDEX )
-    {
-        pfd.iPixelType = PFD_TYPE_COLORINDEX;
-        pfd.cRedBits                = 0;
-        pfd.cGreenBits            = 0;
-        pfd.cBlueBits             = 0;
-        pfd.cAlphaBits            = 0;
-    }
-    else
-    {
-        pfd.iPixelType      = PFD_TYPE_RGBA;
-        pfd.cRedBits                = 8;
-        pfd.cGreenBits            = 8;
-        pfd.cBlueBits             = 8;
-        if ( fgState.DisplayMode & GLUT_ALPHA )
-            pfd.cAlphaBits            = 8;
-        else
-            pfd.cAlphaBits            = 0;
-    }
-
-    pfd.cColorBits      = 24;
-    pfd.cRedShift       = 0;
-    pfd.cGreenShift     = 0;
-    pfd.cBlueShift      = 0;
-    pfd.cAlphaShift     = 0;
-    pfd.cAccumBits      = 0;
-    pfd.cAccumRedBits   = 0;
-    pfd.cAccumGreenBits = 0;
-    pfd.cAccumBlueBits  = 0;
-    pfd.cAccumAlphaBits = 0;
-#if 0
-    pfd.cDepthBits      = 32;
-    pfd.cStencilBits    = 0;
-#else
-    pfd.cDepthBits      = 24;
-    pfd.cStencilBits    = 8;
-#endif
-    if( fgState.DisplayMode & GLUT_AUX4 )
-        pfd.cAuxBuffers = 4;
-    else if( fgState.DisplayMode & GLUT_AUX3 )
-        pfd.cAuxBuffers = 3;
-    else if( fgState.DisplayMode & GLUT_AUX2 )
-        pfd.cAuxBuffers = 2;
-    else if( fgState.DisplayMode & GLUT_AUX1 ) /* NOTE: Same as GLUT_AUX! */
-        pfd.cAuxBuffers = fgState.AuxiliaryBufferNumber;
-    else
-        pfd.cAuxBuffers = 0;
-
-    pfd.iLayerType      = layer_type;
-    pfd.bReserved       = 0;
-    pfd.dwLayerMask     = 0;
-    pfd.dwVisibleMask   = 0;
-    pfd.dwDamageMask    = 0;
-
-    pfd.cColorBits = (BYTE) GetDeviceCaps( window->Window.Device, BITSPIXEL );
-    ppfd = &pfd;
-
-    pixelformat = ChoosePixelFormat( window->Window.Device, ppfd );
-
-    /* windows hack for multismapling */
-    if (fgState.DisplayMode&GLUT_MULTISAMPLE)
-    {        
-        PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetEntensionsStringARB=NULL;
-        HGLRC rc, rc_before=wglGetCurrentContext();
-        HWND hWnd;
-        HDC hDC, hDC_before=wglGetCurrentDC();
-        WNDCLASS wndCls;
-
-        /* create a dummy window */
-        ZeroMemory(&wndCls, sizeof(wndCls));
-        wndCls.lpfnWndProc = DefWindowProc;
-        wndCls.hInstance = fgDisplay.Instance;
-        wndCls.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-        wndCls.lpszClassName = _T("FREEGLUT_dummy");
-        RegisterClass( &wndCls );
-
-        hWnd=CreateWindow(_T("FREEGLUT_dummy"), _T(""), WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW , 0,0,0,0, 0, 0, fgDisplay.Instance, 0 );
-        hDC=GetDC(hWnd);
-        SetPixelFormat( hDC, pixelformat, ppfd );
-        
-        rc = wglCreateContext( hDC );
-        wglMakeCurrent(hDC, rc);
-        
-        wglGetEntensionsStringARB=(PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-        if (wglGetEntensionsStringARB)
-        {
-            const char * pWglExtString=wglGetEntensionsStringARB(hDC);
-            if (pWglExtString)
-            {
-                if (strstr(pWglExtString, "WGL_ARB_multisample"))
-                {
-                    int pAttributes[100];
-                    int iCounter=0;
-                    int iPixelFormat;
-                    BOOL bValid;
-                    float fAttributes[] = {0,0};
-                    UINT numFormats;
-                    PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARBProc=NULL;
-
-                    wglChoosePixelFormatARBProc=(PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-                    if ( wglChoosePixelFormatARBProc )
-                    {
-                        pAttributes[iCounter++]=WGL_DRAW_TO_WINDOW_ARB;        pAttributes[iCounter++]=GL_TRUE;
-                        pAttributes[iCounter++]=WGL_SUPPORT_OPENGL_ARB;        pAttributes[iCounter++]=GL_TRUE;
-                        pAttributes[iCounter++]=WGL_ACCELERATION_ARB;        pAttributes[iCounter++]=WGL_FULL_ACCELERATION_ARB;
-
-                        pAttributes[iCounter++]=WGL_COLOR_BITS_ARB;            pAttributes[iCounter++]=pfd.cColorBits ;
-                        pAttributes[iCounter++]=WGL_ALPHA_BITS_ARB;            pAttributes[iCounter++]=pfd.cAlphaBits;
-                        pAttributes[iCounter++]=WGL_DEPTH_BITS_ARB;            pAttributes[iCounter++]=pfd.cDepthBits;
-                        pAttributes[iCounter++]=WGL_STENCIL_BITS_ARB;        pAttributes[iCounter++]=pfd.cStencilBits;
-
-                        pAttributes[iCounter++]=WGL_DOUBLE_BUFFER_ARB;        pAttributes[iCounter++]=(fgState.DisplayMode & GLUT_DOUBLE)!=0;
-                        pAttributes[iCounter++]=WGL_SAMPLE_BUFFERS_ARB;        pAttributes[iCounter++]=GL_TRUE;
-                        pAttributes[iCounter++]=WGL_SAMPLES_ARB;            pAttributes[iCounter++]=fgState.SampleNumber;
-                        pAttributes[iCounter++]=0;                            pAttributes[iCounter++]=0;    /* terminator */
-
-                        bValid = wglChoosePixelFormatARBProc(window->Window.Device,pAttributes,fAttributes,1,&iPixelFormat,&numFormats);
-
-                        if (bValid && numFormats>0)
-                            pixelformat=iPixelFormat;
-                    }
-                }
-                wglMakeCurrent( hDC_before, rc_before);
-                wglDeleteContext(rc);
-                ReleaseDC(hWnd, hDC);
-                DestroyWindow(hWnd);
-                UnregisterClass(_T("FREEGLUT_dummy"), fgDisplay.Instance);
-            }
-        }
-    }
-
-    if( pixelformat == 0 )
-        return GL_FALSE;
-
-    if( checkOnly )
-        return GL_TRUE;
-    return SetPixelFormat( window->Window.Device, pixelformat, ppfd );
-#endif /* defined(_WIN32_WCE) */
-}
-#endif /* TARGET_HOST_MS_WINDOWS */
-
-/*
- * Sets the OpenGL context and the fgStructure "Current Window" pointer to
- * the window structure passed in.
- */
-void fgSetWindow ( SFG_Window *window )
-{
-#if TARGET_HOST_POSIX_X11
-    if ( window )
-        glXMakeContextCurrent(
-            fgDisplay.Display,
-            window->Window.Handle,
-            window->Window.Handle,
-            window->Window.Context
-        );
-#elif TARGET_HOST_MS_WINDOWS
-    if( fgStructure.CurrentWindow )
-        ReleaseDC( fgStructure.CurrentWindow->Window.Handle,
-                   fgStructure.CurrentWindow->Window.Device );
-
-    if ( window )
-    {
-        window->Window.Device = GetDC( window->Window.Handle );
-        wglMakeCurrent(
-            window->Window.Device,
-            window->Window.Context
-        );
-    }
-#endif
-    fgStructure.CurrentWindow = window;
-}
-
-
-
-#if TARGET_HOST_POSIX_X11
-
-#ifndef GLX_CONTEXT_MAJOR_VERSION_ARB
-#define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
-#endif
-
-#ifndef GLX_CONTEXT_MINOR_VERSION_ARB
-#define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
-#endif
-
-#ifndef GLX_CONTEXT_FLAGS_ARB
-#define GLX_CONTEXT_FLAGS_ARB 0x2094
-#endif
-
-#ifndef GLX_CONTEXT_DEBUG_BIT_ARB
-#define GLX_CONTEXT_DEBUG_BIT_ARB 0x0001
-#endif
-
-#ifndef GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB
-#define GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
-#endif
 
 typedef GLXContext (*CreateContextAttribsProc)(Display *dpy, GLXFBConfig config,
 					       GLXContext share_list, Bool direct,
@@ -607,15 +438,15 @@ static GLXContext fghCreateNewContext( SFG_Window* window )
   GLXContext context;
 
   /* new context creation */
-  int attribs[7];
+  int attributes[9];
   CreateContextAttribsProc createContextAttribs;
 
   /* If nothing fancy has been required, simply use the old context creation GLX API entry */
-  if ( fgState.MajorVersion == 1 && fgState.MinorVersion == 0 && fgState.ContextFlags == 0)
+  if ( fghIsLegacyContextRequested() )
   {
     context = glXCreateNewContext( dpy, config, render_type, share_list, direct );
     if ( context == NULL ) {
-      fgError( "could not create new OpenGL context" );
+      fghContextCreationError();
     }
     return context;
   }
@@ -625,26 +456,461 @@ static GLXContext fghCreateNewContext( SFG_Window* window )
     fgWarning( "color index mode is deprecated, using RGBA mode" );
   }
 
-  attribs[0] = GLX_CONTEXT_MAJOR_VERSION_ARB;
-  attribs[1] = fgState.MajorVersion;
-  attribs[2] = GLX_CONTEXT_MINOR_VERSION_ARB;
-  attribs[3] = fgState.MinorVersion;
-  attribs[4] = GLX_CONTEXT_FLAGS_ARB;
-  attribs[5] = ((fgState.ContextFlags & GLUT_DEBUG) ? GLX_CONTEXT_DEBUG_BIT_ARB : 0) |
-    ((fgState.ContextFlags & GLUT_FORWARD_COMPATIBLE) ? GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB : 0);
-  attribs[6] = 0;
+  fghFillContextAttributes( attributes );
 
   createContextAttribs = (CreateContextAttribsProc) fghGetProcAddress( "glXCreateContextAttribsARB" );
   if ( createContextAttribs == NULL ) {
     fgError( "glXCreateContextAttribsARB not found" );
   }
 
-  context = createContextAttribs( dpy, config, share_list, direct, attribs );
+  context = createContextAttribs( dpy, config, share_list, direct, attributes );
   if ( context == NULL ) {
-    fgError( "could not create new OpenGL %d.%d context (flags %x)",
-	     fgState.MajorVersion, fgState.MinorVersion, fgState.ContextFlags );
+    fghContextCreationError();
   }
   return context;
+}
+
+
+#define _NET_WM_STATE_TOGGLE    2
+static int fghResizeFullscrToggle(void)
+{
+    XWindowAttributes attributes;
+
+    if(glutGet(GLUT_FULL_SCREEN)) {
+        /* restore original window size */
+        SFG_Window *win = fgStructure.CurrentWindow;
+        fgStructure.CurrentWindow->State.NeedToResize = GL_TRUE;
+        fgStructure.CurrentWindow->State.Width  = win->State.OldWidth;
+        fgStructure.CurrentWindow->State.Height = win->State.OldHeight;
+
+    } else {
+        /* resize the window to cover the entire screen */
+        XGetWindowAttributes(fgDisplay.Display,
+                fgStructure.CurrentWindow->Window.Handle,
+                &attributes);
+        
+        /*
+         * The "x" and "y" members of "attributes" are the window's coordinates
+         * relative to its parent, i.e. to the decoration window.
+         */
+        XMoveResizeWindow(fgDisplay.Display,
+                fgStructure.CurrentWindow->Window.Handle,
+                -attributes.x,
+                -attributes.y,
+                fgDisplay.ScreenWidth,
+                fgDisplay.ScreenHeight);
+    }
+    return 0;
+}
+
+static int fghEwmhFullscrToggle(void)
+{
+    XEvent xev;
+    long evmask = SubstructureRedirectMask | SubstructureNotifyMask;
+
+    if(!fgDisplay.State || !fgDisplay.StateFullScreen) {
+        return -1;
+    }
+
+    xev.type = ClientMessage;
+    xev.xclient.window = fgStructure.CurrentWindow->Window.Handle;
+    xev.xclient.message_type = fgDisplay.State;
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = _NET_WM_STATE_TOGGLE;
+    xev.xclient.data.l[1] = fgDisplay.StateFullScreen;
+    xev.xclient.data.l[2] = 0;	/* no second property to toggle */
+    xev.xclient.data.l[3] = 1;	/* source indication: application */
+    xev.xclient.data.l[4] = 0;	/* unused */
+
+    if(!XSendEvent(fgDisplay.Display, fgDisplay.RootWindow, 0, evmask, &xev)) {
+        return -1;
+    }
+    return 0;
+}
+
+static int fghToggleFullscreen(void)
+{
+    /* first try the EWMH (_NET_WM_STATE) method ... */
+    if(fghEwmhFullscrToggle() != -1) {
+        return 0;
+    }
+
+    /* fall back to resizing the window */
+    if(fghResizeFullscrToggle() != -1) {
+        return 0;
+    }
+    return -1;
+}
+
+
+#endif  /* TARGET_HOST_POSIX_X11 */
+
+
+#if TARGET_HOST_MS_WINDOWS
+/*
+ * Setup the pixel format for a Win32 window
+ */
+
+#if defined(_WIN32_WCE)
+static wchar_t* fghWstrFromStr(const char* str)
+{
+    int i,len=strlen(str);
+    wchar_t* wstr = (wchar_t*)malloc(2*len+2);
+    for(i=0; i<len; i++)
+        wstr[i] = str[i];
+    wstr[len] = 0;
+    return wstr;
+}
+#endif /* defined(_WIN32_WCE) */
+
+
+static void fghFillContextAttributes( int *attributes ) {
+  int where = 0, contextFlags, contextProfile;
+
+  if ( !fghIsLegacyContextVersionRequested() ) {
+    ATTRIB_VAL( WGL_CONTEXT_MAJOR_VERSION_ARB, fgState.MajorVersion );
+    ATTRIB_VAL( WGL_CONTEXT_MINOR_VERSION_ARB, fgState.MinorVersion );
+  }
+
+  contextFlags =
+    fghMapBit( fgState.ContextFlags, GLUT_DEBUG, WGL_CONTEXT_DEBUG_BIT_ARB ) |
+    fghMapBit( fgState.ContextFlags, GLUT_FORWARD_COMPATIBLE, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB );
+  if ( contextFlags != 0 ) {
+    ATTRIB_VAL( WGL_CONTEXT_FLAGS_ARB, contextFlags );
+  }
+
+  contextProfile =
+    fghMapBit( fgState.ContextProfile, GLUT_CORE_PROFILE, WGL_CONTEXT_CORE_PROFILE_BIT_ARB ) |
+    fghMapBit( fgState.ContextProfile, GLUT_COMPATIBILITY_PROFILE, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB );
+  if ( contextProfile != 0 ) {
+    ATTRIB_VAL( WGL_CONTEXT_PROFILE_MASK_ARB, contextProfile );
+  }
+
+  ATTRIB( 0 );
+}
+
+static int fghIsExtensionSupported( HDC hdc, const char *extension ) {
+    const char *pWglExtString;
+    PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetEntensionsStringARB =
+      (PFNWGLGETEXTENSIONSSTRINGARBPROC) wglGetProcAddress("wglGetExtensionsStringARB");
+    if ( wglGetEntensionsStringARB == NULL )
+    {
+      return FALSE;
+    }
+    pWglExtString = wglGetEntensionsStringARB( hdc );
+    return ( pWglExtString != NULL ) && ( strstr(pWglExtString, extension) != NULL );
+}
+
+void fgNewWGLCreateContext( SFG_Window* window )
+{
+    HGLRC context;
+    int attributes[9];
+    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+
+    /* If nothing fancy has been required, leave the context as it is */
+    if ( fghIsLegacyContextRequested() )
+    {
+        return;
+    }
+
+    wglMakeCurrent( window->Window.Device, window->Window.Context );
+
+    if ( !fghIsExtensionSupported( window->Window.Device, "WGL_ARB_create_context" ) )
+    {
+        return;
+    }
+
+    /* new context creation */
+    fghFillContextAttributes( attributes );
+
+    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress( "wglCreateContextAttribsARB" );
+    if ( wglCreateContextAttribsARB == NULL )
+    {
+        fgError( "wglCreateContextAttribsARB not found" );
+    }
+
+    context = wglCreateContextAttribsARB( window->Window.Device, 0, attributes );
+    if ( context == NULL )
+    {
+        fghContextCreationError();
+    }
+
+    wglMakeCurrent( NULL, NULL );
+    wglDeleteContext( window->Window.Context );
+    window->Window.Context = context;
+}
+
+#if !defined(_WIN32_WCE)
+
+static void fghFillPFD( PIXELFORMATDESCRIPTOR *ppfd, HDC hdc, unsigned char layer_type )
+{
+  int flags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
+  if ( fgState.DisplayMode & GLUT_DOUBLE ) {
+        flags |= PFD_DOUBLEBUFFER;
+  }
+  if ( fgState.DisplayMode & GLUT_STEREO ) {
+    flags |= PFD_STEREO;
+  }
+
+#if defined(_MSC_VER)
+#pragma message( "fgSetupPixelFormat(): there is still some work to do here!" )
+#endif
+
+  /* Specify which pixel format do we opt for... */
+  ppfd->nSize = sizeof(PIXELFORMATDESCRIPTOR);
+  ppfd->nVersion = 1;
+  ppfd->dwFlags = flags;
+
+  if( fgState.DisplayMode & GLUT_INDEX ) {
+    ppfd->iPixelType = PFD_TYPE_COLORINDEX;
+    ppfd->cRedBits = 0;
+    ppfd->cGreenBits = 0;
+    ppfd->cBlueBits = 0;
+    ppfd->cAlphaBits = 0;
+  } else {
+    ppfd->iPixelType = PFD_TYPE_RGBA;
+    ppfd->cRedBits = 8;
+    ppfd->cGreenBits = 8;
+    ppfd->cBlueBits = 8;
+    ppfd->cAlphaBits = ( fgState.DisplayMode & GLUT_ALPHA ) ? 8 : 0;
+  }
+
+  ppfd->cColorBits = 24;
+  ppfd->cRedShift = 0;
+  ppfd->cGreenShift = 0;
+  ppfd->cBlueShift = 0;
+  ppfd->cAlphaShift = 0;
+  ppfd->cAccumBits = ( fgState.DisplayMode & GLUT_ACCUM ) ? 1 : 0;
+  ppfd->cAccumRedBits = 0;
+  ppfd->cAccumGreenBits = 0;
+  ppfd->cAccumBlueBits = 0;
+  ppfd->cAccumAlphaBits = 0;
+
+  /* Hmmm, or 32/0 instead of 24/8? */
+  ppfd->cDepthBits = 24;
+  ppfd->cStencilBits = 8;
+
+  ppfd->cAuxBuffers = fghNumberOfAuxBuffersRequested();
+  ppfd->iLayerType = layer_type;
+  ppfd->bReserved = 0;
+  ppfd->dwLayerMask = 0;
+  ppfd->dwVisibleMask = 0;
+  ppfd->dwDamageMask = 0;
+  
+  ppfd->cColorBits = (BYTE) GetDeviceCaps( hdc, BITSPIXEL );
+}
+
+static void fghFillPixelFormatAttributes( int *attributes, const PIXELFORMATDESCRIPTOR *ppfd )
+{
+  int where = 0;
+
+  ATTRIB_VAL( WGL_DRAW_TO_WINDOW_ARB, GL_TRUE );
+  ATTRIB_VAL( WGL_SUPPORT_OPENGL_ARB, GL_TRUE );
+  ATTRIB_VAL( WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB );
+
+  ATTRIB_VAL( WGL_COLOR_BITS_ARB, ppfd->cColorBits );
+  ATTRIB_VAL( WGL_ALPHA_BITS_ARB, ppfd->cAlphaBits );
+  ATTRIB_VAL( WGL_DEPTH_BITS_ARB, ppfd->cDepthBits );
+  ATTRIB_VAL( WGL_STENCIL_BITS_ARB, ppfd->cStencilBits );
+
+  ATTRIB_VAL( WGL_DOUBLE_BUFFER_ARB, ( fgState.DisplayMode & GLUT_DOUBLE ) != 0 );
+
+  if ( fgState.DisplayMode & GLUT_SRGB ) {
+    ATTRIB_VAL( WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, TRUE );
+  }
+
+  ATTRIB_VAL( WGL_SAMPLE_BUFFERS_ARB, GL_TRUE );
+  ATTRIB_VAL( WGL_SAMPLES_ARB, fgState.SampleNumber );
+  ATTRIB( 0 );
+}
+#endif
+
+GLboolean fgSetupPixelFormat( SFG_Window* window, GLboolean checkOnly,
+                              unsigned char layer_type )
+{
+#if defined(_WIN32_WCE)
+    return GL_TRUE;
+#else
+    PIXELFORMATDESCRIPTOR pfd;
+    PIXELFORMATDESCRIPTOR* ppfd = &pfd;
+    int pixelformat;
+    HDC current_hDC;
+    GLboolean success;
+
+    if (checkOnly)
+      current_hDC = CreateDC(TEXT("DISPLAY"), NULL ,NULL ,NULL);
+    else
+      current_hDC = window->Window.Device;
+
+    fghFillPFD( ppfd, current_hDC, layer_type );
+    pixelformat = ChoosePixelFormat( current_hDC, ppfd );
+
+    /* windows hack for multismapling/sRGB */
+    if ( ( fgState.DisplayMode & GLUT_MULTISAMPLE ) ||
+         ( fgState.DisplayMode & GLUT_SRGB ) )
+    {        
+        HGLRC rc, rc_before=wglGetCurrentContext();
+        HWND hWnd;
+        HDC hDC, hDC_before=wglGetCurrentDC();
+        WNDCLASS wndCls;
+
+        /* create a dummy window */
+        ZeroMemory(&wndCls, sizeof(wndCls));
+        wndCls.lpfnWndProc = DefWindowProc;
+        wndCls.hInstance = fgDisplay.Instance;
+        wndCls.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+        wndCls.lpszClassName = _T("FREEGLUT_dummy");
+        RegisterClass( &wndCls );
+
+        hWnd=CreateWindow(_T("FREEGLUT_dummy"), _T(""), WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW , 0,0,0,0, 0, 0, fgDisplay.Instance, 0 );
+        hDC=GetDC(hWnd);
+        SetPixelFormat( hDC, pixelformat, ppfd );
+
+        rc = wglCreateContext( hDC );
+        wglMakeCurrent(hDC, rc);
+
+        if ( fghIsExtensionSupported( hDC, "WGL_ARB_multisample" ) )
+        {
+            PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARBProc =
+              (PFNWGLCHOOSEPIXELFORMATARBPROC) wglGetProcAddress("wglChoosePixelFormatARB");
+            if ( wglChoosePixelFormatARBProc )
+            {
+                int attributes[100];
+                int iPixelFormat;
+                BOOL bValid;
+                float fAttributes[] = { 0, 0 };
+                UINT numFormats;
+                fghFillPixelFormatAttributes( attributes, ppfd );
+                bValid = wglChoosePixelFormatARBProc(hDC, attributes, fAttributes, 1, &iPixelFormat, &numFormats);
+
+                if ( bValid && numFormats > 0 )
+                {
+                    pixelformat = iPixelFormat;
+                }
+            }
+        }
+
+        wglMakeCurrent( hDC_before, rc_before);
+        wglDeleteContext(rc);
+        ReleaseDC(hWnd, hDC);
+        DestroyWindow(hWnd);
+        UnregisterClass(_T("FREEGLUT_dummy"), fgDisplay.Instance);
+    }
+
+    success = ( pixelformat != 0 ) && ( checkOnly || SetPixelFormat( current_hDC, pixelformat, ppfd ) );
+
+    if (checkOnly)
+        DeleteDC(current_hDC);
+
+    return success;
+#endif /* defined(_WIN32_WCE) */
+}
+
+#endif  /* TARGET_HOST_MS_WINDOWS */
+
+/*
+ * Sets the OpenGL context and the fgStructure "Current Window" pointer to
+ * the window structure passed in.
+ */
+void fgSetWindow ( SFG_Window *window )
+{
+#if TARGET_HOST_POSIX_X11
+    if ( window )
+    {
+        glXMakeContextCurrent(
+            fgDisplay.Display,
+            window->Window.Handle,
+            window->Window.Handle,
+            window->Window.Context
+        );
+    }
+#elif TARGET_HOST_MS_WINDOWS
+    if ( window != fgStructure.CurrentWindow )
+    {
+        if( fgStructure.CurrentWindow )
+            ReleaseDC( fgStructure.CurrentWindow->Window.Handle,
+                       fgStructure.CurrentWindow->Window.Device );
+
+        if ( window )
+        {
+            window->Window.Device = GetDC( window->Window.Handle );
+            wglMakeCurrent(
+                window->Window.Device,
+                window->Window.Context
+            );
+        }
+    }
+#endif
+    fgStructure.CurrentWindow = window;
+}
+
+#if TARGET_HOST_MS_WINDOWS
+
+#if(WINVER >= 0x500)
+typedef struct {
+      int *x;
+      int *y;
+      const char *name;
+}m_proc_t ;
+
+static BOOL CALLBACK m_proc(HMONITOR mon,
+			    HDC hdc,
+			    LPRECT rect,
+			    LPARAM data)
+{
+      m_proc_t *dp=(m_proc_t *)data;
+      MONITORINFOEX info;
+      BOOL res;
+      info.cbSize=sizeof(info);
+      res=GetMonitorInfo(mon,(LPMONITORINFO)&info);
+      if( res )
+      {
+          if( !strcmp(dp->name,info.szDevice) )
+          {
+              *(dp->x)=info.rcMonitor.left;
+              *(dp->y)=info.rcMonitor.top;
+              return FALSE;
+          }
+      }
+      return TRUE;
+}
+
+/* 
+ * this function is only used in fgOpenWindow. Currently it only sets 
+ * its output parameters, if the DisplayName is set in fgDisplay 
+ * (and if it is able to recognize the display)
+ */
+
+static void get_display_origin(int *xp,int *yp)
+{
+    if( fgDisplay.DisplayName )
+    {
+        m_proc_t st;
+        st.x=xp;
+        st.y=yp;
+        st.name=fgDisplay.DisplayName;
+        EnumDisplayMonitors(0,0,m_proc,(LPARAM)&st);
+     }
+}
+#else
+#pragma message( "-display parameter only works if compiled with WINVER >= 0x0500")
+
+static void get_display_origin(int *xp,int *yp)
+{
+    if( fgDisplay.DisplayName )
+    {
+        fgWarning( "for working -display support FreeGLUT must be compiled with WINVER >= 0x0500");
+    }
+}
+#endif
+#endif
+
+
+#if TARGET_HOST_POSIX_X11
+static Bool fghWindowIsVisible( Display *display, XEvent *event, XPointer arg)
+{
+    Window window = arg;
+    return (event->type == MapNotify) && (event->xmap.window == window);
 }
 #endif
 
@@ -664,14 +930,16 @@ void fgOpenWindow( SFG_Window* window, const char* title,
     XTextProperty textProperty;
     XSizeHints sizeHints;
     XWMHints wmHints;
+    XEvent eventReturnBuffer; /* return buffer required for a call */
     unsigned long mask;
+    int num_FBConfigs, i;
     unsigned int current_DisplayMode = fgState.DisplayMode ;
 
     /* Save the display mode if we are creating a menu window */
     if( window->IsMenu && ( ! fgStructure.MenuContext ) )
         fgState.DisplayMode = GLUT_DOUBLE | GLUT_RGB ;
 
-    window->Window.FBConfig = fgChooseFBConfig( );
+    window->Window.FBConfig = fgChooseFBConfig( &num_FBConfigs );
 
     if( window->IsMenu && ( ! fgStructure.MenuContext ) )
         fgState.DisplayMode = current_DisplayMode ;
@@ -686,14 +954,14 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         if( !( fgState.DisplayMode & GLUT_DOUBLE ) )
         {
             fgState.DisplayMode |= GLUT_DOUBLE ;
-            window->Window.FBConfig = fgChooseFBConfig( );
+            window->Window.FBConfig = fgChooseFBConfig( &num_FBConfigs );
             fgState.DisplayMode &= ~GLUT_DOUBLE;
         }
 
         if( fgState.DisplayMode & GLUT_MULTISAMPLE )
         {
             fgState.DisplayMode &= ~GLUT_MULTISAMPLE ;
-            window->Window.FBConfig = fgChooseFBConfig( );
+            window->Window.FBConfig = fgChooseFBConfig( &num_FBConfigs );
             fgState.DisplayMode |= GLUT_MULTISAMPLE;
         }
     }
@@ -702,8 +970,15 @@ void fgOpenWindow( SFG_Window* window, const char* title,
                                   "FBConfig with necessary capabilities not found", "fgOpenWindow" );
 
     /*  Get the X visual.  */
-    visualInfo = glXGetVisualFromFBConfig( fgDisplay.Display,
-                                           *(window->Window.FBConfig) );
+    for (i = 0; i < num_FBConfigs; i++) {
+	    visualInfo = glXGetVisualFromFBConfig( fgDisplay.Display,
+						   window->Window.FBConfig[i] );
+	    if (visualInfo)
+		break;
+    }
+
+    FREEGLUT_INTERNAL_ERROR_EXIT( visualInfo != NULL,
+                                  "visualInfo could not be retrieved from FBConfig", "fgOpenWindow" );
 
     /*
      * XXX HINT: the masks should be updated when adding/removing callbacks.
@@ -845,9 +1120,17 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         window->Window.Context
     );
 
+    /* register extension events _before_ window is mapped */
+    #ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
+       fgRegisterDevices( fgDisplay.Display, &(window->Window.Handle) );
+    #endif
+
     XMapWindow( fgDisplay.Display, window->Window.Handle );
 
     XFree(visualInfo);
+
+    if( !isSubWindow)
+        XPeekIfEvent( fgDisplay.Display, &eventReturnBuffer, &fghWindowIsVisible, window->Window.Handle );
 
 #elif TARGET_HOST_MS_WINDOWS
 
@@ -959,17 +1242,24 @@ void fgOpenWindow( SFG_Window* window, const char* title,
         UpdateWindow(window->Window.Handle);
     }
 #else
-    window->Window.Handle = CreateWindowEx(
-        exFlags,
-        _T("FREEGLUT"),
-        title,
-        flags,
-        x, y, w, h,
-        (HWND) window->Parent == NULL ? NULL : window->Parent->Window.Handle,
-        (HMENU) NULL,
-        fgDisplay.Instance,
-        (LPVOID) window
-    );
+    {
+      /* xoff and yoff are used to place window relative to current display */
+      /* The operation of gamemode also depends on this */
+        int xoff=0,yoff=0;
+        get_display_origin(&xoff,&yoff);
+
+        window->Window.Handle = CreateWindowEx(
+            exFlags,
+            _T("FREEGLUT"),
+            title,
+            flags,
+            x+xoff, y+yoff, w, h,
+            (HWND) window->Parent == NULL ? NULL : window->Parent->Window.Handle,
+            (HMENU) NULL,
+            fgDisplay.Instance,
+            (LPVOID) window
+        );
+    }
 #endif /* defined(_WIN32_WCE) */
 
     if( !( window->Window.Handle ) )
@@ -1001,6 +1291,10 @@ void fgOpenWindow( SFG_Window* window, const char* title,
 /*  SetWindowPos(window->Window.Handle, NULL, 0, 0, 0, 0,
      SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED); */
 
+    /* Enable multitouch: additional flag TWF_FINETOUCH, TWF_WANTPALM */
+    #ifdef WM_TOUCH
+       RegisterTouchWindow( window->Window.Handle, TWF_FINETOUCH | TWF_WANTPALM );
+    #endif
 
 #if defined(_WIN32_WCE)
     ShowWindow( window->Window.Handle, SW_SHOW );
@@ -1031,12 +1325,21 @@ void fgOpenWindow( SFG_Window* window, const char* title,
  */
 void fgCloseWindow( SFG_Window* window )
 {
+    /* if we're in gamemode, call glutLeaveGameMode first to make sure the
+     * gamemode is properly closed before closing the window
+     */
+    if (fgStructure.GameModeWindow != NULL)
+        glutLeaveGameMode();
+
 #if TARGET_HOST_POSIX_X11
 
     if( window->Window.Context )
         glXDestroyContext( fgDisplay.Display, window->Window.Context );
     XFree( window->Window.FBConfig );
-    XDestroyWindow( fgDisplay.Display, window->Window.Handle );
+
+    if( window->Window.Handle ) {
+        XDestroyWindow( fgDisplay.Display, window->Window.Handle );
+    }
     /* XFlush( fgDisplay.Display ); */ /* XXX Shouldn't need this */
 
 #elif TARGET_HOST_MS_WINDOWS
@@ -1091,6 +1394,14 @@ int FGAPIENTRY glutCreateWindow( const char* title )
                            fgState.Size.Use, fgState.Size.X, fgState.Size.Y,
                            GL_FALSE, GL_FALSE )->ID;
 }
+
+#if TARGET_HOST_MS_WINDOWS
+int FGAPIENTRY __glutCreateWindowWithExit( const char *title, void (__cdecl *exit_function)(int) )
+{
+  __glutExitFunc = exit_function;
+  return glutCreateWindow( title );
+}
+#endif
 
 /*
  * This function creates a sub window.
@@ -1462,36 +1773,29 @@ void FGAPIENTRY glutPopWindow( void )
  */
 void FGAPIENTRY glutFullScreen( void )
 {
+    SFG_Window *win;
+
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutFullScreen" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutFullScreen" );
 
+    win = fgStructure.CurrentWindow;
+
+#if TARGET_HOST_POSIX_X11
+    if(!glutGet(GLUT_FULL_SCREEN)) {
+        if(fghToggleFullscreen() != -1) {
+            win->State.IsFullscreen = GL_TRUE;
+        }
+    }
+
+#elif TARGET_HOST_MS_WINDOWS && !defined(_WIN32_WCE) /* FIXME: what about WinCE */
+
     if (glutGet(GLUT_FULL_SCREEN))
     {
-      /*  Leave full screen state before resizing. */
-      glutFullScreenToggle();
+        /*  Leave full screen state before resizing. */
+        glutFullScreenToggle();
     }
 
     {
-#if TARGET_HOST_POSIX_X11
-
-        Status status;  /* Returned by XGetWindowAttributes(), not checked. */
-        XWindowAttributes attributes;
-
-        status = XGetWindowAttributes(fgDisplay.Display,
-                                      fgStructure.CurrentWindow->Window.Handle,
-                                      &attributes);
-        /*
-         * The "x" and "y" members of "attributes" are the window's coordinates
-         * relative to its parent, i.e. to the decoration window.
-         */
-        XMoveResizeWindow(fgDisplay.Display,
-                          fgStructure.CurrentWindow->Window.Handle,
-                          -attributes.x,
-                          -attributes.y,
-                          fgDisplay.ScreenWidth,
-                          fgDisplay.ScreenHeight);
-
-#elif TARGET_HOST_MS_WINDOWS && !defined(_WIN32_WCE) /* FIXME: what about WinCE */
         RECT rect;
 
         /* For fullscreen mode, force the top-left corner to 0,0
@@ -1501,8 +1805,9 @@ void FGAPIENTRY glutFullScreen( void )
 
         rect.left   = 0;
         rect.top    = 0;
-        rect.right  = fgDisplay.ScreenWidth;
-        rect.bottom = fgDisplay.ScreenHeight;
+	get_display_origin(&rect.left,&rect.top);
+        rect.right  = fgDisplay.ScreenWidth+rect.left;
+        rect.bottom = fgDisplay.ScreenHeight+rect.top;
 
         AdjustWindowRect ( &rect, WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS |
                                   WS_CLIPCHILDREN, FALSE );
@@ -1523,8 +1828,10 @@ void FGAPIENTRY glutFullScreen( void )
                       SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING |
                       SWP_NOZORDER
                     );
-#endif
+        
+        win->State.IsFullscreen = GL_TRUE;
     }
+#endif
 }
 
 /*
@@ -1532,54 +1839,21 @@ void FGAPIENTRY glutFullScreen( void )
  */
 void FGAPIENTRY glutFullScreenToggle( void )
 {
+    SFG_Window *win;
+
     FREEGLUT_EXIT_IF_NOT_INITIALISED ( "glutFullScreenToggle" );
     FREEGLUT_EXIT_IF_NO_WINDOW ( "glutFullScreenToggle" );
 
-    {
+    win = fgStructure.CurrentWindow;
+
 #if TARGET_HOST_POSIX_X11
-
-      if (fgDisplay.StateFullScreen != None)
-      {
-        XEvent xevent;
-        long event_mask;
-        int status;
-
-        xevent.type = ClientMessage;
-        xevent.xclient.type = ClientMessage;
-        xevent.xclient.serial = 0;
-        xevent.xclient.send_event = True;
-        xevent.xclient.display = fgDisplay.Display;
-        xevent.xclient.window = fgStructure.CurrentWindow->Window.Handle;
-        xevent.xclient.message_type = fgDisplay.State;
-        xevent.xclient.format = 32;
-        xevent.xclient.data.l[0] = 2;  /* _NET_WM_STATE_TOGGLE */
-        xevent.xclient.data.l[1] = fgDisplay.StateFullScreen;
-        xevent.xclient.data.l[2] = 0;
-        xevent.xclient.data.l[3] = 0;
-        xevent.xclient.data.l[4] = 0;
-
-        /*** Don't really understand how event masks work... ***/
-        event_mask = SubstructureRedirectMask | SubstructureNotifyMask;
-
-        status = XSendEvent(fgDisplay.Display,
-          fgDisplay.RootWindow,
-          False,
-          event_mask,
-          &xevent);
-        FREEGLUT_INTERNAL_ERROR_EXIT(status != 0,
-          "XSendEvent failed",
-          "glutFullScreenToggle");
-      }
-      else
-#endif
-      {
-        /*
-         * If the window manager is not Net WM compliant, fall back to legacy
-         * behaviour.
-         */
-        glutFullScreen();
-      }
+    if(fghToggleFullscreen() != -1) {
+        win->State.IsFullscreen = !win->State.IsFullscreen;
     }
+#elif TARGET_HOST_MS_WINDOWS
+    glutFullScreen();
+    win->State.IsFullscreen = !win->State.IsFullscreen;
+#endif
 }
 
 /*

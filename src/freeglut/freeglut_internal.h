@@ -28,33 +28,37 @@
 #ifndef  FREEGLUT_INTERNAL_H
 #define  FREEGLUT_INTERNAL_H
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #    include "config.h"
 #endif
 
 /* XXX Update these for each release! */
 #define  VERSION_MAJOR 2
-#define  VERSION_MINOR 6
+#define  VERSION_MINOR 7
 #define  VERSION_PATCH 0
 
 /* Freeglut is intended to function under all Unix/X11 and Win32 platforms. */
 /* XXX: Don't all MS-Windows compilers (except Cygwin) have _WIN32 defined?
  * XXX: If so, remove the first set of defined()'s below.
  */
+#if !defined(TARGET_HOST_POSIX_X11) && !defined(TARGET_HOST_MS_WINDOWS) && !defined(TARGET_HOST_MAC_OSX) && !defined(TARGET_HOST_SOLARIS)
 #if defined(_MSC_VER) || defined(__WATCOMC__) || defined(__MINGW32__) \
     || defined(_WIN32) || defined(_WIN32_WCE) \
     || ( defined(__CYGWIN__) && defined(X_DISPLAY_MISSING) )
 #   define  TARGET_HOST_MS_WINDOWS 1
 
-#elif defined(__posix__) || defined(__unix__) || defined(__linux__)
+#elif defined(__posix__) || defined(__unix__) || defined(__linux__) || defined(__sun)
 #   define  TARGET_HOST_POSIX_X11  1
 
-/* FIXME: no Macintosh support?
-#if ...
-#   define  TARGET_HOST_MAC_OSX    1
+#elif defined(__APPLE__)
+/* This is a placeholder until we get native OSX support ironed out -- JFF 11/18/09 */
+#   define  TARGET_HOST_POSIX_X11  1
+/* #   define  TARGET_HOST_MAC_OSX    1 */
+
 #else
 #   error "Unrecognized target host!"
-*/
+
+#endif
 #endif
 
 /* Detect both SunPro and gcc compilers on Sun Solaris */
@@ -84,15 +88,14 @@
 
 /* -- PLATFORM-SPECIFIC INCLUDES ------------------------------------------- */
 
-/* All Win32 headers depend on the huge Windows.h recursive include.
- * Note: Let's use proper case for MS-Win headers. Even though it's
- * not required due to case insensitivity, it's a good habit to keep
- * because the cross-platform includes are case sensitive.
+/* All Win32 headers depend on the huge windows.h recursive include.
+ * Note: Lower-case header names are used, for best cross-platform
+ * compatibility.
  */
 #if TARGET_HOST_MS_WINDOWS && !defined(_WIN32_WCE)
-#    include <Windows.h>
-#    include <WindowsX.h>
-#    include <MMSystem.h>
+#    include <windows.h>
+#    include <windowsx.h>
+#    include <mmsystem.h>
 /* CYGWIN does not have tchar.h, but has TEXT(x), defined in winnt.h. */
 #    ifndef __CYGWIN__
 #      include <tchar.h>
@@ -110,6 +113,9 @@
 #    ifdef HAVE_X11_EXTENSIONS_XF86VMODE_H
 #        include <X11/extensions/xf86vmode.h>
 #    endif
+#    ifdef HAVE_X11_EXTENSIONS_XRANDR_H
+#        include <X11/extensions/Xrandr.h>
+#    endif
 /* If GLX is too old, we will fail during runtime when multisampling
    is requested, but at least freeglut compiles. */
 #    ifndef GLX_SAMPLE_BUFFERS
@@ -126,18 +132,19 @@
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 /* These are included based on autoconf directives. */
-#if HAVE_SYS_TYPES_H
+#ifdef HAVE_SYS_TYPES_H
 #    include <sys/types.h>
 #endif
-#if HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #    include <unistd.h>
 #endif
-#if TIME_WITH_SYS_TIME
+#ifdef TIME_WITH_SYS_TIME
 #    include <sys/time.h>
 #    include <time.h>
-#elif HAVE_SYS_TIME_H
+#elif defined(HAVE_SYS_TIME_H)
 #    include <sys/time.h>
 #else
 #    include <time.h>
@@ -158,12 +165,7 @@
 #endif
 
 #if TARGET_HOST_MS_WINDOWS
-#    define  HAVE_VPRINTF 1
-#endif
-
-#if !defined(HAVE_VPRINTF) && !defined(HAVE_DOPRNT)
-/* XXX warning directive here? */
-#    define  HAVE_VPRINTF 1
+#    define  HAVE_VFPRINTF 1
 #endif
 
 /* MinGW may lack a prototype for ChangeDisplaySettingsEx() (depending on the version?) */
@@ -187,12 +189,21 @@ LONG WINAPI ChangeDisplaySettingsExW(LPCWSTR,LPDEVMODEW,HWND,DWORD,LPVOID);
 #    define  M_PI  3.14159265358979323846
 #endif
 
-#ifndef TRUE
-#    define  TRUE  1
-#endif
-
-#ifndef FALSE
-#    define  FALSE  0
+#ifdef HAVE_STDBOOL_H
+#    include <stdbool.h>
+#    ifndef TRUE
+#        define TRUE true
+#    endif
+#    ifndef FALSE
+#        define FALSE false
+#    endif
+#else
+#    ifndef TRUE
+#        define  TRUE  1
+#    endif
+#    ifndef FALSE
+#        define  FALSE  0
+#    endif
 #endif
 
 /* General defines */
@@ -227,6 +238,11 @@ typedef void (* FGCBTabletMotion  )( int, int );
 typedef void (* FGCBTabletButton  )( int, int, int, int );
 typedef void (* FGCBDestroy       )( void );
 
+typedef void (* FGCBMultiEntry   )( int, int );
+typedef void (* FGCBMultiButton  )( int, int, int, int, int );
+typedef void (* FGCBMultiMotion  )( int, int, int );
+typedef void (* FGCBMultiPassive )( int, int, int );
+
 /* The global callbacks type definitions */
 typedef void (* FGCBIdle          )( void );
 typedef void (* FGCBTimer         )( int );
@@ -235,6 +251,10 @@ typedef void (* FGCBMenuStatus    )( int, int, int );
 
 /* The callback used when creating/using menus */
 typedef void (* FGCBMenu          )( int );
+
+/* The FreeGLUT error/warning handler type definition */
+typedef void (* FGError           ) ( const char *fmt, va_list ap);
+typedef void (* FGWarning         ) ( const char *fmt, va_list ap);
 
 
 /* A list structure */
@@ -316,6 +336,7 @@ struct tagSFG_State
     fgExecutionState ExecState;           /* Used for GLUT termination       */
     char            *ProgramName;         /* Name of the invoking program    */
     GLboolean        JoysticksInitialised;  /* Only initialize if application calls for them */
+    int              NumActiveJoysticks;    /* Number of active joysticks -- if zero, don't poll joysticks */
     GLboolean        InputDevsInitialised;  /* Only initialize if application calls for them */
 
     int              AuxiliaryBufferNumber;  /* Number of auxiliary buffers */
@@ -324,6 +345,9 @@ struct tagSFG_State
     int              MajorVersion;         /* Major OpenGL context version  */
     int              MinorVersion;         /* Minor OpenGL context version  */
     int              ContextFlags;         /* OpenGL context flags          */
+    int              ContextProfile;       /* OpenGL context profile        */
+    FGError          ErrorFunc;            /* User defined error handler    */
+    FGWarning        WarningFunc;          /* User defined warning handler  */
 };
 
 /* The structure used by display initialization in freeglut_init.c */
@@ -339,7 +363,13 @@ struct tagSFG_Display
     Atom            State;              /* The state atom                    */
     Atom            StateFullScreen;    /* The full screen atom              */
 
-#ifdef X_XF86VidModeGetModeLine
+#ifdef HAVE_X11_EXTENSIONS_XRANDR_H
+    int prev_xsz, prev_ysz;
+    int prev_refresh;
+    int prev_size_valid;
+#endif	/* HAVE_X11_EXTENSIONS_XRANDR_H */
+
+#ifdef HAVE_X11_EXTENSIONS_XF86VMODE_H
     /*
      * XF86VidMode may be compilable even if it fails at runtime.  Therefore,
      * the validity of the VidMode has to be tracked
@@ -349,14 +379,15 @@ struct tagSFG_Display
     int             DisplayModeClock;   /* The display mode's refresh rate   */
     int             DisplayViewPortX;   /* saved X location of the viewport  */
     int             DisplayViewPortY;   /* saved Y location of the viewport  */
+#endif /* HAVE_X11_EXTENSIONS_XF86VMODE_H */
+
     int             DisplayPointerX;    /* saved X location of the pointer   */
     int             DisplayPointerY;    /* saved Y location of the pointer   */
-
-#endif /* X_XF86VidModeGetModeLine */
 
 #elif TARGET_HOST_MS_WINDOWS
     HINSTANCE        Instance;          /* The application's instance        */
     DEVMODE         DisplayMode;        /* Desktop's display settings        */
+    char           *DisplayName;        /* Display name for multi display support*/ 
 
 #endif
 
@@ -435,6 +466,8 @@ struct tagSFG_WindowState
     GLboolean       KeyRepeating;       /* Currently in repeat mode          */
 
     GLboolean       NeedToResize;       /* Do we need to resize the window?  */
+
+    GLboolean       IsFullscreen;       /* is the window fullscreen? */
 };
 
 
@@ -560,12 +593,18 @@ enum
     CB_Joystick,
     CB_Destroy,
 
+    /* MPX-related */
+    CB_MultiEntry,
+    CB_MultiButton,
+    CB_MultiMotion,
+    CB_MultiPassive,
+
     /* Presently ignored */
     CB_Select,
     CB_OverlayDisplay,
-    CB_SpaceMotion,
-    CB_SpaceRotation,
-    CB_SpaceButton,
+    CB_SpaceMotion,     /* presently implemented only on UNIX/X11 */
+    CB_SpaceRotation,   /* presently implemented only on UNIX/X11 */
+    CB_SpaceButton,     /* presently implemented only on UNIX/X11 */
     CB_Dials,
     CB_ButtonBox,
     CB_TabletMotion,
@@ -782,11 +821,12 @@ extern SFG_State fgState;
  * A call to those macros assures us that there is a current
  * window set, respectively:
  */
-#define  FREEGLUT_EXIT_IF_NO_WINDOW( string )                   \
-  if ( ! fgStructure.CurrentWindow )                            \
-  {                                                             \
-    fgError ( " ERROR:  Function <%s> called"                   \
-              " with no current window defined.", (string) ) ;  \
+#define  FREEGLUT_EXIT_IF_NO_WINDOW( string )                               \
+  if ( ! fgStructure.CurrentWindow &&                                       \
+       ( fgState.ActionOnWindowClose != GLUT_ACTION_CONTINUE_EXECUTION ) )  \
+  {                                                                         \
+    fgError ( " ERROR:  Function <%s> called"                               \
+              " with no current window defined.", (string) ) ;              \
   }
 
 /*
@@ -806,7 +846,7 @@ void fgDestroyStructure( void );
 
 /* A helper function to check if a display mode is possible to use */
 #if TARGET_HOST_POSIX_X11
-GLXFBConfig* fgChooseFBConfig( void );
+GLXFBConfig* fgChooseFBConfig( int* numcfgs );
 #endif
 
 /* The window procedure for Win32 events handling */
@@ -851,6 +891,19 @@ void        fgJoystickPollWindow( SFG_Window* window );
 int         fgInputDeviceDetect( void );
 void        fgInitialiseInputDevices( void );
 void        fgInputDeviceClose( void );
+
+/* spaceball device functions, defined in freeglut_spaceball.c */
+void        fgInitialiseSpaceball( void );
+void        fgSpaceballClose( void );
+void        fgSpaceballSetWindow( SFG_Window *window );
+
+int         fgHasSpaceball( void );
+int         fgSpaceballNumButtons( void );
+
+#if TARGET_HOST_POSIX_X11
+int         fgIsSpaceballXEvent( const XEvent *ev );
+void        fgSpaceballHandleXEvent( const XEvent *ev );
+#endif
 
 /* Setting the cursor for a given window */
 void fgSetCursor ( SFG_Window *window, int cursorID );
@@ -929,9 +982,20 @@ void fgWarning( const char *fmt, ... );
  */
 #if TARGET_HOST_POSIX_X11
 int fgHintPresent(Window window, Atom property, Atom hint);
+
+/* Handler for X extension Events */
+#ifdef HAVE_X11_EXTENSIONS_XINPUT2_H
+  void fgHandleExtensionEvents( XEvent * ev );
+  void fgRegisterDevices( Display* dpy, Window* win );
+#endif
+
 #endif
 
 SFG_Proc fghGetProcAddress( const char *procName );
+
+#if TARGET_HOST_MS_WINDOWS
+extern void (__cdecl *__glutExitFunc)( int return_value );
+#endif
 
 #endif /* FREEGLUT_INTERNAL_H */
 
