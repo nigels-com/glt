@@ -140,10 +140,24 @@ T sqr(const T &x)
 template<class T>
 T lowerPowerOf2(const T x)
 {
-    uint32 tmp = 1<<(sizeof(T)*8-1);
+    T tmp = 1<<(sizeof(T)*8-1);
     while ((tmp&x)==0 && tmp)
         tmp >>= 1;
     return tmp;
+}
+
+/*!
+    \brief   log2 of integer
+    \ingroup Math
+*/
+
+template<class T>
+T log2(const T x)
+{
+    T tmp = x;
+    T i = 0;
+    for (i=0; tmp; tmp>>=1, ++i);
+    return i ? i-1 : 0;
 }
 
 /*!
