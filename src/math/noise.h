@@ -65,10 +65,10 @@
     http://www.noisemachine.com/talk1/
 
     Perlin Noise and Turbulence summary by Paul Bourke
-    http://astronomy.swin.edu.au/~pbourke/texture/perlin/
+    http://paulbourke.net/texture_colour/perlin/
 
     The Perlin Noise Math FAQ by Matt Zucker
-    http://students.vassar.edu/mazucker/code/perlin-noise-math-faq.html
+    http://staffwww.itn.liu.se/~stegu/TNM022-2005/perlinnoiselinks/perlin-noise-math-faq.html
 
     Perlin Noise by Hugo Elias
     http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
