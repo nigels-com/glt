@@ -28,6 +28,8 @@
 
 #include <iostream>
 #include <string>
+#include <cstring>
+#include <cstdlib>
 #include <cassert>
 using namespace std;
 
