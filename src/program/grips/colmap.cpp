@@ -5,6 +5,7 @@
 #include <node/fields.h>
 
 #include <cmath>
+#include <algorithm>
 using namespace std;
 
 const string ColorMap::_modeDescription[MAPPING_MAX] =
