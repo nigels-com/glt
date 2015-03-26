@@ -51,7 +51,7 @@ GltTextBufferIterator::nextLine()
     if (tmp!=_buffer.end())
     {
         _line = tmp;
-        _x = clamp(_x,0u,_line->size());
+        _x = clamp(_x,0u,(unsigned int)(_line->size()));
         return true;
     }
 
@@ -64,7 +64,7 @@ GltTextBufferIterator::prevLine()
     if (_line!=_buffer.begin())
     {
         _line--;
-        _x = clamp(_x,0u,_line->size());
+        _x = clamp(_x,0u,(unsigned int)(_line->size()));
         return true;
     }
 
