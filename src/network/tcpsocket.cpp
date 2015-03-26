@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <algorithm>
 
 #include <sys/types.h>
 

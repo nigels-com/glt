@@ -13,6 +13,7 @@
 #include <node/shape.h>
 
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
 //#define DEBUG_BINARY_SEARCH 1

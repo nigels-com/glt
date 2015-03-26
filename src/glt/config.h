@@ -176,4 +176,8 @@ typedef std::string  GltString;
 
 #define GLT_UNUSED(x) (void)x;
 
+#if defined(_MSC_VER)
+#define NOMINMAX
+#endif
+
 #endif

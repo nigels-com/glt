@@ -10,6 +10,7 @@
 
 #include <cstdio>
 #include <cassert>
+#include <algorithm>
 using namespace std;
 
 GltFont::GltFont()

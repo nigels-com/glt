@@ -13,6 +13,7 @@
 
 #include <cstdio>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
 /////////////// GltRegistry /////////////////

@@ -17,8 +17,10 @@
 
 #include <cassert>
 #include <cstring>
-#include <string>
+
 #include <list>
+#include <string>
+#include <algorithm>
 using namespace std;
 
 #ifdef FAR

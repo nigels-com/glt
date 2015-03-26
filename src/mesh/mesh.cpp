@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <functional>
 #include <cassert>
 using namespace std;
 
