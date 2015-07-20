@@ -1,0 +1,6 @@
+*.sln
+*.vcxproj*
+
+*.cmake
+**/CMakeFiles/*
+**/*.dir/*
