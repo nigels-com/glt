@@ -131,9 +131,9 @@ Shape::draw() const
                 if (index<0)
                     continue;
 
-                assert(index[0]<faces->coord.size());
-                assert(index[1]<faces->coord.size());
-                assert(index[2]<faces->coord.size());
+                assert(size_t(index[0])<faces->coord.size());
+                assert(size_t(index[1])<faces->coord.size());
+                assert(size_t(index[2])<faces->coord.size());
 
                 const Vector &a = faces->coord[index[0]];
                 const Vector &b = faces->coord[index[1]];
