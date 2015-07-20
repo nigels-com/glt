@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <string>
+#include <cmath>
 #include <cstring>
 #include <cstdlib>
 #include <cassert>
@@ -86,7 +87,7 @@ tiledNoiseImage
     const uint32 yMax   = height<<ss;
     const uint32 step   = 1<<ss;
     const float  step2i = real(1.0)/real(step*step); 
-    const uint32 shift  = 32-log2(xMax);
+    const uint32 shift  = 32-std::log2(xMax);
 
     GltNoisePerlin noise(randomSeed);
     noise.type() = type;
