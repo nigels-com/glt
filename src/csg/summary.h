@@ -11,6 +11,7 @@
 
 #include <string>
 #include <cstdio>
+#include <algorithm>
 
 #include <math/real.h>
 #include <misc/string.h>

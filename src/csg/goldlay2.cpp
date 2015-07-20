@@ -22,6 +22,7 @@
 #include <glt/error.h>
 
 #include <list>
+#include <algorithm>
 using namespace std;
 
 void csgRenderGoldfeatherLayeredImproved
@@ -127,8 +128,8 @@ void csgRenderGoldfeatherLayeredImproved
                 // Check that we have enough stencil bits to
                 // do layer counting upto maxK
 
-                assert(maxK <(1<<stencilBits));
-                assert(maxK <(1<<lowerBits));
+                assert(maxK <(1u<<stencilBits));
+                assert(maxK <(1u<<lowerBits));
 
                 // layerBit is the current stencil bit for layer parity mask
 

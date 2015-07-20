@@ -3,6 +3,8 @@
 #include <glt/buffer.h>
 #include <glt/rgb.h>
 
+#include <algorithm>
+
 CsgHistograms::CsgHistograms()
 {
     _rBuffer.color()    = red;

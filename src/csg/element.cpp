@@ -238,14 +238,14 @@ CsgProduct::add(CsgProduct &prod)
 const ReferenceCountPtr<GltShape> &
 CsgProduct::shape(const int i) const
 {
-    assert(i>=0 && i<=size());
+    assert(i>=0 && size_t(i)<=size());
     return (*this)[i]._shape;
 }
 
 const bool &
 CsgProduct::positive(const int i) const
 {
-    assert(i>=0 && i<=size());
+    assert(i>=0 && size_t(i)<=size());
     return (*this)[i]._positive;
 }
 

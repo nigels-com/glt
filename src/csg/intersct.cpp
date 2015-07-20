@@ -11,9 +11,10 @@
 #include <math/matrix4.h>
 #include <math/umatrix.h>
 
+#include <cmath>
 #include <cassert>
 #include <iostream>
-#include <cmath>
+#include <algorithm>
 using namespace std;
 
 //
