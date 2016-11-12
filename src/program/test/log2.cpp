@@ -6,7 +6,7 @@ using namespace std;
 
 ostream &printLog2(ostream &os,const uint32 v)
 {
-    os << "log2(1<<" << v << ") = log2(" << (1u<<v) << ") = " << log2(1u<<v) << endl;
+    os << "log2(1<<" << v << ") = log2(" << (1u<<v) << ") = " << ::log2(1u<<v) << endl;
     return os;
 }
 
