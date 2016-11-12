@@ -2,24 +2,6 @@
 
 /*! \file
     \ingroup Math
-
-    $Id: round.cpp,v 2.1 2004/02/16 02:40:33 nigels Exp $
-
-    $Log: round.cpp,v $
-    Revision 2.1  2004/02/16 02:40:33  nigels
-    Whitespace differences
-
-    Revision 1.9  2003/07/22 03:58:05  nigels
-    Vector -> Vector3
-    CLAMP -> clamp
-    LERP -> lerp
-
-    Revision 1.8  2003/05/10 17:01:03  nigels
-    *** empty log message ***
-
-    Revision 1.6  2003/03/06 12:29:59  nigels
-    *** empty log message ***
-
 */
 
 #include <math/real.h>
@@ -29,20 +11,20 @@
 
 //////////////////////////////////////////////////////////////////////////////
 
-float round(const float value, const int precision)
+float precision(const float value, const int prec)
 {
-    return (float) round(double(value),precision);
+    return (float) precision(double(value),prec);
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-double round(const double value, const int precision)
+double precision(const double value, const int prec)
 {
-    if (precision>=0)
+    if (prec>=0)
     {
         // Prevent excessive precision
 
-        const int p = clamp(precision,-15,15);
+        const int p = clamp(prec,-15,15);
 
         // Lookup table for pwr(10.0,i)
 

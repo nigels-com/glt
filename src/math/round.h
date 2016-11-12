@@ -47,7 +47,7 @@
     a positive integer.
 */
 
-float round(const float value, const int precision = 0);
+float precision(const float value, const int precision = 0);
 
 /*!
     \brief   rounds value to a specified precision
@@ -63,6 +63,6 @@ float round(const float value, const int precision = 0);
     value.
 */
 
-double round(const double value, const int precision = 0);
+double precision(const double value, const int precision = 0);
 
 #endif

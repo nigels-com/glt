@@ -76,7 +76,7 @@ void testRoundFloat()
     for (const float *i=testf; *i!=0.0f; i++)
     {
         for (int p=5; p>=0; p--)
-            cout << setprecision(p) << setw(p+3) << round(*i,p) << ' ';
+            cout << setprecision(p) << setw(p+3) << precision(*i,p) << ' ';
         cout << endl;
     }
 }
@@ -87,7 +87,7 @@ void testRoundDouble()
     for (const double *i=testd; *i!=0.0; i++)
     {
         for (int p=8; p>=0; p--)
-            cout << setprecision(p) << setw(p+3) << round(*i,p) << ' ';
+            cout << setprecision(p) << setw(p+3) << precision(*i,p) << ' ';
         cout << endl;
     }
 }
@@ -96,7 +96,7 @@ void testRoundLong()
 {
     cout << endl << "long" << endl << endl << resetiosflags(static_cast<ios_base::fmtflags>(~0));
     for (const double *i=testl; *i!=0.0; i++)
-        cout << setw(12) << *i << ' ' << setw(12) << long(round(*i,0)) << endl;
+        cout << setw(12) << *i << ' ' << setw(12) << long(precision(*i,0)) << endl;
 }
 
 void testPower2()
