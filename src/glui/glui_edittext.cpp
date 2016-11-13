@@ -13,24 +13,25 @@
   WWW:    http://sourceforge.net/projects/glui/
   Forums: http://sourceforge.net/forum/?group_id=92496
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  1. The origin of this software must not be misrepresented; you must not
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+  misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
 
 *****************************************************************************/
 
-#include "GL/glui.h"
-#include "glui_internal.h"
+#include "glui_internal_control.h"
 #include <cassert>
 
 /****************************** GLUI_EditText::GLUI_EditText() **********/
@@ -143,7 +144,7 @@ int    GLUI_EditText::mouse_down_handler( int local_x, int local_y )
   tmp_insertion_pt = find_insertion_pt( local_x, local_y );
   if ( tmp_insertion_pt == -1 ) {
     if ( glui )
-      glui->disactivate_current_control(  );
+      glui->deactivate_current_control(  );
     return false;
   }
 
@@ -171,7 +172,7 @@ int    GLUI_EditText::mouse_up_handler( int local_x, int local_y, bool inside )
 /***************************** GLUI_EditText::mouse_held_down_handler() ******/
 
 int    GLUI_EditText::mouse_held_down_handler( int local_x, int local_y,
-                           bool new_inside)
+					       bool new_inside)
 {
   int tmp_pt;
 
@@ -220,14 +221,14 @@ int    GLUI_EditText::key_handler( unsigned char key,int modifiers )
   /*  has_selection = (sel_start != sel_end);              */
 
   if ( key == CTRL('m') ) {           /* RETURN */
-    /*    glui->disactivate_current_control();              */
-    disactivate();  /** Force callbacks, etc **/
+    /*    glui->deactivate_current_control();              */
+    deactivate();  /** Force callbacks, etc **/
     activate(GLUI_ACTIVATE_TAB);     /** Reselect all text **/
-    translate_and_draw_front();
+    redraw();
     return true;
   }
   else if ( key  == CTRL('[')) {         /* ESCAPE */
-    glui->disactivate_current_control();
+    glui->deactivate_current_control();
     return true;
   }
   else if ( (key == 127 AND !ctrl_down) OR  /* FORWARD DELETE */
@@ -465,9 +466,9 @@ void    GLUI_EditText::activate( int how )
 }
 
 
-/****************************** GLUI_EditText::disactivate() **********/
+/****************************** GLUI_EditText::deactivate() **********/
 
-void    GLUI_EditText::disactivate( void )
+void    GLUI_EditText::deactivate( void )
 {
   int    new_int_val;
   float  new_float_val;
@@ -508,7 +509,7 @@ void    GLUI_EditText::disactivate( void )
   update_substring_bounds();
 
   /******** redraw text without insertion point ***********/
-  translate_and_draw_front();
+  redraw();
 
   /***** Now do callbacks if value changed ******/
   if ( orig_text != text ) {
@@ -535,13 +536,8 @@ void    GLUI_EditText::disactivate( void )
 
 void    GLUI_EditText::draw( int x, int y )
 {
-  int orig;
+  GLUI_DRAWINGSENTINAL_IDIOM
   int name_x;
-
-  if ( NOT can_draw() )
-    return;
-
-  orig = set_to_glut_window();
 
   name_x = MAX(text_x_offset - string_width(this->name) - 3,0);
   draw_name( name_x , 13);
@@ -572,8 +568,6 @@ void    GLUI_EditText::draw( int x, int y )
   draw_text(0,0);
 
   draw_insertion_pt();
-
-  restore_window(orig);
 }
 
 
@@ -591,8 +585,8 @@ int    GLUI_EditText::update_substring_bounds( void )
 
   /*** Calculate the width of the usable area of the edit box ***/
   box_width = MAX( this->w - this->text_x_offset
-           - 4     /*  2 * the two-line box border */
-           - 2 * GLUI_EDITTEXT_BOXINNERMARGINX, 0 );
+		   - 4     /*  2 * the two-line box border */
+		   - 2 * GLUI_EDITTEXT_BOXINNERMARGINX, 0 );
 
   CLAMP( substring_end, 0, MAX(text_len-1,0) );
   CLAMP( substring_start, 0, MAX(text_len-1,0) );
@@ -617,11 +611,11 @@ int    GLUI_EditText::update_substring_bounds( void )
     }
     else {
       while ( substring_width( substring_start, substring_end ) > box_width )
-    substring_end--;
+	substring_end--;
 
       while(substring_end < text_len-1
             AND substring_width( substring_start, substring_end ) <= box_width)
-        substring_end++;
+      	substring_end++;
     }
   }
 
@@ -655,15 +649,10 @@ void    GLUI_EditText::update_x_offsets( void )
 
 void    GLUI_EditText::draw_text( int x, int y )
 {
+  GLUI_DRAWINGSENTINAL_IDIOM
   int text_x, i, sel_lo, sel_hi;
-  int orig;
-
-  if ( NOT can_draw() )
-    return;
 
   if ( debug )    dump( stdout, "-> DRAW_TEXT" );
-
-  orig = set_to_glut_window();
 
   if ( NOT draw_text_only ) {
     if ( enabled )
@@ -699,11 +688,11 @@ void    GLUI_EditText::draw_text( int x, int y )
       delta = char_width( text[i] );
 
       if ( i < sel_lo ) {
-    sel_x_start += delta;
-    sel_x_end   += delta;
+	sel_x_start += delta;
+	sel_x_end   += delta;
       }
       else if ( i < sel_hi ) {
-    sel_x_end   += delta;
+	sel_x_end   += delta;
       }
     }
 
@@ -730,21 +719,19 @@ void    GLUI_EditText::draw_text( int x, int y )
     int x = text_x;
     for( i=substring_start; i<=substring_end; i++ ) {
       if ( IN_BOUNDS( i, sel_lo, sel_hi-1)) { /* This character is selected */
-    glColor3f( 1., 1., 1. );
-    glRasterPos2i( x, 13);
-    glutBitmapCharacter( get_font(), this->text[i] );
+	glColor3f( 1., 1., 1. );
+	glRasterPos2i( x, 13);
+	glutBitmapCharacter( get_font(), this->text[i] );
       }
       else {
-    glColor3f( 0., 0., 0. );
-    glRasterPos2i( x, 13);
-    glutBitmapCharacter( get_font(), this->text[i] );
+	glColor3f( 0., 0., 0. );
+	glRasterPos2i( x, 13);
+	glutBitmapCharacter( get_font(), this->text[i] );
       }
 
       x += char_width( text[i] );
     }
   }
-
-  restore_window( orig );
 
   if ( debug )    dump( stdout, "<- DRAW_TEXT" );
 }
@@ -769,7 +756,7 @@ int  GLUI_EditText::find_insertion_pt( int x, int y )
     + substring_width( substring_start, substring_end )
     + 2                             /* The edittext box has a 2-pixel margin */
     + GLUI_EDITTEXT_BOXINNERMARGINX;   /** plus this many pixels blank space
-                     between the text and the box       **/
+					 between the text and the box       **/
 
   /*** See if we clicked in an empty box ***/
   if ( (int) text.length() == 0 )
@@ -824,7 +811,7 @@ void     GLUI_EditText::draw_insertion_pt( void )
     + substring_width( substring_start, substring_end )
     + 2                             /* The edittext box has a 2-pixel margin */
     + GLUI_EDITTEXT_BOXINNERMARGINX;   /** plus this many pixels blank space
-                     between the text and the box       **/
+					 between the text and the box       **/
 
   for( i=substring_end; i>=insertion_pt; i-- ) {
     curr_x -= char_width( text[i] );
@@ -875,7 +862,7 @@ void   GLUI_EditText::update_and_draw_text( void )
   update_substring_bounds();
   /*  printf( "ss: %d/%d\n", substring_start, substring_end );                  */
 
-  translate_and_draw_front();
+  redraw();
 }
 
 
@@ -888,8 +875,8 @@ int    GLUI_EditText::special_handler( int key,int modifiers )
 
   if ( debug )
     printf( "SPECIAL:%d - mod:%d   subs:%d/%d  ins:%d  sel:%d/%d\n",
-        key, modifiers, substring_start, substring_end,insertion_pt,
-        sel_start, sel_end );
+	    key, modifiers, substring_start, substring_end,insertion_pt,
+	    sel_start, sel_end );
 
   if ( key == GLUT_KEY_LEFT ) {
     if ( (modifiers & GLUT_ACTIVE_CTRL) != 0 ) {
@@ -922,11 +909,11 @@ int    GLUI_EditText::special_handler( int key,int modifiers )
 
 
   CLAMP( insertion_pt, 0, (int) text.length()); /* Make sure insertion_pt
-                                                              is in bounds */
+						                                      is in bounds */
   CLAMP( sel_start, 0, (int) text.length()); /* Make sure insertion_pt
-                                                            is in bounds */
+						                                    is in bounds */
   CLAMP( sel_end, 0, (int) text.length()); /* Make sure insertion_pt
-                                                         is in bounds */
+					                                     is in bounds */
 
   /******** Now redraw text ***********/
   if ( can_draw())

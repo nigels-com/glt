@@ -13,24 +13,25 @@
   WWW:    http://sourceforge.net/projects/glui/
   Forums: http://sourceforge.net/forum/?group_id=92496
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  1. The origin of this software must not be misrepresented; you must not
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+  misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
 
 *****************************************************************************/
 
-#include "GL/glui.h"
-#include "glui_internal.h"
+#include "glui_internal_control.h"
 
 /****************************** GLUI_StaticText::GLUI_StaticText() **********/
 GLUI_StaticText::GLUI_StaticText( GLUI_Node *parent, const char *name )
@@ -44,16 +45,9 @@ GLUI_StaticText::GLUI_StaticText( GLUI_Node *parent, const char *name )
 
 void    GLUI_StaticText::draw( int x, int y )
 {
-  int orig;
-
-  if ( NOT can_draw() )
-    return;
-
-  orig = set_to_glut_window();
+  GLUI_DRAWINGSENTINAL_IDIOM
 
   draw_text();
-
-  restore_window( orig );
 }
 
 
@@ -61,29 +55,8 @@ void    GLUI_StaticText::draw( int x, int y )
 
 void    GLUI_StaticText::set_text( const char *text )
 {
-  int orig;
-
-  /**** Erase old text first *****/
-  glMatrixMode( GL_MODELVIEW );
-  glPushMatrix();
-  translate_to_origin();
-  erase_text();
-  glPopMatrix();
-
   set_name( text );
-
-  if ( NOT can_draw() )
-    return;
-
-  orig = set_to_glut_window();
-  /**** Redraw the text in the window ****/
-  glMatrixMode( GL_MODELVIEW );
-  glPushMatrix();
-  translate_to_origin();
-  draw_text();
-  glPopMatrix();
-
-  restore_window( orig );
+  redraw();
 }
 
 

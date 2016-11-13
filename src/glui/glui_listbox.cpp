@@ -13,24 +13,25 @@
   WWW:    http://sourceforge.net/projects/glui/
   Forums: http://sourceforge.net/forum/?group_id=92496
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  1. The origin of this software must not be misrepresented; you must not
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+  misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
 
 *****************************************************************************/
 
-#include "GL/glui.h"
-#include "glui_internal.h"
+#include "glui_internal_control.h"
 
 /****************************** GLUI_Listbox::GLUI_Listbox() **********/
 GLUI_Listbox::GLUI_Listbox( GLUI_Node *parent,
@@ -70,7 +71,7 @@ int    GLUI_Listbox::mouse_up_handler( int local_x, int local_y, bool inside )
 /****************************** GLUI_Listbox::mouse_held_down_handler() ******/
 
 int    GLUI_Listbox::mouse_held_down_handler( int local_x, int local_y,
-                          bool inside)
+					      bool inside)
 {
 
   return false;
@@ -89,20 +90,15 @@ int    GLUI_Listbox::key_handler( unsigned char key,int modifiers )
 
 void    GLUI_Listbox::draw( int x, int y )
 {
-  int orig, name_x;
-
-  if ( NOT can_draw() )
-    return;
-
-  orig = set_to_glut_window();
+  GLUI_DRAWINGSENTINAL_IDIOM
+  int name_x;
 
   /*  draw_active_area();              */
 
   name_x = MAX(text_x_offset - string_width(this->name) - 3,0);
   draw_name( name_x , 13);
   draw_box_inwards_outline( text_x_offset, w,
-                0, h );
-
+			    0, h );
 
   if ( NOT active ) {
     draw_box( text_x_offset+3, w-2, 2, h-2, 1.0, 1.0, 1.0 );
@@ -124,45 +120,23 @@ void    GLUI_Listbox::draw( int x, int y )
   if ( enabled ) {
     glui->std_bitmaps.
       draw(GLUI_STDBITMAP_LISTBOX_UP,
-       w-glui->std_bitmaps.width(GLUI_STDBITMAP_LISTBOX_UP)-1,
-       2 );
+	   w-glui->std_bitmaps.width(GLUI_STDBITMAP_LISTBOX_UP)-1,
+	   2 );
   }
   else {
     glui->std_bitmaps.
       draw(GLUI_STDBITMAP_LISTBOX_UP_DIS,
-       w-glui->std_bitmaps.width(GLUI_STDBITMAP_LISTBOX_UP)-1,
-       2 );
+	   w-glui->std_bitmaps.width(GLUI_STDBITMAP_LISTBOX_UP)-1,
+	   2 );
   }
-
-  restore_window(orig);
 }
 
 
 /************************************ GLUI_Listbox::update_si() **********/
-
 void   GLUI_Listbox::update_size( void )
 {
-  int text_size, delta;
-  int item_text_size;
-
-  if ( NOT glui )
-    return;
-
-  text_size = string_width( name );
-
-  /*** Find the longest item string ***/
-  item_text_size = 0;
-  delta = 0;
-
-  if ( text_x_offset < text_size +2 )
-    delta = text_size+2-text_x_offset;
-
-  text_x_offset += delta;
-  if ( w < text_x_offset+MAX(GLUI_EDITTEXT_MIN_TEXT_WIDTH,item_text_size)+20)
-    w = text_x_offset + MAX( GLUI_EDITTEXT_MIN_TEXT_WIDTH,item_text_size)+20;
+  recalculate_item_width();
 }
-
-
 
 /********************************* GLUI_Listbox::set_int_val() **************/
 
@@ -175,22 +149,6 @@ void    GLUI_Listbox::set_int_val( int new_val )
   /*** Update the variable we're (possibly) pointing to, and update the main gfx ***/
   output_live(true);
 }
-
-
-/**************************** GLUI_Listbox::draw_active_area() **************/
-
-void    GLUI_Listbox::draw_active_area( void )
-{
-  int orig;
-
-  if ( NOT can_draw() )
-    return;
-
-  orig = set_to_glut_window();
-
-  restore_window(orig);
-}
-
 
 /**************************************** GLUI_Listbox::add_item() **********/
 
@@ -215,17 +173,7 @@ int  GLUI_Listbox::add_item( int id, const char *new_text )
     if( glui )
       glui->post_update_main_gfx();
   }
-
-  /*** Check if we need to increase control size ***/
-  if ( w < text_x_offset + MAX( GLUI_EDITTEXT_MIN_TEXT_WIDTH, string_width( new_text ) ) + 20 ) {
-    w = text_x_offset + MAX( GLUI_EDITTEXT_MIN_TEXT_WIDTH, string_width( new_text ) ) + 20;
-
-    if ( glui )
-      glui->refresh();
-
-    /*      printf( "%s\n", new_text );              */
-  }
-
+  if (recalculate_item_width()) glui->refresh();
 
   return true;
 }
@@ -243,6 +191,7 @@ int  GLUI_Listbox::delete_item( const char *text )
     delete node;
     return true;
   }
+  if (recalculate_item_width()) glui->refresh();
 
   return false;
 }
@@ -260,6 +209,7 @@ int  GLUI_Listbox::delete_item(int id)
     delete node;
     return true;
   }
+  if (recalculate_item_width()) glui->refresh();
 
   return false;
 }
@@ -360,7 +310,7 @@ int     GLUI_Listbox::mouse_over( int state, int x, int y )
   if ( state AND enabled AND x > x_abs + text_x_offset) {
     /****  Build a GLUT menu for this listbox   ***/
 
-    /*  printf( "%d %d\n", x, y );              */
+    /*	printf( "%d %d\n", x, y );              */
 
     glut_menu_id = glutCreateMenu(listbox_callback);
 
@@ -413,8 +363,7 @@ int    GLUI_Listbox::do_selection( int item_num )
 
   int_val = item_num;
   curr_text = sel_item->text;
-
-  translate_and_draw_front();
+  redraw();
 
   return true;
 }
@@ -468,8 +417,34 @@ int    GLUI_Listbox::special_handler( int key,int modifiers )
 }
 
 
-/************************* GLUI_Listbox::increase_width( void ) ***********/
-
-void    GLUI_Listbox::increase_width( void )
+/************************* GLUI_Listbox::recalculate_item_width( void ) ***********/
+/** Change w and return true if we need to be widened to fit the current items. */
+bool    GLUI_Listbox::recalculate_item_width( void )
 {
+  int item_text_size;
+
+  if ( NOT glui )
+    return false;
+
+  /* Find the title size */
+  text_x_offset = string_width( name );
+
+  /* Find the longest item string ***/
+  item_text_size = 0;
+
+  GLUI_Listbox_Item *item = (GLUI_Listbox_Item *) items_list.first_child();
+  while( item ) {
+    item_text_size = MAX(item_text_size,string_width(item->text));
+    item = (GLUI_Listbox_Item *) item->next();
+  }
+
+  /* Sum up our layout: name, item, and drop-down marker */
+  int new_wid=text_x_offset+MAX(GLUI_EDITTEXT_MIN_TEXT_WIDTH,item_text_size)+20;
+  if ( w != new_wid) {
+    w = new_wid;
+    return true; /* we gotta be shortened or widened */
+  }
+  else {
+    return false; /* our current width is OK */
+  }
 }

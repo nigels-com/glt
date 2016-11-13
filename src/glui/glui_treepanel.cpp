@@ -1,4 +1,23 @@
+/*
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+  misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+*/
+
 #include "GL/glui.h"
+
 
 
 /****************************** GLUI_TreePanel::GLUI_TreePanel() *********/
@@ -26,6 +45,7 @@ void GLUI_TreePanel::set_color(float r, float g, float b)
   red = r;
   green = g;
   blue = b;
+  redraw();
 }
 
 /************************ GLUI_TreePanel::set_level_color() *********/
@@ -35,6 +55,7 @@ void GLUI_TreePanel::set_level_color(float r, float g, float b)
   lred = r;
   lgreen = g;
   lblue = b;
+  redraw();
 }
 
 /****************************** GLUI_TreePanel::ab() *********/
@@ -59,7 +80,7 @@ GLUI_Tree *GLUI_TreePanel::ab(const char *name, GLUI_Tree *root)
   if (dynamic_cast<GLUI_Tree*>(temp))
     ((GLUI_Tree *)temp)->set_current(true);
   //refresh();
-  //  glui->disactivate_current_control();
+  //  glui->deactivate_current_control();
   //glui->activate_control( temp, GLUI_ACTIVATE_TAB );
   return temp;
 
@@ -100,16 +121,16 @@ void GLUI_TreePanel::fb(GLUI_Tree *branch)
     if (curr_root != NULL) { /* up one parent */
 
       if (dynamic_cast<GLUI_Tree*>(curr_root))
-    ((GLUI_Tree *)curr_root)->set_current(false);
+	((GLUI_Tree *)curr_root)->set_current(false);
 
       curr_branch = (GLUI_Tree *) curr_root->next();
       curr_root = (GLUI_Panel *) curr_root->parent();
 
       if (curr_branch == NULL && (curr_root->collapsed_node).first_child() != NULL)
-    curr_branch = (GLUI_Tree *)(curr_root->collapsed_node).first_child();
+	curr_branch = (GLUI_Tree *)(curr_root->collapsed_node).first_child();
 
       if (dynamic_cast<GLUI_Tree*>(curr_root))
-    ((GLUI_Tree *)curr_root)->set_current(true);
+	((GLUI_Tree *)curr_root)->set_current(true);
 
     }
 
@@ -122,12 +143,10 @@ void GLUI_TreePanel::fb(GLUI_Tree *branch)
 
 void GLUI_TreePanel::refresh()
 {
-  glui->disactivate_current_control();
+  glui->deactivate_current_control();
   glui->activate_control( curr_root, GLUI_ACTIVATE_TAB );
 
-  if (can_draw()) {
-    translate_and_draw_front();
-  }
+  redraw();
 }
 
 /****************************** GLUI_TreePanel::initNode() *********/
@@ -274,7 +293,7 @@ void            GLUI_TreePanel::collapse_all()
   next();
   while (curr_root != NULL && curr_branch != this->first_child()) {
     if (dynamic_cast<GLUI_Tree*>(curr_root) &&
-          curr_branch == NULL) { /* we want to close everything leaf-first */
+	      curr_branch == NULL) { /* we want to close everything leaf-first */
       ((GLUI_Tree*)curr_root)->close();
       /* Rather than simply next(), we need to manually move the
          curr_root because this node has been moved to the

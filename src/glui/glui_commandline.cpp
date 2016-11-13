@@ -10,20 +10,21 @@
 
   Copyright (c) 1998 Paul Rademacher, 2005 William Baxter
 
-  This library is free software; you can redistribute it and/or modify
-  it under the terms of the GNU Lesser General Public License as
-  published by the Free Software Foundation; either version 2.1 of the
-  License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-  This library is distributed in the hope that it will be useful, but
-  WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-  USA
+  1. The origin of this software must not be misrepresented; you must not
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+  misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
 
   This program is -not- in the public domain.
 
@@ -76,21 +77,21 @@ int    GLUI_CommandLine::key_handler( unsigned char key,int modifiers )
 }
 
 
-/****************************** GLUI_CommandLine::disactivate() **********/
+/****************************** GLUI_CommandLine::deactivate() **********/
 
-void    GLUI_CommandLine::disactivate( void )
+void    GLUI_CommandLine::deactivate( void )
 {
   // if the commit_flag is set, add the current command to
-  // history and call disactivate as normal
+  // history and call deactivate as normal
 
-  // Trick disactivate into calling callback if and only if commit_flag set.
-  // A bit subtle, but disactivate checks that orig_text and text
+  // Trick deactivate into calling callback if and only if commit_flag set.
+  // A bit subtle, but deactivate checks that orig_text and text
   // are the same to decide whether or not to call the callback.
   // Force them to be different for commit, and the same for no commit.
   if (commit_flag) {
     add_to_history(text.c_str());
     orig_text = "";
-    Super::disactivate( );
+    Super::deactivate( );
     set_text( "" );
     commit_flag = false;
   }
@@ -108,8 +109,8 @@ int    GLUI_CommandLine::special_handler( int key,int modifiers )
 
   if ( debug )
     printf( "CMD_TEXT SPECIAL:%d - mod:%d   subs:%d/%d  ins:%d  sel:%d/%d\n",
-        key, modifiers, substring_start, substring_end,insertion_pt,
-        sel_start, sel_end );
+	    key, modifiers, substring_start, substring_end,insertion_pt,
+	    sel_start, sel_end );
 
   if ( key == GLUT_KEY_UP )  // PREVIOUS HISTORY
   {
@@ -188,10 +189,10 @@ void    GLUI_CommandLine::reset_history( void )
 void   GLUI_CommandLine::dump( FILE *out, const char *name )
 {
   fprintf( out,
-       "%s (commandline@%p):  ins_pt:%d  subs:%d/%d  sel:%d/%d   len:%d\n",
-       name, this,
-       insertion_pt, substring_start, substring_end, sel_start, sel_end,
-       (int)text.length());
+	   "%s (commandline@%p):  ins_pt:%d  subs:%d/%d  sel:%d/%d   len:%d\n",
+	   name, this,
+	   insertion_pt, substring_start, substring_end, sel_start, sel_end,
+	   (int)text.length());
 }
 
 

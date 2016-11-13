@@ -13,24 +13,25 @@
   WWW:    http://sourceforge.net/projects/glui/
   Forums: http://sourceforge.net/forum/?group_id=92496
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  1. The origin of this software must not be misrepresented; you must not
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+  misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
 
 *****************************************************************************/
 
-#include "GL/glui.h"
-#include "glui_internal.h"
+#include "glui_internal_control.h"
 
 /********************** GLUI_Mouse_Interaction::mouse_down_handler() ******/
 
@@ -38,9 +39,10 @@ int    GLUI_Mouse_Interaction::mouse_down_handler( int local_x, int local_y )
 {
   /* int win_h = glutGet( GLUT_WINDOW_HEIGHT ); */
 
-  /*    iaction_mouse_down_handler( local_x, local_y );              */
+  /*	iaction_mouse_down_handler( local_x, local_y );              */
   iaction_mouse_down_handler( local_x-x_abs, local_y-y_abs );
   /*local_x-x_abs, ((glui->h-local_y)-y_abs) );              */
+  redraw();
 
   return false;
 }
@@ -58,11 +60,11 @@ int    GLUI_Mouse_Interaction::mouse_up_handler( int local_x, int local_y, bool 
 /****************************** GLUI_Mouse_Interaction::mouse_held_down_handler() ******/
 
 int    GLUI_Mouse_Interaction::mouse_held_down_handler( int local_x, int local_y,
-                            bool inside)
+							bool inside)
 {
   iaction_mouse_held_down_handler( local_x-x_abs, local_y-y_abs , inside );
 
-  draw_active_area();
+  redraw();
 
   /** Tell the main graphics window to update iteself **/
   if( glui )
@@ -79,20 +81,14 @@ int    GLUI_Mouse_Interaction::mouse_held_down_handler( int local_x, int local_y
 
 void    GLUI_Mouse_Interaction::draw( int x, int y )
 {
-  int orig;
-  int text_width    = string_width( this->name );
-  int x_left            = this->w/2 - text_width/2;
-
-  if ( NOT glui )
-    return;
+  GLUI_DRAWINGSENTINAL_IDIOM
+  int text_width	= string_width( this->name );
+  int x_left			= this->w/2 - text_width/2;
 
   if ( NOT draw_active_area_only ) {
-    orig = set_to_glut_window();
     draw_name( x_left, h-4 );
-    restore_window(orig);
-
     draw_active_box( x_left-4, x_left+string_width( name )+4,
-             h, h-14 );
+		     h, h-14 );
   }
 
   draw_active_area();
@@ -130,7 +126,6 @@ int    GLUI_Mouse_Interaction::special_handler( int key,int modifiers )
   drag_x   = 0;
   drag_y   = 0;
 
-
   if ( key == GLUT_KEY_LEFT )
     drag_x = -6;
   else if ( key == GLUT_KEY_RIGHT )
@@ -154,15 +149,7 @@ int    GLUI_Mouse_Interaction::special_handler( int key,int modifiers )
 
 void    GLUI_Mouse_Interaction::draw_active_area( void )
 {
-  int orig;
   int win_h = glutGet( GLUT_WINDOW_HEIGHT ), win_w = glutGet(GLUT_WINDOW_WIDTH);
-
-  if ( NOT glui )
-    return;
-
-  /*putchar( 'X' ); flushout;              */
-
-  orig = set_to_glut_window();
 
   int text_height = 18; /* what a kludge              */
 
@@ -197,18 +184,20 @@ void    GLUI_Mouse_Interaction::draw_active_area( void )
     offset = 1;
 
   glViewport( this->x_abs + (this->w-viewport_size)/2 + offset,
-          win_h - this->y_abs - this->h + text_height,
-          viewport_size, viewport_size );
+	      win_h - this->y_abs - this->h + text_height,
+	      viewport_size, viewport_size );
 
   glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
-  glFrustum( -1.0*.08, 1.0*.08, -.08, .08, .1, 8.0 );
+  double xy=1.00,zc=50.0; /* X-Y size, and Z origin */
+  glFrustum( -1.0*xy, 1.0*xy, -xy, xy, zc*0.7, zc*1.3 );
   glMatrixMode( GL_MODELVIEW );
   glPushMatrix();
   glLoadIdentity();
-  glTranslatef( 0.0, 0.0, -3.2f );
+  glTranslatef( 0.0, 0.0, -zc );
+  glScalef(xy,xy,1.0); // xy);
 
-  /*    glutSolidTeapot( 1.0 );              */
+  /*	glutSolidTeapot( 1.0 );              */
   iaction_draw_active_area_persp();
 
   glMatrixMode( GL_MODELVIEW );
@@ -219,7 +208,5 @@ void    GLUI_Mouse_Interaction::draw_active_area( void )
 
   glMatrixMode( GL_MODELVIEW );
   glPopMatrix();
-
-  restore_window(orig);
 }
 

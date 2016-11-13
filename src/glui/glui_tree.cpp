@@ -10,14 +10,23 @@
 
   Copyright (c) 1998 Paul Rademacher
 
-  This program is freely distributable without licensing fees and is
-  provided without guarantee or warrantee expressed or implied. This
-  program is -not- in the public domain.
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 *****************************************************************************/
 
-#include "GL/glui.h"
-#include "glui_internal.h"
+#include "glui_internal_control.h"
 
 
 /****************************** GLUI_Tree::GLUI_Tree() **********/
@@ -47,19 +56,13 @@ GLUI_Tree::GLUI_Tree(GLUI_Node *parent, const char *name,
 
 /****************************** GLUI_Tree::open() **********/
 
-void    GLUI_Tree::open( void )
+void GLUI_Tree::open( void )
 {
-  int orig;
-
-  if ( NOT glui )
-    return;
-
   if ( is_open )
     return;
-
   is_open = true;
 
-  orig = set_to_glut_window();
+  GLUI_DRAWINGSENTINAL_IDIOM
 
   child_head = collapsed_node.child_head;
   child_tail = collapsed_node.child_tail;
@@ -72,8 +75,6 @@ void    GLUI_Tree::open( void )
   }
 
   glui->refresh();
-
-  restore_window(orig);
 }
 
 
@@ -81,15 +82,14 @@ void    GLUI_Tree::open( void )
 
 void    GLUI_Tree::close( void )
 {
-  int orig;
-
   if ( NOT glui )
     return;
 
   if ( NOT is_open )
     return;
+  is_open = false;
 
-  orig = set_to_glut_window();
+  GLUI_DRAWINGSENTINAL_IDIOM
 
   if ( child_head != NULL ) {
     ((GLUI_Control*) child_head)->hide_internal( true );
@@ -101,11 +101,7 @@ void    GLUI_Tree::close( void )
   child_head = NULL;
   child_tail = NULL;
 
-  restore_window(orig);
-
   this->h = GLUI_DEFAULT_CONTROL_HEIGHT + 7;
-
-  is_open = false;
 
   glui->refresh();
 }
@@ -123,8 +119,25 @@ int   GLUI_Tree::mouse_down_handler( int local_x, int local_y )
 
   currently_inside = true;
   initially_inside = true;
+  redraw();
 
-  draw_pressed();
+  return false;
+}
+
+/**************************** GLUI_Tree::mouse_held_down_handler() ****/
+
+int  GLUI_Tree::mouse_held_down_handler(
+                       int local_x, int local_y,
+                       bool new_inside )
+{
+  if ( NOT initially_inside )
+    return false;
+
+  if ( local_y - y_abs> 18 )
+    new_inside = false;
+
+  if (currently_inside != new_inside)
+    redraw();
 
   return false;
 }
@@ -134,8 +147,6 @@ int   GLUI_Tree::mouse_down_handler( int local_x, int local_y )
 
 int   GLUI_Tree::mouse_up_handler( int local_x, int local_y, bool inside )
 {
-  draw_unpressed();
-
   if ( currently_inside ) {
     if ( is_open )
       close();
@@ -143,7 +154,9 @@ int   GLUI_Tree::mouse_up_handler( int local_x, int local_y, bool inside )
       open();
   }
 
+  currently_inside = false;
   initially_inside = false;
+  redraw();
 
   return false;
 }
@@ -153,12 +166,8 @@ int   GLUI_Tree::mouse_up_handler( int local_x, int local_y, bool inside )
 
 void   GLUI_Tree::draw( int x, int y )
 {
-  int orig, left, right, top, bottom, delta_x;
-
-  if ( NOT can_draw() )
-    return;
-
-  orig = set_to_glut_window();
+  GLUI_DRAWINGSENTINAL_IDIOM
+  int left, right, top, bottom, delta_x;
 
   left   = 5;
   right  = w-left;
@@ -169,7 +178,7 @@ void   GLUI_Tree::draw( int x, int y )
   glui->draw_raised_box( left, top, 16, 16 );
 
   if ( glui )
-    glColor3ub(glui->bkgd_color.r,glui->bkgd_color.g,glui->bkgd_color.b);
+    glColor3ubv(glui->bkgd_color);
   glDisable( GL_CULL_FACE );
   glBegin( GL_QUADS );
   glVertex2i( left+17, top+1 );      glVertex2i( right-1, top+1 );
@@ -189,7 +198,7 @@ void   GLUI_Tree::draw( int x, int y )
 
   if ( active )
     draw_active_box( left+22, delta_x+left+string_width( name )+32,
-             top, bottom-2 );
+		     top, bottom-2 );
 
 
   /**   Draw '+' or '-'  **/
@@ -198,11 +207,11 @@ void   GLUI_Tree::draw( int x, int y )
   if ( is_open ) {
     if ( enabled )
       if (is_current)
-    glColor3f( 0, 0, 1 );
+	glColor3f( 0, 0, 1 );
       else
-    glColor3f( 0.0, 0.0, 0.0 );
+	glColor3f( 0.0, 0.0, 0.0 );
     else
-    glColor3f( 0.5, 0.5, 0.5 );
+	glColor3f( 0.5, 0.5, 0.5 );
     glVertex2i(left+4,(top+bottom)/2);  glVertex2i(left+13,(top+bottom)/2);
 
     glColor3f( 1.0, 1.0, 1.0 );
@@ -216,9 +225,9 @@ void   GLUI_Tree::draw( int x, int y )
 
     if ( enabled )
       if (is_current)
-    glColor3f( 0, 0, 1 );
+	glColor3f( 0, 0, 1 );
       else
-    glColor3f( 0.0, 0.0, 0.0 );
+	glColor3f( 0.0, 0.0, 0.0 );
     else
       glColor3f( 0.5, 0.5, 0.5 );
     glVertex2i(left+4,-1+(top+bottom)/2);
@@ -230,7 +239,7 @@ void   GLUI_Tree::draw( int x, int y )
 
   glLineWidth( 1.0 );
 
-  restore_window(orig);
+  if (currently_inside) draw_pressed();
 }
 
 
@@ -251,8 +260,6 @@ void   GLUI_Tree::update_size( void )
 
   if ( w < text_size + 36 + delta_x)
     w = text_size + 36 + delta_x;
-
-
 }
 
 
@@ -260,7 +267,6 @@ void   GLUI_Tree::update_size( void )
 
 void   GLUI_Tree::draw_pressed( void )
 {
-  int state, orig;
   int left, right, top, bottom;
 
   left   = 5;
@@ -268,15 +274,7 @@ void   GLUI_Tree::draw_pressed( void )
   top    = 3;
   bottom = 3+16;
 
-  if ( NOT can_draw() )
-    return;
-
-  orig  = set_to_glut_window();
-  state = glui->set_front_draw_buffer();
-
   glColor3f( 0.0, 0.0, 0.0 );
-  glPushMatrix();
-  translate_to_origin();
 
   glBegin( GL_LINE_LOOP );
   glVertex2i( left, top );         glVertex2i( right, top );
@@ -287,46 +285,4 @@ void   GLUI_Tree::draw_pressed( void )
   glVertex2i( left+1, top+1 );         glVertex2i( right-1, top+1 );
   glVertex2i( right-1, bottom-1 );     glVertex2i( left+1,bottom-1 );
   glEnd();
-
-  glPopMatrix();
-
-  glui->restore_draw_buffer(state);
-  restore_window(orig);
-
-}
-
-
-/**************************** GLUI_Tree::draw_unpressed() ***********/
-
-void   GLUI_Tree::draw_unpressed( void )
-{
-  if ( NOT can_draw() )
-    return;
-
-  translate_and_draw_front();
-}
-
-
-/**************************** GLUI_Tree::mouse_held_down_handler() ****/
-
-int  GLUI_Tree::mouse_held_down_handler(
-                       int local_x, int local_y,
-                       bool new_inside )
-{
-  if ( NOT initially_inside )
-    return false;
-
-  if ( local_y - y_abs> 18 )
-    new_inside = false;
-
-  if ( NOT new_inside AND currently_inside ) {
-    draw_unpressed();
-  }
-  else if ( new_inside AND !currently_inside ) {
-    draw_pressed();
-  }
-
-  currently_inside = new_inside;
-
-  return false;
 }

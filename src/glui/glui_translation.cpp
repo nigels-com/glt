@@ -13,19 +13,21 @@
   WWW:    http://sourceforge.net/projects/glui/
   Forums: http://sourceforge.net/forum/?group_id=92496
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any damages
+  arising from the use of this software.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  1. The origin of this software must not be misrepresented; you must not
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+  misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
 
 *****************************************************************************/
 
@@ -70,7 +72,7 @@ GLUI_Translation::GLUI_Translation(
 /*  These are really in local coords (5/10/99)                            */
 
 int    GLUI_Translation::iaction_mouse_down_handler( int local_x,
-                             int local_y )
+						     int local_y )
 {
   int center_x, center_y;
 
@@ -115,7 +117,7 @@ int    GLUI_Translation::iaction_mouse_down_handler( int local_x,
   }
 
   trans_mouse_code = 1;
-  translate_and_draw_front();
+  redraw();
 
   return false;
 }
@@ -124,12 +126,12 @@ int    GLUI_Translation::iaction_mouse_down_handler( int local_x,
 /*********************** GLUI_Translation::iaction_mouse_up_handler() **********/
 
 int    GLUI_Translation::iaction_mouse_up_handler( int local_x, int local_y,
-                           bool inside )
+						   bool inside )
 {
   trans_mouse_code = GLUI_TRANSLATION_MOUSE_NONE;
   locked = GLUI_TRANSLATION_LOCK_NONE;
 
-  translate_and_draw_front();
+  redraw();
 
   return false;
 }
@@ -138,7 +140,7 @@ int    GLUI_Translation::iaction_mouse_up_handler( int local_x, int local_y,
 /******************* GLUI_Translation::iaction_mouse_held_down_handler() ******/
 
 int    GLUI_Translation::iaction_mouse_held_down_handler( int local_x, int local_y,
-                              bool inside)
+							  bool inside)
 {
   float x_off, y_off;
   float off_array[2];
@@ -186,8 +188,6 @@ int    GLUI_Translation::iaction_mouse_held_down_handler( int local_x, int local
 
 void    GLUI_Translation::iaction_draw_active_area_persp( void )
 {
-  if ( NOT can_draw() )
-    return;
 }
 
 
@@ -195,16 +195,13 @@ void    GLUI_Translation::iaction_draw_active_area_persp( void )
 
 void    GLUI_Translation::iaction_draw_active_area_ortho( void )
 {
-  if ( NOT can_draw() )
-    return;
-
   /********* Draw emboss circles around arcball control *********/
   float radius;
   radius = (float)(h-22)/2.0;  /*  MIN((float)w/2.0, (float)h/2.0); */
   glLineWidth( 1.0 );
 
   draw_emboss_box( (int) -radius-2, (int)radius+2,
-           (int)-radius-2, (int)radius+2 );
+		   (int)-radius-2, (int)radius+2 );
 
   glMatrixMode( GL_MODELVIEW );
   glPushMatrix();
@@ -358,10 +355,10 @@ void    GLUI_Translation::draw_2d_arrow( int radius, int filled, int orientation
 
   if ( glui )
     bkgd.set(glui->bkgd_color_f[0],
-         glui->bkgd_color_f[1],
-         glui->bkgd_color_f[2]);
+	     glui->bkgd_color_f[1],
+	     glui->bkgd_color_f[2]);
 
-  /*    bkgd[0] = 255.0; bkgd[1] = 0;              */
+  /*	bkgd[0] = 255.0; bkgd[1] = 0;              */
 
   /** The following 8 colors define the shading of an octagon, in
     clockwise order, starting from the upstroke on the left  **/
@@ -464,11 +461,11 @@ void    GLUI_Translation::draw_2d_arrow( int radius, int filled, int orientation
   glBegin( GL_LINES );
 
   SET_COL_IN(1+c_off);  DRAW_SEG( 0.0, y2-1.0, -x2, y1-1.0 );
-  SET_COL_IN(6+c_off);  DRAW_SEG( -x2+2.0, y1+1.0, -x1b+1.0, y1+1.0 );
-  SET_COL_IN(0+c_off);  DRAW_SEG( -x1b+1.0, y1+1.0, -x1a+1.0, y0 );
-  SET_COL_IN(3+c_off);  DRAW_SEG( 0.0, y2-1.0, x2, y1-1.0 );
-  SET_COL_IN(6+c_off);  DRAW_SEG( x2-1.0, y1+1.0, x1b-1.0, y1+1.0 );
-  SET_COL_IN(4+c_off);  DRAW_SEG( x1b-1.0, y1+1.0, x1a-1.0, y0 );
+  SET_COL_IN(6+c_off);	DRAW_SEG( -x2+2.0, y1+1.0, -x1b+1.0, y1+1.0 );
+  SET_COL_IN(0+c_off);	DRAW_SEG( -x1b+1.0, y1+1.0, -x1a+1.0, y0 );
+  SET_COL_IN(3+c_off);	DRAW_SEG( 0.0, y2-1.0, x2, y1-1.0 );
+  SET_COL_IN(6+c_off);	DRAW_SEG( x2-1.0, y1+1.0, x1b-1.0, y1+1.0 );
+  SET_COL_IN(4+c_off);	DRAW_SEG( x1b-1.0, y1+1.0, x1a-1.0, y0 );
 
   SET_COL_OUT(0+c_off);  DRAW_SEG( -x1a, y0, -x1b, y1  );
   SET_COL_OUT(6+c_off);  DRAW_SEG( -x1b, y1,  -x2, y1  );
@@ -544,7 +541,7 @@ void  GLUI_Translation::set_one_val( float val, int index )
 {
   float *fp;
 
-  float_array_val[index] = val;   /* set value in array              */
+  float_array_val[index] = val;	  /* set value in array              */
 
   /*** The code below is like output_live, except it only operates on
     a single member of the float array (given by 'index') instead of
