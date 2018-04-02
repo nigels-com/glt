@@ -84,6 +84,11 @@
 #define GLT_LITTLE_ENDIAN
 #endif
 
+#if defined(__linux__) && defined(__x86_64__)
+#define GLT_UNIX
+#define GLT_LITTLE_ENDIAN
+#endif
+
 //
 // Mac OSX PPC Config
 //
