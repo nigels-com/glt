@@ -446,7 +446,7 @@ bool GlutMain(const std::vector<std::string> &arg)
     return true;
 }
 
-char *GltChaos::_demoID[] = {
+const char * const GltChaos::_demoID[] = {
     "EBCQAFMFVPXKQ",
     "ECDJXIYLSYQUM",
     "ECVQKGHQTPHTE",

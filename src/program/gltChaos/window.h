@@ -82,8 +82,8 @@ private:
     std::vector<ChaosSystem> _animation;      // Animation keyframes
     uint32                   _animationFrame; // For output filename
 
-    static uint32 _demoSeed[];  // Saved configurations
-    static char  *_demoID[];    // Book examples
+    static uint32             _demoSeed[];  // Saved configurations
+    static const char * const _demoID[];    // Book examples
 };
 
 #endif
