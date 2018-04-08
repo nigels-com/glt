@@ -288,7 +288,9 @@ bool encodeTGA(std::string &data,const uint32 width,const uint32 height,const st
     \param      height   Image height
     \param      image    Input image buffer
 */
-bool encodePNG(std::string &data,const uint32 &width,const uint32 &height,const std::string &image);
+bool encodePNG(std::string &data, const uint32 &width, const uint32 &height, const std::string &image);
+
+bool encodePNG(std::string &data, const uint32 &width, const uint32 &height, const std::vector<uint8_t> &image);
 
 #endif
 

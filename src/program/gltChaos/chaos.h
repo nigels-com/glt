@@ -4,8 +4,9 @@
 /*
 
   Glt OpenGL C++ Toolkit (Glt)
-  Copyright (C) 2001 Nigel Stewart
-  Email: nigels.com@gmail.com   WWW: http://www.nigels.com/glt/
+  Copyright (C) 2001-2018 Nigel Stewart
+  Email: nigel@nigels.com
+  WWW: http://www.nigels.com/glt/gltchaos/
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -39,41 +40,42 @@ public:
 
     void mutate(const double m);        // Randomly change coefficients
 
-    void interpolate(const ChaosSystem &other, const double t); // Interpolate between a pair of systems
+    void interpolate(const ChaosSystem & other, const double t); // Interpolate between a pair of systems
 
-    void advancexy(const double x,const double y,double &xn,double &yn) const;
+    void advancexy(const double x, const double y, double &xn, double &yn) const;
 
     void findSize();
-    ChaosSystem &operator=(const ChaosSystem &sys);
+
+    ChaosSystem & operator=(const ChaosSystem & sys);
 
     uint32 lastSeed() const;
 
     void draw
     (
-        unsigned int *image,
-        const int width,
-        const int height,
-        const double minx,
-        const double miny,
-        const double maxx,
-        const double maxy,
+        unsigned int * image,
+        const int      width,
+        const int      height,
+        const double   minx,
+        const double   miny,
+        const double   maxx,
+        const double   maxy,
         const std::size_t n
     );
 
     void size
     (
-        double &minx,
-        double &miny,
-        double &maxx,
-        double &maxy
+        double & minx,
+        double & miny,
+        double & maxx,
+        double & maxy
     );
 
 protected:
 
-    double _x,_y;   // Current position
-    double _a[12];  // Quadratic Co-efficients
+    double  _x,_y;   // Current position
+    double  _a[12];  // Quadratic Co-efficients
 
-    uint32                               _lastSeed; // Last seed used for searching
+    uint32 _lastSeed; // Last seed used for searching
 
     // The LCG random number generator has the
     // convenient property that it can be seeded

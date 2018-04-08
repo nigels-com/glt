@@ -16,7 +16,7 @@ ChaosSystem::ChaosSystem()
 {
 }
 
-void ChaosSystem::advancexy(const double x,const double y,double &xn,double &yn) const
+void ChaosSystem::advancexy(const double x, const double y, double & xn, double & yn) const
 {
     xn = _a[0] + _a[1]*x + _a[2]*x*x + _a[3]*x*y + _a[ 4]*y + _a[ 5]*y*y;
     yn = _a[6] + _a[7]*x + _a[8]*x*x + _a[9]*x*y + _a[10]*y + _a[11]*y*y;
@@ -87,8 +87,8 @@ void ChaosSystem::findSize()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glScaled(0.9,0.9,1.0);
-    glOrtho(xmin,xmax,ymin,ymax,-1.0,1.0);
+    glScaled(0.9, 0.9, 1.0);
+    glOrtho(xmin, xmax, ymin, ymax, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -196,8 +196,8 @@ void ChaosSystem::set(const uint32 seed)
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glScaled(0.9,0.9,1.0);
-        glOrtho(xmin,xmax,ymin,ymax,-1.0,1.0);
+        glScaled(0.9, 0.9, 1.0);
+        glOrtho(xmin, xmax, ymin, ymax, -1.0, 1.0);
         glMatrixMode(GL_MODELVIEW);
 
         GLERROR
@@ -292,20 +292,12 @@ ChaosSystem::draw
         int x = int(std::floor((_x-minx)*dx));
         int y = int(std::floor((_y-miny)*dy));
         if (x>=0 && x<width && y>=0 && y<height)
-#if 1
         {
-            unsigned int &pixel = image[x+height*y];
+            unsigned int &pixel = image[x+width*y];
             pixel++;
             if (!pixel)
               pixel--;
         }
-#else
-        {
-            byte &v = data[x+height*y];
-            if (v!=255)
-                v++;
-        }
-#endif
     }
 }
 

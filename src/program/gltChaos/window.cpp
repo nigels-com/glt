@@ -1,6 +1,6 @@
 /*
   GLT OpenGL C++ Toolkit (LGPL)
-  Copyright (C) 2000-2010 Nigel Stewart
+  Copyright (C) 2000-2018 Nigel Stewart
 
   WWW:    http://www.nigels.com/glt/
   Forums: http://sourceforge.net/forum/?group_id=36869
@@ -47,8 +47,8 @@ GltChaos::GltChaos(int width,int height,int x,int y)
    _doClear(false),
    _animationFrame(0)
 {
-    _undo.resize(100);
-    _redo.resize(100);
+    _undo.resize(1000);
+    _redo.resize(1000);
 }
 
 GltChaos::~GltChaos()
@@ -140,6 +140,7 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
 {
     switch (key)
     {
+    // Mutation - small and large
     case 'm':
         _undo.push_front(*this);
         _redo.clear();
@@ -158,6 +159,7 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
         redraw();
         break;
 
+    // Undo/Redo
     case 'u':
         if (_undo.size())
         {
@@ -184,6 +186,7 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
         }
         break;
 
+    // Random
     case ' ':
         {
             _undo.push_front(*this);
@@ -293,51 +296,37 @@ GltChaos::OnKeyboard(unsigned char key, int x, int y)
             output(svg,"p",40000);
 #endif
 
-#if 1
-#if 1
-#if 1
-            const int width  = 8192;
-            const int height = 8192;
-#else
-            const int width  = 4096;
-            const int height = 4096;
-#endif
-#else
-            const int width  = 2048;
-            const int height = 2048;
-#endif
-#else
-            const int width  = 512;
-            const int height = 512;
-#endif
+            const uint64_t width  = 1920;
+            const uint64_t height = 1080;
+            const uint64_t pixels = width*height;
 
-            unsigned int *image = new unsigned int [width*height];
-            std::memset(image,0,width*height*sizeof(unsigned int));
+            std::vector<unsigned int> image;
+            image.resize(pixels);
 
-            double minx,miny,maxx,maxy;
+            double minx, miny, maxx, maxy;
             size(minx,miny,maxx,maxy);
 
-            draw(image,width,height,minx,miny,maxx,maxy,std::size_t(width)*height*200);
+            draw(&image[0], width, height, minx, miny, maxx, maxy, pixels*500);
 
             unsigned int limit = 0;
-            for (unsigned int i=0; i<width*height; ++i)
-                limit = std::max(limit,image[i]);
+            for (uint64_t i=0; i<pixels; ++i)
+                limit = std::max(limit, image[i]);
+            limit = std::max<unsigned int>(limit/4, 1);
 
-            std::string tmp;
-            tmp.resize(width*height);
-            byte *p = (byte *) tmp.data();
+            std::vector<uint8_t> tmp;
+            tmp.resize(pixels);
 
-            for (unsigned int i=0; i<width*height; ++i)
-                p[i] =(int)  std::floor(std::pow(float(image[i])/limit,0.5f)*255.9);
+            for (uint64_t i=0; i<pixels; ++i)
+                tmp[i] = (int) std::floor(std::pow(std::min(float(image[i])/limit, 1.0f), 0.4f)*255.9);
 
             std::string data;
-            if (encodePNG(data,width,height,tmp))
+            if (encodePNG(data, width, height, tmp))
             {
                 string filename;
                 sprintf(filename,"%u.png",_animationFrame++);
 
                 ofstream os(filename.c_str(),ios::binary);
-                writeStream(os,data);
+                os.write(data.data(), data.size());
             }
             break;
         }
@@ -387,6 +376,22 @@ GltChaos::OnSpecial(int key, int x, int y)
     case GLUT_KEY_LEFT:  prevDemo(); break;
     case GLUT_KEY_RIGHT: nextDemo(); break;
     case GLUT_KEY_HOME:  redraw();   break;
+    case GLUT_KEY_PAGE_UP:
+        _undo.push_front(*this);
+        _redo.clear();
+        _a[3] += 0.01;
+        _doClear  = true;
+        _demoMode = false;
+        redraw();
+        break;
+    case GLUT_KEY_PAGE_DOWN:
+        _undo.push_front(*this);
+        _redo.clear();
+        _a[3] -= 0.01;
+        _doClear  = true;
+        _demoMode = false;
+        redraw();
+        break;
     default:             GlutWindow::OnSpecial(key,x,y);
     }
 }
@@ -432,7 +437,7 @@ bool GlutMain(const std::vector<std::string> &arg)
     cout << "gltChaos 0.6" << endl;
     cout << endl;
     cout << "gltChaos" << endl;
-    cout << "(C) 2001-2010 Nigel Stewart (nigels.com@gmail.com)" << endl;
+    cout << "(C) 2001-2018 Nigel Stewart (nigels@nigels.com)" << endl;
     cout << "Source code available under terms of LGPL." << endl;
     cout << "For updates, source code and information:" << endl;
     cout << "http://www.nigels.com/glt/gltchaos" << endl;

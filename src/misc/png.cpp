@@ -220,7 +220,68 @@ decodePNG(uint32 &width,uint32 &height,std::string &image,const std::string &dat
 }
 
 bool
-encodePNG(std::string &data,const uint32 &width,const uint32 &height,const std::string &image)
+encodePNG(std::string &data, const uint32 &width, const uint32 &height, const std::string &image)
+{
+    png_structp png_ptr =
+        png_create_write_struct(PNG_LIBPNG_VER_STRING,(png_voidp) NULL,NULL,NULL);
+
+    if (!png_ptr)
+        return false;
+
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+
+    if (!info_ptr)
+    {
+        png_destroy_write_struct(&png_ptr,(png_infopp)NULL);
+            return false;
+    }
+
+    {
+        GltPngWriter write(data, png_ptr);
+
+        const int channels   = image.size()/(width*height);
+        const int bit_depth  = 8;
+              int color_type = -1;
+
+        switch (channels)
+        {
+            case 1: color_type = PNG_COLOR_TYPE_GRAY;       break;
+            case 2: color_type = PNG_COLOR_TYPE_GRAY_ALPHA; break;
+            case 3: color_type = PNG_COLOR_TYPE_RGB;        break;
+            case 4: color_type = PNG_COLOR_TYPE_RGB_ALPHA;  break;
+        }
+
+        assert(color_type!=-1);
+
+        png_set_IHDR(
+            png_ptr,info_ptr,width,height,bit_depth,color_type,
+            PNG_INTERLACE_ADAM7,PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+        png_set_strip_16(png_ptr);
+        png_set_packing(png_ptr);
+
+        uint64_t rowbytes = image.size()/height;
+        assert(image.size()==rowbytes*height);
+
+        const char **row_pointers = (const char **) malloc(height*sizeof(char *));
+        for(uint32 i=0; i<height; i++)
+            row_pointers[i] = image.c_str() + rowbytes*(height-1-i);
+
+        png_write_info(png_ptr, info_ptr);
+        png_write_image(png_ptr,(png_bytepp) row_pointers);
+        png_write_end(png_ptr,info_ptr);
+
+        free(row_pointers);
+    }
+
+    free(info_ptr);
+    free(png_ptr);
+
+    return true;
+}
+
+bool
+encodePNG(std::string &data,const uint32 &width,const uint32 &height,const std::vector<uint8_t> & image)
 {
     png_structp png_ptr =
         png_create_write_struct(PNG_LIBPNG_VER_STRING,(png_voidp) NULL,NULL,NULL);
@@ -260,12 +321,12 @@ encodePNG(std::string &data,const uint32 &width,const uint32 &height,const std::
         png_set_strip_16(png_ptr);
         png_set_packing(png_ptr);
 
-        int rowbytes = image.size()/height;
+        const size_t rowbytes = image.size()/height;
         assert(image.size()==rowbytes*height);
 
         const char **row_pointers = (const char **) malloc(height*sizeof(char *));
         for(uint32 i=0;i<height;i++)
-            row_pointers[i] = image.c_str() + rowbytes*(height-1-i);
+            row_pointers[i] = reinterpret_cast<const char *>(image.data() + rowbytes*(height-1-i));
 
         png_write_info(png_ptr, info_ptr);
         png_write_image(png_ptr,(png_bytepp) row_pointers);
