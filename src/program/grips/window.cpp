@@ -312,12 +312,13 @@ Grips::settings()
             particles->add(_radiusScale,0.2    ,"radiusScale");
 
             GltFields *shadows = new GltFields("shadows");
-            shadows->add(_display.shadows,      "shadows"      );
-            shadows->add(_display.reflections,  "reflections"  );
-            shadows->add(_display.stencil,      "stencil"      );
-            shadows->add(_display.selfShadows , "selfShadows"  );
-            shadows->add(_display.shadowVolumes,"shadowVolumes");
-            shadows->add(_display.shadowPlane,  "shadowPlane"  );
+            shadows->add(_display.shadows,         "shadows"       );
+            shadows->add(_display.reflections,     "reflections"   );
+            shadows->add(_display.reflectionPlane, "reflectionlane");
+            shadows->add(_display.stencil,         "stencil"       );
+            shadows->add(_display.selfShadows ,    "selfShadows"   );
+            shadows->add(_display.shadowVolumes,   "shadowVolumes" );
+            shadows->add(_display.shadowPlane,     "shadowPlane"   );
 
         display->add(particles);
 
@@ -486,7 +487,7 @@ Grips::drawReflections() const
 
         glPushMatrix();
 
-            matrixMirror(-10*VectorZ,VectorZ).glMultMatrix();
+            matrixMirror(_display.reflectionPlane,_display.reflectionPlane).glMultMatrix();
 
             _light0.set();
             _light1.set();
