@@ -9,6 +9,7 @@
 */
 
 #include <cstdlib>
+#include <cstring>
 
 #include <list>
 #include <cassert>

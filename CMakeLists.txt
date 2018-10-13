@@ -1,3 +1,11 @@
+project(glt)
+
+cmake_minimum_required(VERSION 2.8.12)
+
+# Conan Preamble
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
 # GLT BUILD OPTIONS
 
 #ADD_DEFINITIONS(-DGLT_UNICODE)
@@ -40,53 +48,14 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 ################ Dependencies
 
-# OpenGL
+find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(PNG REQUIRED)
+find_package(JPEG REQUIRED)
 
-INCLUDE (${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
-IF (OPENGL_FOUND)
-    SET(OPENGL_LIBRARIES GLEW ${OPENGL_LIBRARIES})
-    MESSAGE(STATUS " OpenGL detected: ${OPENGL_LIBRARIES}" )
-ELSE (OPENGL_FOUND)
-    MESSAGE(ERROR " OpenGL not detected")
-ENDIF (OPENGL_FOUND)
-
-# Detect local freeglut, GLUT or system GLUT
-
-#IF (EXISTS src/freeglut)
-#    ADD_DEFINITIONS(-DGLUTM_FREEGLUT)
-#    IF (WIN32)
-#        ADD_DEFINITIONS(-DFREEGLUT_STATIC)
-#    ENDIF (WIN32)
-#    SET(GLUT_LIBRARIES freeglut ${OPENGL_LIBRARIES})
-#   MESSAGE(STATUS " GLUT detected: ${GLUT_LIBRARIES}")
-#ENDIF (EXISTS src/freeglut)
-
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-ELSE (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    IF (EXISTS src/glut)
-        ADD_DEFINITIONS(-DGLUTM_GLUT)
-        IF (WIN32)
-            ADD_DEFINITIONS(-DGLUT_NO_LIB_PRAGMA)
-            SET(GLUT_LIBRARIES glut ${OPENGL_LIBRARIES})
-            SET(GLUT_LIBRARIES ${GLUT_LIBRARIES} winmm ws2_32 gdi32)
-        ELSE (WIN32)
-        SET(GLUT_LIBRARIES glut Xmu ${OPENGL_LIBRARIES})
-        ENDIF (WIN32)
-    ENDIF (EXISTS src/glut)
-ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-IF (GLUT_LIBRARIES)
-ELSE (GLUT_LIBRARIES)
-   INCLUDE (${CMAKE_ROOT}/Modules/FindGLUT.cmake)
-   IF (GLUT_FOUND)
-       ADD_DEFINITIONS(-DGLUTM_GLUT)
-       SET(GLUT_LIBRARIES ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
-   ELSE (GLUT_FOUND)
-        MESSAGE(ERROR " GLT depends on GLUT or freeglut.")
-   ENDIF (GLUT_FOUND)
-ENDIF(GLUT_LIBRARIES)
-
-MESSAGE(STATUS " GLUT detected: ${GLUT_LIBRARIES}")
+ADD_DEFINITIONS(-DGLT_ZLIB -DGLT_PNG -DGLT_JPEG)
 
 # GLUI
 
@@ -99,43 +68,6 @@ ELSE (EXISTS ${ROOT}/src/glui)
     MESSAGE(STATUS " not using glui.")
 ENDIF (EXISTS ${ROOT}/src/glui)
 
-# ZLIB
-
-IF (EXISTS ${ROOT}/src/zlib)
-    ADD_SUBDIRECTORY(${ROOT}/src/zlib)
-    ADD_DEFINITIONS(-DGLT_ZLIB)
-    INCLUDE_DIRECTORIES(${ROOT}/src/zlib)
-    SET(ZLIB_FOUND 1)
-    SET(ZLIB_LIBRARIES z)
-    MESSAGE(STATUS " ZLIB detected: ${ZLIB_LIBRARIES}")
-ELSE (EXISTS ${ROOT}/src/zlib)
-    INCLUDE (${CMAKE_ROOT}/Modules/FindZLIB.cmake)
-    IF (ZLIB_FOUND)
-        ADD_DEFINITIONS(-DGLT_ZLIB)
-        MESSAGE(STATUS " ZLIB detected: ${ZLIB_LIBRARIES}")
-    ELSE (ZLIB_FOUND)
-        MESSAGE(ERROR " GLT depends on zlib.")
-    ENDIF (ZLIB_FOUND)
-ENDIF (EXISTS ${ROOT}/src/zlib)
-
-# PNG
-
-IF (EXISTS ${ROOT}/src/png)
-    ADD_SUBDIRECTORY(${ROOT}/src/png)
-    ADD_DEFINITIONS(-DGLT_PNG)
-    INCLUDE_DIRECTORIES(${ROOT}/src/png)
-    SET(PNG_LIBRARIES png ${ZLIB_LIBRARIES})
-    MESSAGE(STATUS " PNG detected: ${PNG_LIBRARIES}")
-ELSE (EXISTS ${ROOT}/src/png)
-    INCLUDE (${CMAKE_ROOT}/Modules/FindPNG.cmake)
-    IF (PNG_FOUND)
-        ADD_DEFINITIONS(-DGLT_PNG)
-        MESSAGE(STATUS " PNG detected: ${PNG_LIBRARIES}")
-    ELSE (PNG_FOUND)
-        MESSAGE(STATUS " PNG not found.")
-    ENDIF (PNG_FOUND)
-ENDIF (EXISTS ${ROOT}/src/png)
-
 # PTYPES
 
 IF (EXISTS ${ROOT}/src/ptypes)
@@ -147,25 +79,6 @@ ELSE (EXISTS ${ROOT}/src/ptypes)
     SET(PTYPES_FOUND 0)
     MESSAGE(STATUS " PTYPES not found.")
 ENDIF (EXISTS ${ROOT}/src/ptypes)
-
-# JPG
-
-IF (EXISTS ${ROOT}/src/jpeg)
-    ADD_SUBDIRECTORY(${ROOT}/src/jpeg)
-    ADD_DEFINITIONS(-DGLT_JPEG)
-    INCLUDE_DIRECTORIES(${ROOT}/src/jpeg)
-    SET(JPEG_LIBRARIES jpeg)
-    MESSAGE(STATUS " JPEG detected: ${JPEG_LIBRARIES}")
-ELSE (EXISTS ${ROOT}/src/jpeg)
-    SET(JPEG_FIND_QUIETLY 1)
-    INCLUDE (${CMAKE_ROOT}/Modules/FindJPEG.cmake)
-    IF (JPEG_FOUND)
-        ADD_DEFINITIONS(-DGLT_JPEG)
-        MESSAGE(STATUS " JPEG detected: ${JPEG_LIBRARIES}")
-    ELSE (JPEG_FOUND)
-        MESSAGE(STATUS " JPEG not found.")
-    ENDIF (JPEG_FOUND)
-ENDIF (EXISTS ${ROOT}/src/jpeg)
 
 # QT4
 
@@ -196,6 +109,7 @@ ADD_LIBRARY(glt ${SOURCES})
 
 SET(GLT_LINK_LIBRARIES glt)
 SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${JPEG_LIBRARIES})
+SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${GLEW_LIBRARIES})
 SET(GLT_LINK_LIBRARIES ${GLT_LINK_LIBRARIES} ${GLUT_LIBRARIES})
 
 IF (PTYPES_FOUND)
@@ -232,18 +146,18 @@ ENDIF (ZLIB_FOUND)
 
 #
 
-IF (EXISTS ${ROOT}/src/glew)
-    ADD_SUBDIRECTORY(${ROOT}/src/glew)
-    ADD_DEFINITIONS(-DGLEW_STATIC)
-ENDIF (EXISTS ${ROOT}/src/glew)
+#IF (EXISTS ${ROOT}/src/glew)
+#    ADD_SUBDIRECTORY(${ROOT}/src/glew)
+#    ADD_DEFINITIONS(-DGLEW_STATIC)
+#ENDIF (EXISTS ${ROOT}/src/glew)
 
-IF (EXISTS src/freeglut)
-    ADD_SUBDIRECTORY(src/freeglut)
-ENDIF (EXISTS src/freeglut)
+#IF (EXISTS src/freeglut)
+#    ADD_SUBDIRECTORY(src/freeglut)
+#ENDIF (EXISTS src/freeglut)
 
-IF (EXISTS src/glut)
-    ADD_SUBDIRECTORY(src/glut)
-ENDIF (EXISTS src/glut)
+#IF (EXISTS src/glut)
+#    ADD_SUBDIRECTORY(src/glut)
+#ENDIF (EXISTS src/glut)
 
 IF (EXISTS ${ROOT}/src/program/test)
     ADD_SUBDIRECTORY(${ROOT}/src/program/test)

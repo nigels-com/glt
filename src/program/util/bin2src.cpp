@@ -366,7 +366,7 @@ bool ufont2src(ostream &os, const string &name, string &data)
         // Find colon
 
         while (*p!=':' && *p!='\0') p++;
-        if (p=='\0') break; else p++;
+        if (*p=='\0') break; else p++;
 
         // Find end-of-line
 

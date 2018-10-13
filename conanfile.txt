@@ -1,0 +1,15 @@
+[requires]
+glut/3.0.0@bincrafters/testing
+libpng/1.6.34@bincrafters/stable
+libjpeg/9c@bincrafters/stable
+glew/2.1.0@bincrafters/stable
+
+[generators]
+cmake
+
+[options]
+glut:shared=False
+libpng:shared=False
+zlib:shared=False
+libjpeg:shared=False
+glew:shared=False
