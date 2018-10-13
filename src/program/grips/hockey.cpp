@@ -133,11 +133,10 @@ EngineHockey::update(ParticleSystem &system) const
                         const double momentum = a._mass * van + b._mass * vbn;
 
                         ///
-
-                            // NOTE
-                            //
-                            // Well it works, but what's this about?
-                            //
+                        // NOTE
+                        //
+                        // Well it works, but what's this about?
+                        //
 
                         const double xxx = _e * (van - vbn);
 
@@ -148,14 +147,14 @@ EngineHockey::update(ParticleSystem &system) const
 
                         // Adjust velocities and continue...
 
-                            // NOTE
-                            //
-                            // We shift the particles forward to the point
-                            // of collision, but we may collide others
-                            // along the way, and these won't be correctly
-                            // handled.  This is a bug in addition to the
-                            // fact that we are incrementing by more than
-                            // the timeframe defined by _dt
+                        // NOTE
+                        //
+                        // We shift the particles forward to the point
+                        // of collision, but we may collide others
+                        // along the way, and these won't be correctly
+                        // handled.  This is a bug in addition to the
+                        // fact that we are incrementing by more than
+                        // the timeframe defined by _dt
 
                         a._position = ca;
                         b._position = cb;

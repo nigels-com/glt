@@ -1,5 +1,4 @@
-#ifndef GRIPS_ROSSLER_H
-#define GRIPS_ROSSLER_H
+#pragma once
 
 #include "integrat.h"
 
@@ -19,6 +18,3 @@ protected:
 
     double _a,_b,_c;
 };
-
-#endif
-

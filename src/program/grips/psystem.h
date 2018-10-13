@@ -1,5 +1,4 @@
-#ifndef GRIPS_PSYSTEM_H
-#define GRIPS_PSYSTEM_H
+#pragma once
 
 #include <vector>
 
@@ -67,5 +66,3 @@ private:
 
     std::vector<Particle> _particle;        // Container of particles
 };
-
-#endif

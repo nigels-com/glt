@@ -22,7 +22,7 @@ Particle::Particle()
     _expired(false),
     _color(white)
 {
-        _trail.resize(100);
+    _trail.resize(100);
 }
 
 Particle::~Particle()
@@ -72,6 +72,3 @@ ostream &operator<<(ostream &os,const Particle &body)
 
     return os;
 }
-
-
-

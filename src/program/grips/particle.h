@@ -1,5 +1,4 @@
-#ifndef GRIPS_PARTICLE_H
-#define GRIPS_PARTICLE_H
+#pragma once
 
 #include <string>
 #include <iosfwd>
@@ -51,10 +50,3 @@ public:
 };
 
 extern std::ostream &printVec(std::ostream &os,const Vector &v);
-
-#endif
-
-
-
-
-

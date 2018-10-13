@@ -1,5 +1,4 @@
-#ifndef GRIPS_LORENZ_H
-#define GRIPS_LORENZ_H
+#pragma once
 
 #include "integrat.h"
 
@@ -19,25 +18,3 @@ protected:
 
     double _r;  // constant parameter
 };
-
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

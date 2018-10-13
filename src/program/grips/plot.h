@@ -1,5 +1,4 @@
-#ifndef GRIPS_PLOT_H
-#define GRIPS_PLOT_H
+#pragma once
 
 #include <math/vector3.h>
 #include <node/field.h>
@@ -41,5 +40,3 @@ private:
 
     static const std::string _plotModeDescription[PLOT_MAX];
 };
-
-#endif

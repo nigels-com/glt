@@ -1,5 +1,4 @@
-#ifndef GRIPS_HOCKEY_H
-#define GRIPS_HOCKEY_H
+#pragma once
 
 #include "integrat.h"
 
@@ -25,5 +24,3 @@ protected:
     GltColor        _wallImpact;
     GltColor        _ballImpact;
 };
-
-#endif

@@ -56,4 +56,3 @@ Plot::settings()
     root->add(_particle,"particle");
     return root;
 }
-

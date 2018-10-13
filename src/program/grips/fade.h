@@ -1,5 +1,4 @@
-#ifndef GRIPS_FADE_H
-#define GRIPS_FADE_H
+#pragma once
 
 #include <node/field.h>
 #include <glt/color.h>
@@ -23,6 +22,3 @@ private:
     bool        _enable;
     GltColor    _color;
 };
-
-#endif
-
